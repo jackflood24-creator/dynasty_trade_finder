@@ -136,18 +136,31 @@ if len(weekly) > 0:
 
     latest = df_feat[df_feat['season'] == df_feat['season'].max()]
     latest = latest[latest['week'] == latest['week'].max()].copy()
-    latest['merge_name'] = latest['player_name'].str.lower().str.strip()
+    latest['merge_name'] = latest['player_name'].str.lower().str.strip().str.replace(r'[.\-\']', '', regex=True)
     print(f"   {len(latest)} players at latest week")
+
+    # Debug: show sample names from both sides
+    print(f"   nflfastr sample names: {latest['merge_name'].head(5).tolist()}")
 
     print("\n🤖 Training models...")
     fc_df = pd.DataFrame(fc_map.values())
-    fc_df['merge_name'] = fc_df['name'].str.lower().str.strip()
+    fc_df['merge_name'] = fc_df['name'].str.lower().str.strip().str.replace(r'[.\-\']', '', regex=True)
+    print(f"   FantasyCalc sample names: {fc_df['merge_name'].head(5).tolist()}")
 
     merged = latest.merge(
         fc_df[['merge_name', 'sleeper_id', 'value', 'trend', 'trendPct', 'age', 'yoe', 'rank', 'posRank']],
         on='merge_name', how='inner'
     )
-    print(f"   {len(merged)} players matched")
+    print(f"   {len(merged)} players matched by name")
+
+    # If merge found very few, show unmatched for debugging
+    if len(merged) < 50:
+        fc_names = set(fc_df['merge_name'].tolist())
+        nfl_names = set(latest['merge_name'].tolist())
+        only_fc = list(fc_names - nfl_names)[:10]
+        only_nfl = list(nfl_names - fc_names)[:10]
+        print(f"   ⚠️ Low match count! FC-only names sample: {only_fc}")
+        print(f"   ⚠️ nflfastr-only names sample: {only_nfl}")
 
     feat_cols = [c for c in merged.columns
                  if c.endswith('_avg') or c.endswith('_trend') or c.endswith('_trend_pct')
@@ -251,7 +264,38 @@ else:
     print(f"   Generated {len(output)} trend-based predictions")
 
 # ============================================================
-# 5. WRITE OUTPUT
+# 5. SAFETY NET — if model path produced nothing, use FC-only
+# ============================================================
+if len(output) == 0:
+    print("\n⚠️  Model produced 0 predictions — falling back to FantasyCalc trends...")
+    for name_key, pdata in fc_map.items():
+        age = pdata['age']
+        val = pdata['value']
+        trend = pdata['trend']
+        trendPct = pdata['trendPct']
+        pos = pdata['pos']
+
+        peak_age = {'QB': 32, 'RB': 27, 'WR': 29, 'TE': 29}.get(pos, 28)
+        is_young = 0 < age < peak_age - 2
+        is_old = age >= peak_age
+
+        if is_old and trendPct > 3 and val >= 3000: signal = 'SELL'
+        elif is_young and trendPct < -5 and val >= 1500: signal = 'BUY'
+        elif is_young and trendPct > 3: signal = 'HOLD+'
+        elif trend > 200: signal = 'BUY'
+        elif trend < -200: signal = 'SELL'
+        else: signal = 'HOLD'
+
+        output[pdata['sleeper_id']] = {
+            'name': pdata['name'], 'pos': pos, 'team': pdata['team'],
+            'age': age, 'value': val, 'trend': trend, 'trendPct': trendPct,
+            'predicted': trend, 'signal': signal, 'features': {}
+        }
+    model_info = {'note': 'FantasyCalc trends only — name matching failed for model training'}
+    print(f"   Generated {len(output)} fallback predictions")
+
+# ============================================================
+# 6. WRITE OUTPUT
 # ============================================================
 print("\n💾 Writing data/predictions.json...")
 
