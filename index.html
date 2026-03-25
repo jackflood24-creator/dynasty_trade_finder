@@ -68,9 +68,17 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div class="logo">D</div>
     <div><div style="font-size:17px;font-weight:800;letter-spacing:-.03em">Dynasty Trade Finder</div><div style="font-size:11px;color:var(--t3);font-weight:500;margin-top:1px">Sleeper + FantasyCalc Values</div></div>
     <div class="hdr-r">
-      <div class="dots"><div class="dot on" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div><div class="dot" id="d4"></div><div class="dot" id="d5"></div></div>
       <button class="btn btn-o btn-s hidden" id="brst" onclick="resetApp()">Reset</button>
     </div>
+  </div>
+
+  <!-- PERSISTENT NAV BAR — uses display:none directly, NOT the .hidden class -->
+  <div id="navBar" style="display:none;gap:6px;flex-wrap:wrap;padding:10px 0;margin-bottom:16px;border-bottom:1px solid var(--bdr)">
+    <button class="btn btn-o btn-s" id="nav-ros" onclick="go('ros')" style="display:flex;align-items:center;gap:4px">🤝 <span>Rosters</span></button>
+    <button class="btn btn-o btn-s" id="nav-mom" onclick="openMomentum()" style="display:flex;align-items:center;gap:4px">📈 <span>Momentum</span></button>
+    <button class="btn btn-o btn-s" id="nav-reb" onclick="openRebuildAnalyzer()" style="display:flex;align-items:center;gap:4px">🔄 <span>Rebuild</span></button>
+    <button class="btn btn-o btn-s" id="nav-pck" onclick="openPickEditor();go('ros')" style="display:flex;align-items:center;gap:4px">📝 <span>Edit Picks</span></button>
+    <button class="btn btn-o btn-s" id="nav-lea" onclick="go('lea')" style="display:flex;align-items:center;gap:4px">← <span>Leagues</span></button>
   </div>
 
   <div id="s-con" class="sec">
@@ -105,9 +113,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   </div>
 
   <div id="s-ros" class="sec hidden">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
-      <div><div style="font-size:20px;font-weight:800;letter-spacing:-.03em" id="rosT"></div><div style="font-size:13px;color:var(--t2)" id="rosSub"></div></div>
-      <button class="btn btn-o btn-s" onclick="go('lea')">← Change League</button>
+    <div style="margin-bottom:16px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em" id="rosT"></div>
+      <div style="font-size:13px;color:var(--t2)" id="rosSub"></div>
     </div>
     <div id="noVal" class="warn hidden"><span style="font-size:18px">⚠️</span><div><strong>Loading values...</strong></div></div>
     <div id="fetchP" class="fp hidden">
@@ -200,29 +208,18 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   </div>
 
   <div id="s-trd" class="sec hidden">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px">
-      <div><div style="font-size:20px;font-weight:800;letter-spacing:-.03em">Trade Proposals</div><div style="font-size:13px;color:var(--t2)" id="trdSub"></div></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-o btn-s" onclick="go('ros')">🤝 Rosters</button>
-        <button class="btn btn-o btn-s" style="color:var(--grn)" onclick="openMomentum()">📈 Momentum</button>
-        <button class="btn btn-o btn-s" style="color:#ff9800" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
-      </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">🤝 Trade Proposals</div>
+      <div style="font-size:13px;color:var(--t2)" id="trdSub"></div>
     </div>
     <div id="trdList"></div>
   </div>
 
   <!-- MOMENTUM TRACKER -->
   <div id="s-mom" class="sec hidden">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px">
-      <div>
-        <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📈 Value Momentum</div>
-        <div style="font-size:13px;color:var(--t2)" id="momSub">30-day value trends — find buy-low and sell-high windows</div>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-o btn-s" onclick="go('ros')">🤝 Rosters</button>
-        <button class="btn btn-o btn-s" style="color:#ff9800" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
-        <button class="btn btn-o btn-s" style="color:var(--pur)" onclick="openPickEditor();go('ros')">📝 Picks</button>
-      </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📈 Value Momentum</div>
+      <div style="font-size:13px;color:var(--t2)" id="momSub">30-day value trends — find buy-low and sell-high windows</div>
     </div>
     <!-- FILTER TABS -->
     <div id="momFilters" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap"></div>
@@ -238,16 +235,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 
   <!-- REBUILD ANALYZER -->
   <div id="s-reb" class="sec hidden">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px">
-      <div>
-        <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">🔄 Rebuild Analyzer</div>
-        <div style="font-size:13px;color:var(--t2)" id="rebSub"></div>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-o btn-s" onclick="go('ros')">🤝 Rosters</button>
-        <button class="btn btn-o btn-s" style="color:var(--grn)" onclick="openMomentum()">📈 Momentum</button>
-        <button class="btn btn-o btn-s" style="color:var(--pur)" onclick="openPickEditor();go('ros')">📝 Picks</button>
-      </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">🔄 Rebuild Analyzer</div>
+      <div style="font-size:13px;color:var(--t2)" id="rebSub"></div>
     </div>
 
     <!-- COMPETITIVE OUTLOOK -->
@@ -1000,22 +990,38 @@ function pRow(a){var pos=a.type==='pick'?'PICK':((S.players[a.id]||{}).position|
 // ==========================================
 function openMomentum() {
   if (!S.valsLoaded || !S.myRid) { alert('Load a league and identify your team first.'); return; }
-  go('mom');
-  loadPredictions().then(function() { renderMomentum('ALL'); });
+  try {
+    go('mom');
+  } catch(e) {
+    console.error('go(mom) error:', e);
+    alert('Navigation error: ' + e.message);
+    return;
+  }
+  try { renderMomentum('ALL'); } catch(e) {
+    console.error('renderMomentum error:', e);
+    var el = document.getElementById('momMyRoster');
+    if (el) el.innerHTML = '<div class="card" style="color:var(--red)">Error: ' + e.message + '<br><pre style="font-size:10px;margin-top:8px;color:var(--t3)">' + e.stack + '</pre></div>';
+  }
+  if (!S.predictions) {
+    loadPredictions().then(function() {
+      try { renderMomentum('ALL'); } catch(e) { console.error('renderMomentum rerender error:', e); }
+    }).catch(function(e) { console.log('Predictions load failed:', e); });
+  }
 }
 
 async function loadPredictions() {
-  if (S.predictions) return; // already loaded
   try {
-    // Try loading from same directory (GitHub Pages serves data/predictions.json)
     var data = await fetchJSON('data/predictions.json', true);
     if (data && data.players && Object.keys(data.players).length > 0) {
       S.predictions = data;
-      var updated = data.updated ? new Date(data.updated).toLocaleDateString() : 'unknown';
-      document.getElementById('momSub').textContent = 'Live trends from FantasyCalc + model predictions (updated ' + updated + ')';
+      var el = document.getElementById('momSub');
+      if (el) {
+        var updated = data.updated ? new Date(data.updated).toLocaleDateString() : 'unknown';
+        el.textContent = 'Live trends + model predictions (updated ' + updated + ')';
+      }
     }
   } catch(e) {
-    console.log('No predictions.json found, using FantasyCalc trends only');
+    console.log('No predictions.json available');
     S.predictions = null;
   }
 }
@@ -1216,8 +1222,11 @@ function signalRow(pd) {
 // ==========================================
 function openRebuildAnalyzer() {
   if (!S.valsLoaded || !S.myRid) { alert('Load a league and identify your team first.'); return; }
-  analyzeRebuild();
   go('reb');
+  try { analyzeRebuild(); } catch(e) {
+    console.error('Rebuild error:', e);
+    document.getElementById('rebOutlook').innerHTML = '<div class="card" style="color:var(--red)">Error loading rebuild analyzer: ' + e.message + '</div>';
+  }
 }
 
 function analyzeRebuild() {
@@ -1557,26 +1566,52 @@ function setQB(v,el){S.numQbs=v;var btns=el.parentElement.querySelectorAll('.sbt
 var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',trd:'s-trd',mom:'s-mom',reb:'s-reb'};
 var STEP_IDX={con:0,lea:1,ros:2,trd:3,mom:4,reb:5};
 function go(k){
-  // Hide all main pages
-  var ks=Object.keys(STEPS);
-  for(var i=0;i<ks.length;i++) document.getElementById(STEPS[ks[i]]).classList.toggle('hidden',ks[i]!==k);
+  try {
+    // Hide all step pages
+    var ks=Object.keys(STEPS);
+    for(var i=0;i<ks.length;i++){
+      var el=document.getElementById(STEPS[ks[i]]);
+      if(el) el.classList.toggle('hidden',ks[i]!==k);
+    }
 
-  // Update step dots
-  for(var i=0;i<6;i++){var d=document.getElementById('d'+i);d.className='dot'+(i===STEP_IDX[k]?' on':i<STEP_IDX[k]?' done':'');}
-  document.getElementById('brst').classList.toggle('hidden',k==='con');
+    // Show/hide nav bar using style.display (NOT .hidden class — avoids !important conflict)
+    var nav=document.getElementById('navBar');
+    if(nav) nav.style.display = (k!=='con' && k!=='lea') ? 'flex' : 'none';
 
-  // Clean up sub-panels when leaving roster page
-  if(k!=='ros'){
-    var pe=document.getElementById('pickEditor'); if(pe) pe.classList.add('hidden');
+    // Highlight active nav button
+    var navMap = {ros:'nav-ros',mom:'nav-mom',reb:'nav-reb',trd:'nav-ros'};
+    var allNavBtns = ['nav-ros','nav-mom','nav-reb','nav-pck','nav-lea'];
+    for(var i=0;i<allNavBtns.length;i++){
+      var btn=document.getElementById(allNavBtns[i]);
+      if(btn){
+        var isActive = allNavBtns[i]===(navMap[k]||'');
+        btn.style.borderColor = isActive ? 'var(--grn3)' : '';
+        btn.style.color = isActive ? 'var(--grn)' : '';
+        btn.style.background = isActive ? 'var(--grn2)' : '';
+      }
+    }
+
+    // Show/hide reset
+    var rst=document.getElementById('brst');
+    if(rst) rst.classList.toggle('hidden',k==='con');
+
+    // Clean up when leaving rosters
+    if(k!=='ros'){
+      var pe=document.getElementById('pickEditor');if(pe)pe.classList.add('hidden');
+    }
+
+    // Re-render rosters when returning
+    if(k==='ros' && S.valsLoaded){
+      try{renderRosters();}catch(e){console.error('renderRosters error:',e);}
+    }
+
+    window.scrollTo(0,0);
+  } catch(e) {
+    console.error('go() error:', e);
+    // Emergency: make sure nav stays visible
+    var nav2=document.getElementById('navBar');
+    if(nav2) nav2.style.display='flex';
   }
-
-  // When returning to rosters, re-render to ensure clean state
-  if(k==='ros' && S.valsLoaded){
-    renderRosters();
-  }
-
-  // Scroll to top on page change
-  window.scrollTo(0,0);
 }
 function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
 </script>
