@@ -1,7 +1,7 @@
 {
-  "updated": "2026-03-25T21:58:05.975081+00:00",
+  "updated": "2026-03-25T22:04:54.745156+00:00",
   "model_info": {
-    "note": "FantasyCalc trends only \u2014 name matching failed for model training"
+    "note": "FantasyCalc trends + age curves (no nflfastr model this run)"
   },
   "players": {
     "4984": {
@@ -13,8 +13,15 @@
       "trend": 269,
       "trendPct": 2.53,
       "predicted": 269,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 1,
+        "pos_rank": 1,
+        "trend_30d": 269,
+        "trend_pct": 2.53,
+        "age": 29.9,
+        "years_exp": 8
+      }
     },
     "9509": {
       "name": "Bijan Robinson",
@@ -25,8 +32,15 @@
       "trend": 111,
       "trendPct": 1.11,
       "predicted": 111,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 2,
+        "pos_rank": 1,
+        "trend_30d": 111,
+        "trend_pct": 1.11,
+        "age": 24.2,
+        "years_exp": 3
+      }
     },
     "7564": {
       "name": "Ja'Marr Chase",
@@ -37,8 +51,15 @@
       "trend": -161,
       "trendPct": -1.7,
       "predicted": -161,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 3,
+        "pos_rank": 1,
+        "trend_30d": -161,
+        "trend_pct": -1.7,
+        "age": 26.1,
+        "years_exp": 5
+      }
     },
     "9221": {
       "name": "Jahmyr Gibbs",
@@ -50,7 +71,14 @@
       "trendPct": 4.86,
       "predicted": 459,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 4,
+        "pos_rank": 2,
+        "trend_30d": 459,
+        "trend_pct": 4.86,
+        "age": 24.0,
+        "years_exp": 3
+      }
     },
     "9488": {
       "name": "Jaxon Smith-Njigba",
@@ -61,8 +89,15 @@
       "trend": -333,
       "trendPct": -3.54,
       "predicted": -333,
-      "signal": "SELL",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 5,
+        "pos_rank": 2,
+        "trend_30d": -333,
+        "trend_pct": -3.54,
+        "age": 24.1,
+        "years_exp": 3
+      }
     },
     "9493": {
       "name": "Puka Nacua",
@@ -73,8 +108,15 @@
       "trend": -324,
       "trendPct": -3.56,
       "predicted": -324,
-      "signal": "SELL",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 6,
+        "pos_rank": 3,
+        "trend_30d": -324,
+        "trend_pct": -3.56,
+        "age": 24.8,
+        "years_exp": 3
+      }
     },
     "11564": {
       "name": "Drake Maye",
@@ -85,8 +127,15 @@
       "trend": -334,
       "trendPct": -3.73,
       "predicted": -334,
-      "signal": "SELL",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 7,
+        "pos_rank": 2,
+        "trend_30d": -334,
+        "trend_pct": -3.73,
+        "age": 23.6,
+        "years_exp": 2
+      }
     },
     "4881": {
       "name": "Lamar Jackson",
@@ -98,7 +147,14 @@
       "trendPct": 3.1,
       "predicted": 234,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 8,
+        "pos_rank": 3,
+        "trend_30d": 234,
+        "trend_pct": 3.1,
+        "age": 29.2,
+        "years_exp": 8
+      }
     },
     "11566": {
       "name": "Jayden Daniels",
@@ -109,8 +165,15 @@
       "trend": 53,
       "trendPct": 0.72,
       "predicted": 53,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 9,
+        "pos_rank": 4,
+        "trend_30d": 53,
+        "trend_pct": 0.72,
+        "age": 25.3,
+        "years_exp": 2
+      }
     },
     "6794": {
       "name": "Justin Jefferson",
@@ -122,7 +185,14 @@
       "trendPct": 5.38,
       "predicted": 395,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 10,
+        "pos_rank": 4,
+        "trend_30d": 395,
+        "trend_pct": 5.38,
+        "age": 26.8,
+        "years_exp": 6
+      }
     },
     "7547": {
       "name": "Amon-Ra St. Brown",
@@ -133,8 +203,15 @@
       "trend": -24,
       "trendPct": -0.33,
       "predicted": -24,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 11,
+        "pos_rank": 5,
+        "trend_30d": -24,
+        "trend_pct": -0.33,
+        "age": 26.4,
+        "years_exp": 5
+      }
     },
     "11632": {
       "name": "Malik Nabers",
@@ -145,8 +222,15 @@
       "trend": -118,
       "trendPct": -1.64,
       "predicted": -118,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 12,
+        "pos_rank": 6,
+        "trend_30d": -118,
+        "trend_pct": -1.64,
+        "age": 22.7,
+        "years_exp": 2
+      }
     },
     "11560": {
       "name": "Caleb Williams",
@@ -158,7 +242,14 @@
       "trendPct": 7.59,
       "predicted": 541,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 13,
+        "pos_rank": 5,
+        "trend_30d": 541,
+        "trend_pct": 7.59,
+        "age": 24.4,
+        "years_exp": 2
+      }
     },
     "8130": {
       "name": "Trey McBride",
@@ -169,8 +260,15 @@
       "trend": 169,
       "trendPct": 2.39,
       "predicted": 169,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 14,
+        "pos_rank": 1,
+        "trend_30d": 169,
+        "trend_pct": 2.39,
+        "age": 26.4,
+        "years_exp": 4
+      }
     },
     "11604": {
       "name": "Brock Bowers",
@@ -181,8 +279,15 @@
       "trend": -152,
       "trendPct": -2.15,
       "predicted": -152,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 15,
+        "pos_rank": 2,
+        "trend_30d": -152,
+        "trend_pct": -2.15,
+        "age": 23.3,
+        "years_exp": 2
+      }
     },
     "13287": {
       "name": "Jeremiyah Love",
@@ -193,8 +298,15 @@
       "trend": 389,
       "trendPct": 5.67,
       "predicted": 389,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 16,
+        "pos_rank": 3,
+        "trend_30d": 389,
+        "trend_pct": 5.67,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12527": {
       "name": "Ashton Jeanty",
@@ -205,8 +317,15 @@
       "trend": 149,
       "trendPct": 2.18,
       "predicted": 149,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 17,
+        "pos_rank": 4,
+        "trend_30d": 149,
+        "trend_pct": 2.18,
+        "age": 22.3,
+        "years_exp": 1
+      }
     },
     "6786": {
       "name": "CeeDee Lamb",
@@ -217,8 +336,15 @@
       "trend": 351,
       "trendPct": 5.16,
       "predicted": 351,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 18,
+        "pos_rank": 7,
+        "trend_30d": 351,
+        "trend_pct": 5.16,
+        "age": 27.0,
+        "years_exp": 6
+      }
     },
     "6770": {
       "name": "Joe Burrow",
@@ -229,8 +355,15 @@
       "trend": 12,
       "trendPct": 0.18,
       "predicted": 12,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 19,
+        "pos_rank": 6,
+        "trend_30d": 12,
+        "trend_pct": 0.18,
+        "age": 29.3,
+        "years_exp": 6
+      }
     },
     "4046": {
       "name": "Patrick Mahomes",
@@ -241,8 +374,15 @@
       "trend": 246,
       "trendPct": 4.14,
       "predicted": 246,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 20,
+        "pos_rank": 7,
+        "trend_30d": 246,
+        "trend_pct": 4.14,
+        "age": 30.5,
+        "years_exp": 9
+      }
     },
     "6797": {
       "name": "Justin Herbert",
@@ -253,8 +393,15 @@
       "trend": -95,
       "trendPct": -1.6,
       "predicted": -95,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 21,
+        "pos_rank": 8,
+        "trend_30d": -95,
+        "trend_pct": -1.6,
+        "age": 28.1,
+        "years_exp": 6
+      }
     },
     "8112": {
       "name": "Drake London",
@@ -265,8 +412,15 @@
       "trend": -102,
       "trendPct": -1.73,
       "predicted": -102,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 22,
+        "pos_rank": 8,
+        "trend_30d": -102,
+        "trend_pct": -1.73,
+        "age": 24.7,
+        "years_exp": 4
+      }
     },
     "12507": {
       "name": "Omarion Hampton",
@@ -278,7 +432,14 @@
       "trendPct": 4.09,
       "predicted": 240,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 23,
+        "pos_rank": 5,
+        "trend_30d": 240,
+        "trend_pct": 4.09,
+        "age": 23.0,
+        "years_exp": 1
+      }
     },
     "9226": {
       "name": "De'Von Achane",
@@ -289,8 +450,15 @@
       "trend": -195,
       "trendPct": -3.33,
       "predicted": -195,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 24,
+        "pos_rank": 6,
+        "trend_30d": -195,
+        "trend_pct": -3.33,
+        "age": 24.5,
+        "years_exp": 3
+      }
     },
     "6904": {
       "name": "Jalen Hurts",
@@ -301,8 +469,15 @@
       "trend": -180,
       "trendPct": -3.2,
       "predicted": -180,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 25,
+        "pos_rank": 9,
+        "trend_30d": -180,
+        "trend_pct": -3.2,
+        "age": 27.6,
+        "years_exp": 6
+      }
     },
     "12508": {
       "name": "Jaxson Dart",
@@ -313,8 +488,15 @@
       "trend": 132,
       "trendPct": 2.41,
       "predicted": 132,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 26,
+        "pos_rank": 10,
+        "trend_30d": 132,
+        "trend_pct": 2.41,
+        "age": 22.9,
+        "years_exp": 1
+      }
     },
     "12526": {
       "name": "Tetairoa McMillan",
@@ -325,8 +507,15 @@
       "trend": 133,
       "trendPct": 2.56,
       "predicted": 133,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 27,
+        "pos_rank": 9,
+        "trend_30d": 133,
+        "trend_pct": 2.56,
+        "age": 23.0,
+        "years_exp": 1
+      }
     },
     "11563": {
       "name": "Bo Nix",
@@ -337,8 +526,15 @@
       "trend": -3,
       "trendPct": -0.06,
       "predicted": -3,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "HOLD+",
+      "features": {
+        "rank": 28,
+        "pos_rank": 11,
+        "trend_30d": -3,
+        "trend_pct": -0.06,
+        "age": 26.1,
+        "years_exp": 2
+      }
     },
     "6813": {
       "name": "Jonathan Taylor",
@@ -350,7 +546,14 @@
       "trendPct": -2.5,
       "predicted": -127,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 29,
+        "pos_rank": 7,
+        "trend_30d": -127,
+        "trend_pct": -2.5,
+        "age": 27.2,
+        "years_exp": 6
+      }
     },
     "12517": {
       "name": "Colston Loveland",
@@ -362,7 +565,14 @@
       "trendPct": 7.76,
       "predicted": 382,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 30,
+        "pos_rank": 3,
+        "trend_30d": 382,
+        "trend_pct": 7.76,
+        "age": 22.0,
+        "years_exp": 1
+      }
     },
     "8138": {
       "name": "James Cook",
@@ -373,8 +583,15 @@
       "trend": -208,
       "trendPct": -4.3,
       "predicted": -208,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 31,
+        "pos_rank": 8,
+        "trend_30d": -208,
+        "trend_pct": -4.3,
+        "age": 26.5,
+        "years_exp": 4
+      }
     },
     "7523": {
       "name": "Trevor Lawrence",
@@ -386,7 +603,14 @@
       "trendPct": -2.8,
       "predicted": -135,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 32,
+        "pos_rank": 12,
+        "trend_30d": -135,
+        "trend_pct": -2.8,
+        "age": 26.5,
+        "years_exp": 5
+      }
     },
     "8137": {
       "name": "George Pickens",
@@ -398,7 +622,14 @@
       "trendPct": 2.3,
       "predicted": 110,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 33,
+        "pos_rank": 10,
+        "trend_30d": 110,
+        "trend_pct": 2.3,
+        "age": 25.1,
+        "years_exp": 4
+      }
     },
     "13294": {
       "name": "Makai Lemon",
@@ -410,7 +641,14 @@
       "trendPct": 2.02,
       "predicted": 94,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 34,
+        "pos_rank": 11,
+        "trend_30d": 94,
+        "trend_pct": 2.02,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "8183": {
       "name": "Brock Purdy",
@@ -422,7 +660,14 @@
       "trendPct": 0.0,
       "predicted": 0,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 35,
+        "pos_rank": 13,
+        "trend_30d": 0,
+        "trend_pct": 0.0,
+        "age": 26.3,
+        "years_exp": 4
+      }
     },
     "7569": {
       "name": "Nico Collins",
@@ -433,8 +678,15 @@
       "trend": 225,
       "trendPct": 4.9,
       "predicted": 225,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 36,
+        "pos_rank": 12,
+        "trend_30d": 225,
+        "trend_pct": 4.9,
+        "age": 27.0,
+        "years_exp": 5
+      }
     },
     "12514": {
       "name": "Emeka Egbuka",
@@ -446,7 +698,14 @@
       "trendPct": 9.69,
       "predicted": 440,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 37,
+        "pos_rank": 13,
+        "trend_30d": 440,
+        "trend_pct": 9.69,
+        "age": 23.5,
+        "years_exp": 1
+      }
     },
     "12518": {
       "name": "Tyler Warren",
@@ -458,7 +717,14 @@
       "trendPct": 5.48,
       "predicted": 244,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 38,
+        "pos_rank": 4,
+        "trend_30d": 244,
+        "trend_pct": 5.48,
+        "age": 23.9,
+        "years_exp": 1
+      }
     },
     "8151": {
       "name": "Kenneth Walker",
@@ -469,8 +735,15 @@
       "trend": 1210,
       "trendPct": 27.2,
       "predicted": 1210,
-      "signal": "BUY",
-      "features": {}
+      "signal": "SELL",
+      "features": {
+        "rank": 39,
+        "pos_rank": 9,
+        "trend_30d": 1210,
+        "trend_pct": 27.2,
+        "age": 25.4,
+        "years_exp": 4
+      }
     },
     "13279": {
       "name": "Carnell Tate",
@@ -482,7 +755,14 @@
       "trendPct": 2.43,
       "predicted": 108,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 40,
+        "pos_rank": 14,
+        "trend_30d": 108,
+        "trend_pct": 2.43,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "8144": {
       "name": "Chris Olave",
@@ -494,7 +774,14 @@
       "trendPct": 4.34,
       "predicted": 186,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 41,
+        "pos_rank": 15,
+        "trend_30d": 186,
+        "trend_pct": 4.34,
+        "age": 25.8,
+        "years_exp": 4
+      }
     },
     "4034": {
       "name": "Christian McCaffrey",
@@ -506,7 +793,14 @@
       "trendPct": 4.95,
       "predicted": 211,
       "signal": "SELL",
-      "features": {}
+      "features": {
+        "rank": 42,
+        "pos_rank": 10,
+        "trend_30d": 211,
+        "trend_pct": 4.95,
+        "age": 29.8,
+        "years_exp": 9
+      }
     },
     "13269": {
       "name": "Fernando Mendoza",
@@ -518,7 +812,14 @@
       "trendPct": 0.38,
       "predicted": 16,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 43,
+        "pos_rank": 14,
+        "trend_30d": 16,
+        "trend_pct": 0.38,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "8146": {
       "name": "Garrett Wilson",
@@ -530,7 +831,14 @@
       "trendPct": -2.4,
       "predicted": -101,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 44,
+        "pos_rank": 16,
+        "trend_30d": -101,
+        "trend_pct": -2.4,
+        "age": 25.7,
+        "years_exp": 4
+      }
     },
     "3294": {
       "name": "Dak Prescott",
@@ -542,7 +850,14 @@
       "trendPct": 4.48,
       "predicted": 183,
       "signal": "SELL",
-      "features": {}
+      "features": {
+        "rank": 45,
+        "pos_rank": 15,
+        "trend_30d": 183,
+        "trend_pct": 4.48,
+        "age": 32.7,
+        "years_exp": 10
+      }
     },
     "6804": {
       "name": "Jordan Love",
@@ -554,7 +869,14 @@
       "trendPct": -0.15,
       "predicted": -6,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 46,
+        "pos_rank": 16,
+        "trend_30d": -6,
+        "trend_pct": -0.15,
+        "age": 27.4,
+        "years_exp": 6
+      }
     },
     "12529": {
       "name": "TreVeyon Henderson",
@@ -566,7 +888,14 @@
       "trendPct": -1.21,
       "predicted": -48,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 47,
+        "pos_rank": 11,
+        "trend_30d": -48,
+        "trend_pct": -1.21,
+        "age": 23.4,
+        "years_exp": 1
+      }
     },
     "8155": {
       "name": "Breece Hall",
@@ -578,7 +907,14 @@
       "trendPct": 1.31,
       "predicted": 50,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 48,
+        "pos_rank": 12,
+        "trend_30d": 50,
+        "trend_pct": 1.31,
+        "age": 24.8,
+        "years_exp": 4
+      }
     },
     "4866": {
       "name": "Saquon Barkley",
@@ -590,7 +926,14 @@
       "trendPct": 5.27,
       "predicted": 198,
       "signal": "SELL",
-      "features": {}
+      "features": {
+        "rank": 49,
+        "pos_rank": 13,
+        "trend_30d": 198,
+        "trend_pct": 5.27,
+        "age": 29.1,
+        "years_exp": 8
+      }
     },
     "11635": {
       "name": "Ladd McConkey",
@@ -602,7 +945,14 @@
       "trendPct": -1.02,
       "predicted": -38,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 50,
+        "pos_rank": 17,
+        "trend_30d": -38,
+        "trend_pct": -1.02,
+        "age": 24.4,
+        "years_exp": 2
+      }
     },
     "12512": {
       "name": "Quinshon Judkins",
@@ -614,7 +964,14 @@
       "trendPct": 1.3,
       "predicted": 48,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 51,
+        "pos_rank": 14,
+        "trend_30d": 48,
+        "trend_pct": 1.3,
+        "age": 22.4,
+        "years_exp": 1
+      }
     },
     "11620": {
       "name": "Rome Odunze",
@@ -626,7 +983,14 @@
       "trendPct": 5.31,
       "predicted": 196,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 52,
+        "pos_rank": 18,
+        "trend_30d": 196,
+        "trend_pct": 5.31,
+        "age": 23.8,
+        "years_exp": 2
+      }
     },
     "13281": {
       "name": "Jordyn Tyson",
@@ -638,7 +1002,14 @@
       "trendPct": 2.06,
       "predicted": 76,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 53,
+        "pos_rank": 19,
+        "trend_30d": 76,
+        "trend_pct": 2.06,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "9224": {
       "name": "Chase Brown",
@@ -650,7 +1021,14 @@
       "trendPct": 1.5,
       "predicted": 55,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 54,
+        "pos_rank": 15,
+        "trend_30d": 55,
+        "trend_pct": 1.5,
+        "age": 26.0,
+        "years_exp": 3
+      }
     },
     "12522": {
       "name": "Cam Ward",
@@ -662,7 +1040,14 @@
       "trendPct": 2.54,
       "predicted": 92,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 55,
+        "pos_rank": 17,
+        "trend_30d": 92,
+        "trend_pct": 2.54,
+        "age": 23.8,
+        "years_exp": 1
+      }
     },
     "11584": {
       "name": "Bucky Irving",
@@ -674,7 +1059,14 @@
       "trendPct": -10.21,
       "predicted": -366,
       "signal": "BUY",
-      "features": {}
+      "features": {
+        "rank": 56,
+        "pos_rank": 16,
+        "trend_30d": -366,
+        "trend_pct": -10.21,
+        "age": 23.6,
+        "years_exp": 2
+      }
     },
     "10229": {
       "name": "Rashee Rice",
@@ -685,8 +1077,15 @@
       "trend": -122,
       "trendPct": -3.4,
       "predicted": -122,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 57,
+        "pos_rank": 20,
+        "trend_30d": -122,
+        "trend_pct": -3.4,
+        "age": 25.9,
+        "years_exp": 3
+      }
     },
     "11628": {
       "name": "Marvin Harrison Jr",
@@ -698,7 +1097,14 @@
       "trendPct": -2.85,
       "predicted": -101,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 58,
+        "pos_rank": 21,
+        "trend_30d": -101,
+        "trend_pct": -2.85,
+        "age": 23.6,
+        "years_exp": 2
+      }
     },
     "12519": {
       "name": "Luther Burden",
@@ -710,7 +1116,14 @@
       "trendPct": 14.62,
       "predicted": 515,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 59,
+        "pos_rank": 22,
+        "trend_30d": 515,
+        "trend_pct": 14.62,
+        "age": 22.3,
+        "years_exp": 1
+      }
     },
     "11631": {
       "name": "Brian Thomas",
@@ -722,7 +1135,14 @@
       "trendPct": 2.18,
       "predicted": 76,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 60,
+        "pos_rank": 23,
+        "trend_30d": 76,
+        "trend_pct": 2.18,
+        "age": 23.5,
+        "years_exp": 2
+      }
     },
     "6801": {
       "name": "Tee Higgins",
@@ -733,8 +1153,15 @@
       "trend": 327,
       "trendPct": 9.52,
       "predicted": 327,
-      "signal": "BUY",
-      "features": {}
+      "signal": "SELL",
+      "features": {
+        "rank": 61,
+        "pos_rank": 24,
+        "trend_30d": 327,
+        "trend_pct": 9.52,
+        "age": 27.2,
+        "years_exp": 6
+      }
     },
     "5859": {
       "name": "A.J. Brown",
@@ -746,7 +1173,14 @@
       "trendPct": 5.37,
       "predicted": 184,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 62,
+        "pos_rank": 25,
+        "trend_30d": 184,
+        "trend_pct": 5.37,
+        "age": 28.8,
+        "years_exp": 7
+      }
     },
     "9758": {
       "name": "C.J. Stroud",
@@ -758,7 +1192,14 @@
       "trendPct": 1.15,
       "predicted": 39,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 63,
+        "pos_rank": 18,
+        "trend_30d": 39,
+        "trend_pct": 1.15,
+        "age": 24.5,
+        "years_exp": 3
+      }
     },
     "4892": {
       "name": "Baker Mayfield",
@@ -770,7 +1211,14 @@
       "trendPct": -2.59,
       "predicted": -88,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 64,
+        "pos_rank": 19,
+        "trend_30d": -88,
+        "trend_pct": -2.59,
+        "age": 31.0,
+        "years_exp": 8
+      }
     },
     "3163": {
       "name": "Jared Goff",
@@ -782,7 +1230,14 @@
       "trendPct": 1.2,
       "predicted": 40,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 65,
+        "pos_rank": 20,
+        "trend_30d": 40,
+        "trend_pct": 1.2,
+        "age": 31.5,
+        "years_exp": 10
+      }
     },
     "8150": {
       "name": "Kyren Williams",
@@ -794,7 +1249,14 @@
       "trendPct": 0.69,
       "predicted": 23,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 66,
+        "pos_rank": 17,
+        "trend_30d": 23,
+        "trend_pct": 0.69,
+        "age": 25.6,
+        "years_exp": 4
+      }
     },
     "9997": {
       "name": "Zay Flowers",
@@ -806,7 +1268,14 @@
       "trendPct": 6.0,
       "predicted": 196,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 67,
+        "pos_rank": 26,
+        "trend_30d": 196,
+        "trend_pct": 6.0,
+        "age": 25.6,
+        "years_exp": 3
+      }
     },
     "9484": {
       "name": "Tucker Kraft",
@@ -818,7 +1287,14 @@
       "trendPct": 1.9,
       "predicted": 62,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 68,
+        "pos_rank": 5,
+        "trend_30d": 62,
+        "trend_pct": 1.9,
+        "age": 25.4,
+        "years_exp": 3
+      }
     },
     "13330": {
       "name": "Kenyon Sadiq",
@@ -830,7 +1306,14 @@
       "trendPct": 5.64,
       "predicted": 184,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 69,
+        "pos_rank": 6,
+        "trend_30d": 184,
+        "trend_pct": 5.64,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "7525": {
       "name": "DeVonta Smith",
@@ -841,8 +1324,15 @@
       "trend": 346,
       "trendPct": 10.66,
       "predicted": 346,
-      "signal": "BUY",
-      "features": {}
+      "signal": "SELL",
+      "features": {
+        "rank": 70,
+        "pos_rank": 27,
+        "trend_30d": 346,
+        "trend_pct": 10.66,
+        "age": 27.4,
+        "years_exp": 5
+      }
     },
     "12506": {
       "name": "Harold Fannin",
@@ -854,7 +1344,14 @@
       "trendPct": 0.06,
       "predicted": 2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 71,
+        "pos_rank": 7,
+        "trend_30d": 2,
+        "trend_pct": 0.06,
+        "age": 21.7,
+        "years_exp": 1
+      }
     },
     "7543": {
       "name": "Travis Etienne",
@@ -866,7 +1363,14 @@
       "trendPct": 12.2,
       "predicted": 386,
       "signal": "SELL",
-      "features": {}
+      "features": {
+        "rank": 72,
+        "pos_rank": 18,
+        "trend_30d": 386,
+        "trend_pct": 12.2,
+        "age": 27.2,
+        "years_exp": 5
+      }
     },
     "10859": {
       "name": "Sam LaPorta",
@@ -878,7 +1382,14 @@
       "trendPct": -1.81,
       "predicted": -57,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 73,
+        "pos_rank": 8,
+        "trend_30d": -57,
+        "trend_pct": -1.81,
+        "age": 25.2,
+        "years_exp": 3
+      }
     },
     "7526": {
       "name": "Jaylen Waddle",
@@ -889,8 +1400,15 @@
       "trend": 319,
       "trendPct": 10.21,
       "predicted": 319,
-      "signal": "BUY",
-      "features": {}
+      "signal": "SELL",
+      "features": {
+        "rank": 74,
+        "pos_rank": 28,
+        "trend_30d": 319,
+        "trend_pct": 10.21,
+        "age": 27.3,
+        "years_exp": 5
+      }
     },
     "5850": {
       "name": "Josh Jacobs",
@@ -902,7 +1420,14 @@
       "trendPct": 1.62,
       "predicted": 50,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 75,
+        "pos_rank": 19,
+        "trend_30d": 50,
+        "trend_pct": 1.62,
+        "age": 28.1,
+        "years_exp": 7
+      }
     },
     "4943": {
       "name": "Sam Darnold",
@@ -914,7 +1439,14 @@
       "trendPct": 2.88,
       "predicted": 89,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 76,
+        "pos_rank": 21,
+        "trend_30d": 89,
+        "trend_pct": 2.88,
+        "age": 28.8,
+        "years_exp": 8
+      }
     },
     "12545": {
       "name": "Tyler Shough",
@@ -926,7 +1458,14 @@
       "trendPct": 3.96,
       "predicted": 121,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 77,
+        "pos_rank": 22,
+        "trend_30d": 121,
+        "trend_pct": 3.96,
+        "age": 26.5,
+        "years_exp": 1
+      }
     },
     "7588": {
       "name": "Javonte Williams",
@@ -937,8 +1476,15 @@
       "trend": 241,
       "trendPct": 7.92,
       "predicted": 241,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 78,
+        "pos_rank": 20,
+        "trend_30d": 241,
+        "trend_pct": 7.92,
+        "age": 25.9,
+        "years_exp": 5
+      }
     },
     "5849": {
       "name": "Kyler Murray",
@@ -950,7 +1496,14 @@
       "trendPct": 17.77,
       "predicted": 537,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 79,
+        "pos_rank": 23,
+        "trend_30d": 537,
+        "trend_pct": 17.77,
+        "age": 28.6,
+        "years_exp": 7
+      }
     },
     "9228": {
       "name": "Bryce Young",
@@ -962,7 +1515,14 @@
       "trendPct": 2.48,
       "predicted": 72,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 80,
+        "pos_rank": 24,
+        "trend_30d": 72,
+        "trend_pct": 2.48,
+        "age": 24.7,
+        "years_exp": 3
+      }
     },
     "12481": {
       "name": "Cam Skattebo",
@@ -973,8 +1533,15 @@
       "trend": -111,
       "trendPct": -3.84,
       "predicted": -111,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 81,
+        "pos_rank": 21,
+        "trend_30d": -111,
+        "trend_pct": -3.84,
+        "age": 24.1,
+        "years_exp": 1
+      }
     },
     "7553": {
       "name": "Kyle Pitts",
@@ -986,7 +1553,14 @@
       "trendPct": 0.1,
       "predicted": 3,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 82,
+        "pos_rank": 9,
+        "trend_30d": 3,
+        "trend_pct": 0.1,
+        "age": 25.5,
+        "years_exp": 5
+      }
     },
     "13345": {
       "name": "Jonah Coleman",
@@ -998,7 +1572,14 @@
       "trendPct": -3.13,
       "predicted": -89,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 83,
+        "pos_rank": 22,
+        "trend_30d": -89,
+        "trend_pct": -3.13,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "8148": {
       "name": "Jameson Williams",
@@ -1009,8 +1590,15 @@
       "trend": -112,
       "trendPct": -3.94,
       "predicted": -112,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 84,
+        "pos_rank": 29,
+        "trend_30d": -112,
+        "trend_pct": -3.94,
+        "age": 25.0,
+        "years_exp": 4
+      }
     },
     "13346": {
       "name": "Denzel Boston",
@@ -1022,7 +1610,14 @@
       "trendPct": -6.36,
       "predicted": -180,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 85,
+        "pos_rank": 30,
+        "trend_30d": -180,
+        "trend_pct": -6.36,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "3198": {
       "name": "Derrick Henry",
@@ -1034,7 +1629,14 @@
       "trendPct": 1.68,
       "predicted": 45,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 86,
+        "pos_rank": 23,
+        "trend_30d": 45,
+        "trend_pct": 1.68,
+        "age": 32.2,
+        "years_exp": 10
+      }
     },
     "13298": {
       "name": "KC Concepcion",
@@ -1046,7 +1648,14 @@
       "trendPct": -4.16,
       "predicted": -111,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 87,
+        "pos_rank": 31,
+        "trend_30d": -111,
+        "trend_pct": -4.16,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "5870": {
       "name": "Daniel Jones",
@@ -1058,7 +1667,14 @@
       "trendPct": 9.06,
       "predicted": 237,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 88,
+        "pos_rank": 25,
+        "trend_30d": 237,
+        "trend_pct": 9.06,
+        "age": 28.8,
+        "years_exp": 7
+      }
     },
     "4983": {
       "name": "DJ Moore",
@@ -1069,8 +1685,15 @@
       "trend": 854,
       "trendPct": 32.87,
       "predicted": 854,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 89,
+        "pos_rank": 32,
+        "trend_30d": 854,
+        "trend_pct": 32.87,
+        "age": 29.0,
+        "years_exp": 8
+      }
     },
     "421": {
       "name": "Matthew Stafford",
@@ -1082,7 +1705,14 @@
       "trendPct": 2.83,
       "predicted": 72,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 90,
+        "pos_rank": 26,
+        "trend_30d": 72,
+        "trend_pct": 2.83,
+        "age": 38.2,
+        "years_exp": 17
+      }
     },
     "8161": {
       "name": "Malik Willis",
@@ -1094,7 +1724,14 @@
       "trendPct": 15.47,
       "predicted": 388,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 91,
+        "pos_rank": 27,
+        "trend_30d": 388,
+        "trend_pct": 15.47,
+        "age": 26.9,
+        "years_exp": 4
+      }
     },
     "8142": {
       "name": "Alec Pierce",
@@ -1106,7 +1743,14 @@
       "trendPct": 14.09,
       "predicted": 344,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 92,
+        "pos_rank": 33,
+        "trend_30d": 344,
+        "trend_pct": 14.09,
+        "age": 25.9,
+        "years_exp": 4
+      }
     },
     "12493": {
       "name": "Oronde Gadsden",
@@ -1118,7 +1762,14 @@
       "trendPct": 0.83,
       "predicted": 20,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 93,
+        "pos_rank": 10,
+        "trend_30d": 20,
+        "trend_pct": 0.83,
+        "age": 22.8,
+        "years_exp": 1
+      }
     },
     "13286": {
       "name": "Jadarian Price",
@@ -1130,7 +1781,14 @@
       "trendPct": -0.29,
       "predicted": -7,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 94,
+        "pos_rank": 24,
+        "trend_30d": -7,
+        "trend_pct": -0.29,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12489": {
       "name": "RJ Harvey",
@@ -1141,8 +1799,15 @@
       "trend": -270,
       "trendPct": -11.36,
       "predicted": -270,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 95,
+        "pos_rank": 25,
+        "trend_30d": -270,
+        "trend_pct": -11.36,
+        "age": 25.2,
+        "years_exp": 1
+      }
     },
     "12490": {
       "name": "Bhayshul Tuten",
@@ -1154,7 +1819,14 @@
       "trendPct": 21.9,
       "predicted": 515,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 96,
+        "pos_rank": 26,
+        "trend_30d": 515,
+        "trend_pct": 21.9,
+        "age": 23.1,
+        "years_exp": 1
+      }
     },
     "9756": {
       "name": "Jordan Addison",
@@ -1166,7 +1838,14 @@
       "trendPct": 1.47,
       "predicted": 34,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 97,
+        "pos_rank": 34,
+        "trend_30d": 34,
+        "trend_pct": 1.47,
+        "age": 24.2,
+        "years_exp": 3
+      }
     },
     "12530": {
       "name": "Travis Hunter",
@@ -1178,7 +1857,14 @@
       "trendPct": 0.78,
       "predicted": 18,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 98,
+        "pos_rank": 35,
+        "trend_30d": 18,
+        "trend_pct": 0.78,
+        "age": 22.9,
+        "years_exp": 1
+      }
     },
     "8126": {
       "name": "Wan'Dale Robinson",
@@ -1190,7 +1876,14 @@
       "trendPct": 16.34,
       "predicted": 368,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 99,
+        "pos_rank": 36,
+        "trend_30d": 368,
+        "trend_pct": 16.34,
+        "age": 25.2,
+        "years_exp": 4
+      }
     },
     "13275": {
       "name": "Ty Simpson",
@@ -1202,7 +1895,14 @@
       "trendPct": 2.68,
       "predicted": 60,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 100,
+        "pos_rank": 28,
+        "trend_30d": 60,
+        "trend_pct": 2.68,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13349": {
       "name": "Eli Stowers",
@@ -1214,7 +1914,14 @@
       "trendPct": 1.0,
       "predicted": 22,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 101,
+        "pos_rank": 11,
+        "trend_30d": 22,
+        "trend_pct": 1.0,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "5892": {
       "name": "David Montgomery",
@@ -1225,8 +1932,15 @@
       "trend": 686,
       "trendPct": 31.55,
       "predicted": 686,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 102,
+        "pos_rank": 27,
+        "trend_30d": 686,
+        "trend_pct": 31.55,
+        "age": 28.8,
+        "years_exp": 7
+      }
     },
     "10232": {
       "name": "Michael Wilson",
@@ -1238,7 +1952,14 @@
       "trendPct": 4.38,
       "predicted": 95,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 103,
+        "pos_rank": 37,
+        "trend_30d": 95,
+        "trend_pct": 4.38,
+        "age": 26.1,
+        "years_exp": 3
+      }
     },
     "2133": {
       "name": "Davante Adams",
@@ -1250,7 +1971,14 @@
       "trendPct": -1.98,
       "predicted": -43,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 104,
+        "pos_rank": 38,
+        "trend_30d": -43,
+        "trend_pct": -1.98,
+        "age": 33.3,
+        "years_exp": 12
+      }
     },
     "9753": {
       "name": "Zach Charbonnet",
@@ -1261,8 +1989,15 @@
       "trend": 370,
       "trendPct": 17.31,
       "predicted": 370,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 105,
+        "pos_rank": 28,
+        "trend_30d": 370,
+        "trend_pct": 17.31,
+        "age": 25.2,
+        "years_exp": 3
+      }
     },
     "2216": {
       "name": "Mike Evans",
@@ -1273,8 +2008,15 @@
       "trend": 364,
       "trendPct": 17.12,
       "predicted": 364,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 106,
+        "pos_rank": 39,
+        "trend_30d": 364,
+        "trend_pct": 17.12,
+        "age": 32.6,
+        "years_exp": 12
+      }
     },
     "13276": {
       "name": "Omar Cooper",
@@ -1286,7 +2028,14 @@
       "trendPct": 5.68,
       "predicted": 120,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 107,
+        "pos_rank": 40,
+        "trend_30d": 120,
+        "trend_pct": 5.68,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "5846": {
       "name": "DK Metcalf",
@@ -1298,7 +2047,14 @@
       "trendPct": -3.3,
       "predicted": -69,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 108,
+        "pos_rank": 41,
+        "trend_30d": -69,
+        "trend_pct": -3.3,
+        "age": 28.3,
+        "years_exp": 7
+      }
     },
     "5927": {
       "name": "Terry McLaurin",
@@ -1310,7 +2066,14 @@
       "trendPct": 0.38,
       "predicted": 8,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 109,
+        "pos_rank": 42,
+        "trend_30d": 8,
+        "trend_pct": 0.38,
+        "age": 30.5,
+        "years_exp": 7
+      }
     },
     "8131": {
       "name": "Isaiah Likely",
@@ -1322,7 +2085,14 @@
       "trendPct": 23.56,
       "predicted": 490,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 110,
+        "pos_rank": 12,
+        "trend_30d": 490,
+        "trend_pct": 23.56,
+        "age": 26.0,
+        "years_exp": 4
+      }
     },
     "6790": {
       "name": "D'Andre Swift",
@@ -1334,7 +2104,14 @@
       "trendPct": 1.4,
       "predicted": 29,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 111,
+        "pos_rank": 29,
+        "trend_30d": 29,
+        "trend_pct": 1.4,
+        "age": 27.2,
+        "years_exp": 6
+      }
     },
     "4217": {
       "name": "George Kittle",
@@ -1346,7 +2123,14 @@
       "trendPct": -1.56,
       "predicted": -32,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 112,
+        "pos_rank": 13,
+        "trend_30d": -32,
+        "trend_pct": -1.56,
+        "age": 32.5,
+        "years_exp": 9
+      }
     },
     "13337": {
       "name": "Emmett Johnson",
@@ -1358,7 +2142,14 @@
       "trendPct": -5.63,
       "predicted": -115,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 113,
+        "pos_rank": 30,
+        "trend_30d": -115,
+        "trend_pct": -5.63,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "6819": {
       "name": "Michael Pittman",
@@ -1370,7 +2161,14 @@
       "trendPct": -2.4,
       "predicted": -49,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 114,
+        "pos_rank": 43,
+        "trend_30d": -49,
+        "trend_pct": -2.4,
+        "age": 28.5,
+        "years_exp": 6
+      }
     },
     "12501": {
       "name": "Matthew Golden",
@@ -1382,7 +2180,14 @@
       "trendPct": 0.55,
       "predicted": 11,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 115,
+        "pos_rank": 44,
+        "trend_30d": 11,
+        "trend_pct": 0.55,
+        "age": 22.7,
+        "years_exp": 1
+      }
     },
     "7594": {
       "name": "Chuba Hubbard",
@@ -1393,8 +2198,15 @@
       "trend": 314,
       "trendPct": 15.82,
       "predicted": 314,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 116,
+        "pos_rank": 31,
+        "trend_30d": 314,
+        "trend_pct": 15.82,
+        "age": 26.8,
+        "years_exp": 5
+      }
     },
     "8110": {
       "name": "Jake Ferguson",
@@ -1406,7 +2218,14 @@
       "trendPct": -0.2,
       "predicted": -4,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 117,
+        "pos_rank": 14,
+        "trend_30d": -4,
+        "trend_pct": -0.2,
+        "age": 27.2,
+        "years_exp": 4
+      }
     },
     "12484": {
       "name": "Jayden Higgins",
@@ -1418,7 +2237,14 @@
       "trendPct": 4.97,
       "predicted": 98,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 118,
+        "pos_rank": 45,
+        "trend_30d": 98,
+        "trend_pct": 4.97,
+        "age": 23.3,
+        "years_exp": 1
+      }
     },
     "11638": {
       "name": "Ricky Pearsall",
@@ -1430,7 +2256,14 @@
       "trendPct": -8.66,
       "predicted": -168,
       "signal": "BUY",
-      "features": {}
+      "features": {
+        "rank": 119,
+        "pos_rank": 46,
+        "trend_30d": -168,
+        "trend_pct": -8.66,
+        "age": 25.6,
+        "years_exp": 2
+      }
     },
     "9487": {
       "name": "Parker Washington",
@@ -1442,7 +2275,14 @@
       "trendPct": 0.42,
       "predicted": 8,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 120,
+        "pos_rank": 47,
+        "trend_30d": 8,
+        "trend_pct": 0.42,
+        "age": 24.0,
+        "years_exp": 3
+      }
     },
     "8121": {
       "name": "Romeo Doubs",
@@ -1454,7 +2294,14 @@
       "trendPct": 21.93,
       "predicted": 419,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 121,
+        "pos_rank": 48,
+        "trend_30d": 419,
+        "trend_pct": 21.93,
+        "age": 26.0,
+        "years_exp": 4
+      }
     },
     "8167": {
       "name": "Christian Watson",
@@ -1466,7 +2313,14 @@
       "trendPct": 3.57,
       "predicted": 68,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 122,
+        "pos_rank": 49,
+        "trend_30d": 68,
+        "trend_pct": 3.57,
+        "age": 26.9,
+        "years_exp": 4
+      }
     },
     "11559": {
       "name": "Michael Penix",
@@ -1478,7 +2332,14 @@
       "trendPct": -11.12,
       "predicted": -211,
       "signal": "BUY",
-      "features": {}
+      "features": {
+        "rank": 123,
+        "pos_rank": 29,
+        "trend_30d": -211,
+        "trend_pct": -11.12,
+        "age": 25.9,
+        "years_exp": 2
+      }
     },
     "13288": {
       "name": "Nicholas Singleton",
@@ -1490,7 +2351,14 @@
       "trendPct": -2.18,
       "predicted": -41,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 124,
+        "pos_rank": 32,
+        "trend_30d": -41,
+        "trend_pct": -2.18,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "10236": {
       "name": "Dalton Kincaid",
@@ -1502,7 +2370,14 @@
       "trendPct": -10.32,
       "predicted": -193,
       "signal": "BUY",
-      "features": {}
+      "features": {
+        "rank": 125,
+        "pos_rank": 15,
+        "trend_30d": -193,
+        "trend_pct": -10.32,
+        "age": 26.5,
+        "years_exp": 3
+      }
     },
     "11565": {
       "name": "J.J. McCarthy",
@@ -1514,7 +2389,14 @@
       "trendPct": -15.64,
       "predicted": -292,
       "signal": "BUY",
-      "features": {}
+      "features": {
+        "rank": 126,
+        "pos_rank": 30,
+        "trend_30d": -292,
+        "trend_pct": -15.64,
+        "age": 23.2,
+        "years_exp": 2
+      }
     },
     "9754": {
       "name": "Quentin Johnston",
@@ -1526,7 +2408,14 @@
       "trendPct": 1.94,
       "predicted": 36,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 127,
+        "pos_rank": 50,
+        "trend_30d": 36,
+        "trend_pct": 1.94,
+        "age": 24.6,
+        "years_exp": 3
+      }
     },
     "13305": {
       "name": "Mike Washington",
@@ -1538,7 +2427,14 @@
       "trendPct": 8.95,
       "predicted": 164,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 128,
+        "pos_rank": 33,
+        "trend_30d": 164,
+        "trend_pct": 8.95,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "7021": {
       "name": "Rico Dowdle",
@@ -1550,7 +2446,14 @@
       "trendPct": 9.12,
       "predicted": 166,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 129,
+        "pos_rank": 34,
+        "trend_30d": 166,
+        "trend_pct": 9.12,
+        "age": 27.8,
+        "years_exp": 6
+      }
     },
     "5045": {
       "name": "Courtland Sutton",
@@ -1562,7 +2465,14 @@
       "trendPct": 0.39,
       "predicted": 7,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 130,
+        "pos_rank": 51,
+        "trend_30d": 7,
+        "trend_pct": 0.39,
+        "age": 30.5,
+        "years_exp": 8
+      }
     },
     "11624": {
       "name": "Xavier Worthy",
@@ -1573,8 +2483,15 @@
       "trend": -89,
       "trendPct": -4.94,
       "predicted": -89,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 131,
+        "pos_rank": 52,
+        "trend_30d": -89,
+        "trend_pct": -4.94,
+        "age": 22.9,
+        "years_exp": 2
+      }
     },
     "8132": {
       "name": "Tyler Allgeier",
@@ -1586,7 +2503,14 @@
       "trendPct": 0.34,
       "predicted": 6,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 132,
+        "pos_rank": 35,
+        "trend_30d": 6,
+        "trend_pct": 0.34,
+        "age": 26.0,
+        "years_exp": 4
+      }
     },
     "6768": {
       "name": "Tua Tagovailoa",
@@ -1598,7 +2522,14 @@
       "trendPct": 10.36,
       "predicted": 185,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 133,
+        "pos_rank": 31,
+        "trend_30d": 185,
+        "trend_pct": 10.36,
+        "age": 28.1,
+        "years_exp": 6
+      }
     },
     "12534": {
       "name": "Kyle Monangai",
@@ -1610,7 +2541,14 @@
       "trendPct": -8.46,
       "predicted": -151,
       "signal": "BUY",
-      "features": {}
+      "features": {
+        "rank": 134,
+        "pos_rank": 36,
+        "trend_30d": -151,
+        "trend_pct": -8.46,
+        "age": 23.8,
+        "years_exp": 1
+      }
     },
     "13268": {
       "name": "Elijah Sarratt",
@@ -1622,7 +2560,14 @@
       "trendPct": -2.05,
       "predicted": -36,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 135,
+        "pos_rank": 53,
+        "trend_30d": -36,
+        "trend_pct": -2.05,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "9480": {
       "name": "Brenton Strange",
@@ -1634,7 +2579,14 @@
       "trendPct": 2.74,
       "predicted": 47,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 136,
+        "pos_rank": 16,
+        "trend_30d": 47,
+        "trend_pct": 2.74,
+        "age": 25.3,
+        "years_exp": 3
+      }
     },
     "5947": {
       "name": "Jakobi Meyers",
@@ -1646,7 +2598,14 @@
       "trendPct": -0.52,
       "predicted": -9,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 137,
+        "pos_rank": 54,
+        "trend_30d": -9,
+        "trend_pct": -0.52,
+        "age": 29.4,
+        "years_exp": 7
+      }
     },
     "8228": {
       "name": "Jaylen Warren",
@@ -1658,7 +2617,14 @@
       "trendPct": -5.41,
       "predicted": -92,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 138,
+        "pos_rank": 37,
+        "trend_30d": -92,
+        "trend_pct": -5.41,
+        "age": 27.4,
+        "years_exp": 4
+      }
     },
     "13311": {
       "name": "Chris Bell",
@@ -1670,7 +2636,14 @@
       "trendPct": 1.12,
       "predicted": 19,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 139,
+        "pos_rank": 55,
+        "trend_30d": 19,
+        "trend_pct": 1.12,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "4037": {
       "name": "Chris Godwin",
@@ -1682,7 +2655,14 @@
       "trendPct": 9.7,
       "predicted": 164,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 140,
+        "pos_rank": 56,
+        "trend_30d": 164,
+        "trend_pct": 9.7,
+        "age": 30.1,
+        "years_exp": 9
+      }
     },
     "9500": {
       "name": "Josh Downs",
@@ -1694,7 +2674,14 @@
       "trendPct": 5.99,
       "predicted": 101,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 141,
+        "pos_rank": 57,
+        "trend_30d": 101,
+        "trend_pct": 5.99,
+        "age": 24.6,
+        "years_exp": 3
+      }
     },
     "6806": {
       "name": "J.K. Dobbins",
@@ -1705,8 +2692,15 @@
       "trend": 230,
       "trendPct": 13.73,
       "predicted": 230,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 142,
+        "pos_rank": 38,
+        "trend_30d": 230,
+        "trend_pct": 13.73,
+        "age": 27.3,
+        "years_exp": 6
+      }
     },
     "12524": {
       "name": "Shedeur Sanders",
@@ -1717,8 +2711,15 @@
       "trend": -64,
       "trendPct": -3.83,
       "predicted": -64,
-      "signal": "HOLD",
-      "features": {}
+      "signal": "BUY",
+      "features": {
+        "rank": 143,
+        "pos_rank": 32,
+        "trend_30d": -64,
+        "trend_pct": -3.83,
+        "age": 24.1,
+        "years_exp": 1
+      }
     },
     "11618": {
       "name": "Jalen McMillan",
@@ -1730,7 +2731,14 @@
       "trendPct": 21.08,
       "predicted": 352,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 144,
+        "pos_rank": 58,
+        "trend_30d": 352,
+        "trend_pct": 21.08,
+        "age": 24.3,
+        "years_exp": 2
+      }
     },
     "13320": {
       "name": "Zachariah Branch",
@@ -1742,7 +2750,14 @@
       "trendPct": -1.39,
       "predicted": -23,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 145,
+        "pos_rank": 59,
+        "trend_30d": -23,
+        "trend_pct": -1.39,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "10222": {
       "name": "Jayden Reed",
@@ -1754,7 +2769,14 @@
       "trendPct": 4.57,
       "predicted": 74,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 146,
+        "pos_rank": 60,
+        "trend_30d": 74,
+        "trend_pct": 4.57,
+        "age": 25.9,
+        "years_exp": 3
+      }
     },
     "3257": {
       "name": "Jacoby Brissett",
@@ -1765,8 +2787,15 @@
       "trend": 620,
       "trendPct": 38.63,
       "predicted": 620,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 147,
+        "pos_rank": 33,
+        "trend_30d": 620,
+        "trend_pct": 38.63,
+        "age": 33.3,
+        "years_exp": 10
+      }
     },
     "8210": {
       "name": "Chig Okonkwo",
@@ -1778,7 +2807,14 @@
       "trendPct": 63.24,
       "predicted": 1010,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 148,
+        "pos_rank": 17,
+        "trend_30d": 1010,
+        "trend_pct": 63.24,
+        "age": 26.6,
+        "years_exp": 4
+      }
     },
     "13353": {
       "name": "Chris Brazzell",
@@ -1790,7 +2826,14 @@
       "trendPct": 0.5,
       "predicted": 8,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 149,
+        "pos_rank": 61,
+        "trend_30d": 8,
+        "trend_pct": 0.5,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "1466": {
       "name": "Travis Kelce",
@@ -1801,8 +2844,15 @@
       "trend": 471,
       "trendPct": 29.79,
       "predicted": 471,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 150,
+        "pos_rank": 18,
+        "trend_30d": 471,
+        "trend_pct": 29.79,
+        "age": 36.5,
+        "years_exp": 13
+      }
     },
     "6803": {
       "name": "Brandon Aiyuk",
@@ -1814,7 +2864,14 @@
       "trendPct": 0.51,
       "predicted": 8,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 151,
+        "pos_rank": 62,
+        "trend_30d": 8,
+        "trend_pct": 0.51,
+        "age": 28.0,
+        "years_exp": 6
+      }
     },
     "11586": {
       "name": "Blake Corum",
@@ -1826,7 +2883,14 @@
       "trendPct": -0.89,
       "predicted": -14,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 152,
+        "pos_rank": 39,
+        "trend_30d": -14,
+        "trend_pct": -0.89,
+        "age": 25.3,
+        "years_exp": 2
+      }
     },
     "7611": {
       "name": "Rhamondre Stevenson",
@@ -1838,7 +2902,14 @@
       "trendPct": 0.13,
       "predicted": 2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 153,
+        "pos_rank": 40,
+        "trend_30d": 2,
+        "trend_pct": 0.13,
+        "age": 28.1,
+        "years_exp": 5
+      }
     },
     "11603": {
       "name": "AJ Barner",
@@ -1850,7 +2921,14 @@
       "trendPct": -0.26,
       "predicted": -4,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 154,
+        "pos_rank": 19,
+        "trend_30d": -4,
+        "trend_pct": -0.26,
+        "age": 23.9,
+        "years_exp": 2
+      }
     },
     "12498": {
       "name": "Mason Taylor",
@@ -1862,7 +2940,14 @@
       "trendPct": 3.28,
       "predicted": 50,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 155,
+        "pos_rank": 20,
+        "trend_30d": 50,
+        "trend_pct": 3.28,
+        "age": 21.9,
+        "years_exp": 1
+      }
     },
     "13274": {
       "name": "Germie Bernard",
@@ -1874,7 +2959,14 @@
       "trendPct": 0.2,
       "predicted": 3,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 156,
+        "pos_rank": 63,
+        "trend_30d": 3,
+        "trend_pct": 0.2,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "5844": {
       "name": "T.J. Hockenson",
@@ -1886,7 +2978,14 @@
       "trendPct": 4.72,
       "predicted": 72,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 157,
+        "pos_rank": 21,
+        "trend_30d": 72,
+        "trend_pct": 4.72,
+        "age": 28.7,
+        "years_exp": 7
+      }
     },
     "11646": {
       "name": "Jalen Coker",
@@ -1898,7 +2997,14 @@
       "trendPct": 4.01,
       "predicted": 61,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 158,
+        "pos_rank": 64,
+        "trend_30d": 61,
+        "trend_pct": 4.01,
+        "age": 24.4,
+        "years_exp": 2
+      }
     },
     "11583": {
       "name": "Jonathon Brooks",
@@ -1910,7 +3016,14 @@
       "trendPct": 4.89,
       "predicted": 74,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 159,
+        "pos_rank": 41,
+        "trend_30d": 74,
+        "trend_pct": 4.89,
+        "age": 22.7,
+        "years_exp": 2
+      }
     },
     "5012": {
       "name": "Mark Andrews",
@@ -1922,7 +3035,14 @@
       "trendPct": 7.62,
       "predicted": 115,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 160,
+        "pos_rank": 22,
+        "trend_30d": 115,
+        "trend_pct": 7.62,
+        "age": 30.6,
+        "years_exp": 8
+      }
     },
     "7567": {
       "name": "Kenneth Gainwell",
@@ -1934,7 +3054,14 @@
       "trendPct": 2.86,
       "predicted": 43,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 161,
+        "pos_rank": 42,
+        "trend_30d": 43,
+        "trend_pct": 2.86,
+        "age": 27.0,
+        "years_exp": 5
+      }
     },
     "1373": {
       "name": "Geno Smith",
@@ -1945,8 +3072,15 @@
       "trend": 919,
       "trendPct": 62.47,
       "predicted": 919,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 162,
+        "pos_rank": 34,
+        "trend_30d": 919,
+        "trend_pct": 62.47,
+        "age": 35.5,
+        "years_exp": 13
+      }
     },
     "12509": {
       "name": "Tre' Harris",
@@ -1958,7 +3092,14 @@
       "trendPct": 5.86,
       "predicted": 86,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 163,
+        "pos_rank": 65,
+        "trend_30d": 86,
+        "trend_pct": 5.86,
+        "age": 24.1,
+        "years_exp": 1
+      }
     },
     "3321": {
       "name": "Tyreek Hill",
@@ -1970,7 +3111,14 @@
       "trendPct": 2.53,
       "predicted": 37,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 164,
+        "pos_rank": 66,
+        "trend_30d": 37,
+        "trend_pct": 2.53,
+        "age": 32.1,
+        "years_exp": 10
+      }
     },
     "8134": {
       "name": "Khalil Shakir",
@@ -1982,7 +3130,14 @@
       "trendPct": -5.57,
       "predicted": -81,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 165,
+        "pos_rank": 67,
+        "trend_30d": -81,
+        "trend_pct": -5.57,
+        "age": 26.2,
+        "years_exp": 4
+      }
     },
     "13293": {
       "name": "Ja'Kobi Lane",
@@ -1994,7 +3149,14 @@
       "trendPct": -2.55,
       "predicted": -37,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 166,
+        "pos_rank": 68,
+        "trend_30d": -37,
+        "trend_pct": -2.55,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "5022": {
       "name": "Dallas Goedert",
@@ -2006,7 +3168,14 @@
       "trendPct": 2.09,
       "predicted": 30,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 167,
+        "pos_rank": 23,
+        "trend_30d": 30,
+        "trend_pct": 2.09,
+        "age": 31.2,
+        "years_exp": 8
+      }
     },
     "5967": {
       "name": "Tony Pollard",
@@ -2018,7 +3187,14 @@
       "trendPct": 5.74,
       "predicted": 82,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 168,
+        "pos_rank": 43,
+        "trend_30d": 82,
+        "trend_pct": 5.74,
+        "age": 28.9,
+        "years_exp": 7
+      }
     },
     "13347": {
       "name": "Demond Claiborne",
@@ -2030,7 +3206,14 @@
       "trendPct": -10.95,
       "predicted": -156,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 169,
+        "pos_rank": 44,
+        "trend_30d": -156,
+        "trend_pct": -10.95,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "8408": {
       "name": "Jordan Mason",
@@ -2041,8 +3224,15 @@
       "trend": 264,
       "trendPct": 18.68,
       "predicted": 264,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 170,
+        "pos_rank": 45,
+        "trend_30d": 264,
+        "trend_pct": 18.68,
+        "age": 26.9,
+        "years_exp": 4
+      }
     },
     "11589": {
       "name": "Trey Benson",
@@ -2053,8 +3243,15 @@
       "trend": -260,
       "trendPct": -18.45,
       "predicted": -260,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 171,
+        "pos_rank": 46,
+        "trend_30d": -260,
+        "trend_pct": -18.45,
+        "age": 23.7,
+        "years_exp": 2
+      }
     },
     "7591": {
       "name": "Justin Fields",
@@ -2066,7 +3263,14 @@
       "trendPct": 43.04,
       "predicted": 603,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 172,
+        "pos_rank": 35,
+        "trend_30d": 603,
+        "trend_pct": 43.04,
+        "age": 27.1,
+        "years_exp": 5
+      }
     },
     "8136": {
       "name": "Rachaad White",
@@ -2078,7 +3282,14 @@
       "trendPct": -7.43,
       "predicted": -104,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 173,
+        "pos_rank": 47,
+        "trend_30d": -104,
+        "trend_pct": -7.43,
+        "age": 27.2,
+        "years_exp": 4
+      }
     },
     "12502": {
       "name": "Gunnar Helm",
@@ -2090,7 +3301,14 @@
       "trendPct": 15.9,
       "predicted": 222,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 174,
+        "pos_rank": 24,
+        "trend_30d": 222,
+        "trend_pct": 15.9,
+        "age": 23.6,
+        "years_exp": 1
+      }
     },
     "13301": {
       "name": "Antonio Williams",
@@ -2102,7 +3320,14 @@
       "trendPct": -0.57,
       "predicted": -8,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 175,
+        "pos_rank": 69,
+        "trend_30d": -8,
+        "trend_pct": -0.57,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "11627": {
       "name": "Troy Franklin",
@@ -2114,7 +3339,14 @@
       "trendPct": -4.31,
       "predicted": -60,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 176,
+        "pos_rank": 70,
+        "trend_30d": -60,
+        "trend_pct": -4.31,
+        "age": 23.1,
+        "years_exp": 2
+      }
     },
     "13278": {
       "name": "Max Klare",
@@ -2126,7 +3358,14 @@
       "trendPct": -1.16,
       "predicted": -16,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 177,
+        "pos_rank": 25,
+        "trend_30d": -16,
+        "trend_pct": -1.16,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13285": {
       "name": "Malachi Fields",
@@ -2138,7 +3377,14 @@
       "trendPct": -2.71,
       "predicted": -37,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 178,
+        "pos_rank": 71,
+        "trend_30d": -37,
+        "trend_pct": -2.71,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13272": {
       "name": "Carson Beck",
@@ -2150,7 +3396,14 @@
       "trendPct": 3.3,
       "predicted": 45,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 179,
+        "pos_rank": 36,
+        "trend_30d": 45,
+        "trend_pct": 3.3,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12474": {
       "name": "Woody Marks",
@@ -2162,7 +3415,14 @@
       "trendPct": -14.0,
       "predicted": -189,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 180,
+        "pos_rank": 48,
+        "trend_30d": -189,
+        "trend_pct": -14.0,
+        "age": 25.3,
+        "years_exp": 1
+      }
     },
     "12533": {
       "name": "Jacory Croskey-Merritt",
@@ -2174,7 +3434,14 @@
       "trendPct": -4.33,
       "predicted": -58,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 181,
+        "pos_rank": 49,
+        "trend_30d": -58,
+        "trend_pct": -4.33,
+        "age": 25.0,
+        "years_exp": 1
+      }
     },
     "8676": {
       "name": "Rashid Shaheed",
@@ -2186,7 +3453,14 @@
       "trendPct": 3.99,
       "predicted": 53,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 182,
+        "pos_rank": 72,
+        "trend_30d": 53,
+        "trend_pct": 3.99,
+        "age": 27.6,
+        "years_exp": 4
+      }
     },
     "12492": {
       "name": "Pat Bryant",
@@ -2198,7 +3472,14 @@
       "trendPct": -11.49,
       "predicted": -152,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 183,
+        "pos_rank": 73,
+        "trend_30d": -152,
+        "trend_pct": -11.49,
+        "age": 23.3,
+        "years_exp": 1
+      }
     },
     "9229": {
       "name": "Anthony Richardson",
@@ -2209,8 +3490,15 @@
       "trend": -207,
       "trendPct": -16.02,
       "predicted": -207,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 184,
+        "pos_rank": 37,
+        "trend_30d": -207,
+        "trend_pct": -16.02,
+        "age": 23.9,
+        "years_exp": 3
+      }
     },
     "12504": {
       "name": "Kaleb Johnson",
@@ -2222,7 +3510,14 @@
       "trendPct": -8.84,
       "predicted": -114,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 185,
+        "pos_rank": 50,
+        "trend_30d": -114,
+        "trend_pct": -8.84,
+        "age": 22.6,
+        "years_exp": 1
+      }
     },
     "7527": {
       "name": "Mac Jones",
@@ -2233,8 +3528,15 @@
       "trend": -260,
       "trendPct": -20.3,
       "predicted": -260,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 186,
+        "pos_rank": 38,
+        "trend_30d": -260,
+        "trend_pct": -20.3,
+        "age": 27.6,
+        "years_exp": 5
+      }
     },
     "6783": {
       "name": "Jerry Jeudy",
@@ -2246,7 +3548,14 @@
       "trendPct": -9.73,
       "predicted": -124,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 187,
+        "pos_rank": 74,
+        "trend_30d": -124,
+        "trend_pct": -9.73,
+        "age": 26.9,
+        "years_exp": 6
+      }
     },
     "12535": {
       "name": "Isaac TeSlaa",
@@ -2258,7 +3567,14 @@
       "trendPct": 1.26,
       "predicted": 16,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 188,
+        "pos_rank": 75,
+        "trend_30d": 16,
+        "trend_pct": 1.26,
+        "age": 24.1,
+        "years_exp": 1
+      }
     },
     "11625": {
       "name": "Adonai Mitchell",
@@ -2270,7 +3586,14 @@
       "trendPct": 3.65,
       "predicted": 46,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 189,
+        "pos_rank": 76,
+        "trend_30d": 46,
+        "trend_pct": 3.65,
+        "age": 23.5,
+        "years_exp": 2
+      }
     },
     "8205": {
       "name": "Isiah Pacheco",
@@ -2281,8 +3604,15 @@
       "trend": 332,
       "trendPct": 26.5,
       "predicted": 332,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 190,
+        "pos_rank": 51,
+        "trend_30d": 332,
+        "trend_pct": 26.5,
+        "age": 27.1,
+        "years_exp": 4
+      }
     },
     "12469": {
       "name": "Dylan Sampson",
@@ -2294,7 +3624,14 @@
       "trendPct": 0.16,
       "predicted": 2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 191,
+        "pos_rank": 52,
+        "trend_30d": 2,
+        "trend_pct": 0.16,
+        "age": 21.5,
+        "years_exp": 1
+      }
     },
     "11637": {
       "name": "Keon Coleman",
@@ -2306,7 +3643,14 @@
       "trendPct": -9.24,
       "predicted": -115,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 192,
+        "pos_rank": 77,
+        "trend_30d": -115,
+        "trend_pct": -9.24,
+        "age": 22.9,
+        "years_exp": 2
+      }
     },
     "7049": {
       "name": "Jauan Jennings",
@@ -2317,8 +3661,15 @@
       "trend": -274,
       "trendPct": -22.13,
       "predicted": -274,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 193,
+        "pos_rank": 78,
+        "trend_30d": -274,
+        "trend_pct": -22.13,
+        "age": 28.7,
+        "years_exp": 6
+      }
     },
     "10219": {
       "name": "Chris Rodriguez",
@@ -2329,8 +3680,15 @@
       "trend": 782,
       "trendPct": 63.27,
       "predicted": 782,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 194,
+        "pos_rank": 53,
+        "trend_30d": 782,
+        "trend_pct": 63.27,
+        "age": 26.5,
+        "years_exp": 3
+      }
     },
     "8154": {
       "name": "Brian Robinson",
@@ -2341,8 +3699,15 @@
       "trend": 466,
       "trendPct": 37.79,
       "predicted": 466,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 195,
+        "pos_rank": 54,
+        "trend_30d": 466,
+        "trend_pct": 37.79,
+        "age": 27.0,
+        "years_exp": 4
+      }
     },
     "11576": {
       "name": "Braelon Allen",
@@ -2354,7 +3719,14 @@
       "trendPct": -15.18,
       "predicted": -186,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 196,
+        "pos_rank": 55,
+        "trend_30d": -186,
+        "trend_pct": -15.18,
+        "age": 22.2,
+        "years_exp": 2
+      }
     },
     "12540": {
       "name": "Chimere Dike",
@@ -2366,7 +3738,14 @@
       "trendPct": -10.65,
       "predicted": -130,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 197,
+        "pos_rank": 79,
+        "trend_30d": -130,
+        "trend_pct": -10.65,
+        "age": 24.3,
+        "years_exp": 1
+      }
     },
     "9225": {
       "name": "Tank Bigsby",
@@ -2378,7 +3757,14 @@
       "trendPct": 17.75,
       "predicted": 215,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 198,
+        "pos_rank": 56,
+        "trend_30d": 215,
+        "trend_pct": 17.75,
+        "age": 23.6,
+        "years_exp": 3
+      }
     },
     "12487": {
       "name": "Terrance Ferguson",
@@ -2389,8 +3775,15 @@
       "trend": -272,
       "trendPct": -22.57,
       "predicted": -272,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 199,
+        "pos_rank": 26,
+        "trend_30d": -272,
+        "trend_pct": -22.57,
+        "age": 23.1,
+        "years_exp": 1
+      }
     },
     "4033": {
       "name": "David Njoku",
@@ -2401,8 +3794,15 @@
       "trend": -263,
       "trendPct": -21.83,
       "predicted": -263,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 200,
+        "pos_rank": 27,
+        "trend_30d": -263,
+        "trend_pct": -21.83,
+        "age": 29.7,
+        "years_exp": 9
+      }
     },
     "9511": {
       "name": "Keaton Mitchell",
@@ -2414,7 +3814,14 @@
       "trendPct": 43.97,
       "predicted": 529,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 201,
+        "pos_rank": 57,
+        "trend_30d": 529,
+        "trend_pct": 43.97,
+        "age": 24.2,
+        "years_exp": 3
+      }
     },
     "13302": {
       "name": "Adam Randall",
@@ -2426,7 +3833,14 @@
       "trendPct": -3.08,
       "predicted": -37,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 202,
+        "pos_rank": 58,
+        "trend_30d": -37,
+        "trend_pct": -3.08,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13317": {
       "name": "Ted Hurst",
@@ -2438,7 +3852,14 @@
       "trendPct": -2.17,
       "predicted": -26,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 203,
+        "pos_rank": 80,
+        "trend_30d": -26,
+        "trend_pct": -2.17,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "11435": {
       "name": "Emanuel Wilson",
@@ -2449,8 +3870,15 @@
       "trend": 556,
       "trendPct": 46.76,
       "predicted": 556,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 204,
+        "pos_rank": 59,
+        "trend_30d": 556,
+        "trend_pct": 46.76,
+        "age": 26.9,
+        "years_exp": 3
+      }
     },
     "9508": {
       "name": "Tyjae Spears",
@@ -2462,7 +3890,14 @@
       "trendPct": -14.48,
       "predicted": -172,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 205,
+        "pos_rank": 60,
+        "trend_30d": -172,
+        "trend_pct": -14.48,
+        "age": 24.8,
+        "years_exp": 3
+      }
     },
     "13380": {
       "name": "Brenen Thompson",
@@ -2474,7 +3909,14 @@
       "trendPct": -4.1,
       "predicted": -48,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 206,
+        "pos_rank": 81,
+        "trend_30d": -48,
+        "trend_pct": -4.1,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13306": {
       "name": "Taylen Green",
@@ -2486,7 +3928,14 @@
       "trendPct": 3.6,
       "predicted": 42,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 207,
+        "pos_rank": 39,
+        "trend_30d": 42,
+        "trend_pct": 3.6,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "4199": {
       "name": "Aaron Jones",
@@ -2497,8 +3946,15 @@
       "trend": 286,
       "trendPct": 24.51,
       "predicted": 286,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 208,
+        "pos_rank": 61,
+        "trend_30d": 286,
+        "trend_pct": 24.51,
+        "age": 31.3,
+        "years_exp": 9
+      }
     },
     "13282": {
       "name": "Jack Endries",
@@ -2510,7 +3966,14 @@
       "trendPct": 0.26,
       "predicted": 3,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 209,
+        "pos_rank": 28,
+        "trend_30d": 3,
+        "trend_pct": 0.26,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12497": {
       "name": "Tory Horton",
@@ -2522,7 +3985,14 @@
       "trendPct": -7.64,
       "predicted": -87,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 210,
+        "pos_rank": 82,
+        "trend_30d": -87,
+        "trend_pct": -7.64,
+        "age": 23.3,
+        "years_exp": 1
+      }
     },
     "4137": {
       "name": "James Conner",
@@ -2534,7 +4004,14 @@
       "trendPct": 14.19,
       "predicted": 161,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 211,
+        "pos_rank": 62,
+        "trend_30d": 161,
+        "trend_pct": 14.19,
+        "age": 30.9,
+        "years_exp": 9
+      }
     },
     "12547": {
       "name": "Kyle Williams",
@@ -2546,7 +4023,14 @@
       "trendPct": 0.0,
       "predicted": 0,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 212,
+        "pos_rank": 83,
+        "trend_30d": 0,
+        "trend_pct": 0.0,
+        "age": 23.4,
+        "years_exp": 1
+      }
     },
     "13354": {
       "name": "Eric McAlister",
@@ -2558,7 +4042,14 @@
       "trendPct": -5.87,
       "predicted": -66,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 213,
+        "pos_rank": 84,
+        "trend_30d": -66,
+        "trend_pct": -5.87,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "7002": {
       "name": "Juwan Johnson",
@@ -2569,8 +4060,15 @@
       "trend": -252,
       "trendPct": -22.4,
       "predicted": -252,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 214,
+        "pos_rank": 29,
+        "trend_30d": -252,
+        "trend_pct": -22.4,
+        "age": 29.5,
+        "years_exp": 6
+      }
     },
     "13333": {
       "name": "Deion Burks",
@@ -2582,7 +4080,14 @@
       "trendPct": -2.76,
       "predicted": -31,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 215,
+        "pos_rank": 85,
+        "trend_30d": -31,
+        "trend_pct": -2.76,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13300": {
       "name": "Le'Veon Moss",
@@ -2594,7 +4099,14 @@
       "trendPct": -3.41,
       "predicted": -38,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 216,
+        "pos_rank": 63,
+        "trend_30d": -38,
+        "trend_pct": -3.41,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "5872": {
       "name": "Deebo Samuel",
@@ -2606,7 +4118,14 @@
       "trendPct": -14.0,
       "predicted": -156,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 217,
+        "pos_rank": 86,
+        "trend_30d": -156,
+        "trend_pct": -14.0,
+        "age": 30.2,
+        "years_exp": 7
+      }
     },
     "9504": {
       "name": "Kayshon Boutte",
@@ -2617,8 +4136,15 @@
       "trend": -337,
       "trendPct": -30.53,
       "predicted": -337,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 218,
+        "pos_rank": 87,
+        "trend_30d": -337,
+        "trend_pct": -30.53,
+        "age": 23.9,
+        "years_exp": 3
+      }
     },
     "4035": {
       "name": "Alvin Kamara",
@@ -2629,8 +4155,15 @@
       "trend": -281,
       "trendPct": -25.62,
       "predicted": -281,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 219,
+        "pos_rank": 64,
+        "trend_30d": -281,
+        "trend_pct": -25.62,
+        "age": 30.7,
+        "years_exp": 9
+      }
     },
     "9502": {
       "name": "Tank Dell",
@@ -2642,7 +4175,14 @@
       "trendPct": -1.56,
       "predicted": -17,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 220,
+        "pos_rank": 88,
+        "trend_30d": -17,
+        "trend_pct": -1.56,
+        "age": 26.4,
+        "years_exp": 3
+      }
     },
     "11597": {
       "name": "Theo Johnson",
@@ -2653,8 +4193,15 @@
       "trend": -478,
       "trendPct": -44.1,
       "predicted": -478,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 221,
+        "pos_rank": 30,
+        "trend_30d": -478,
+        "trend_pct": -44.1,
+        "age": 25.1,
+        "years_exp": 2
+      }
     },
     "12536": {
       "name": "Jaylin Noel",
@@ -2666,7 +4213,14 @@
       "trendPct": -13.36,
       "predicted": -143,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 222,
+        "pos_rank": 89,
+        "trend_30d": -143,
+        "trend_pct": -13.36,
+        "age": 23.6,
+        "years_exp": 1
+      }
     },
     "8180": {
       "name": "Jalen Nailor",
@@ -2677,8 +4231,15 @@
       "trend": 859,
       "trendPct": 81.04,
       "predicted": 859,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 223,
+        "pos_rank": 90,
+        "trend_30d": 859,
+        "trend_pct": 81.04,
+        "age": 27.1,
+        "years_exp": 4
+      }
     },
     "13270": {
       "name": "CJ Daniels",
@@ -2690,7 +4251,14 @@
       "trendPct": -5.4,
       "predicted": -57,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 224,
+        "pos_rank": 91,
+        "trend_30d": -57,
+        "trend_pct": -5.4,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12499": {
       "name": "Elic Ayomanor",
@@ -2701,8 +4269,15 @@
       "trend": -311,
       "trendPct": -29.99,
       "predicted": -311,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 225,
+        "pos_rank": 92,
+        "trend_30d": -311,
+        "trend_pct": -29.99,
+        "age": 22.8,
+        "years_exp": 1
+      }
     },
     "8698": {
       "name": "Jake Tonges",
@@ -2714,7 +4289,14 @@
       "trendPct": 2.45,
       "predicted": 25,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 226,
+        "pos_rank": 31,
+        "trend_30d": 25,
+        "trend_pct": 2.45,
+        "age": 26.7,
+        "years_exp": 4
+      }
     },
     "11610": {
       "name": "Malik Washington",
@@ -2726,7 +4308,14 @@
       "trendPct": 39.84,
       "predicted": 406,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 227,
+        "pos_rank": 93,
+        "trend_30d": 406,
+        "trend_pct": 39.84,
+        "age": 25.2,
+        "years_exp": 2
+      }
     },
     "13348": {
       "name": "J'Mari Taylor",
@@ -2738,7 +4327,14 @@
       "trendPct": -2.36,
       "predicted": -24,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 228,
+        "pos_rank": 65,
+        "trend_30d": -24,
+        "trend_pct": -2.36,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "11655": {
       "name": "Tyrone Tracy",
@@ -2749,8 +4345,15 @@
       "trend": -417,
       "trendPct": -41.25,
       "predicted": -417,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 229,
+        "pos_rank": 66,
+        "trend_30d": -417,
+        "trend_pct": -41.25,
+        "age": 26.4,
+        "years_exp": 2
+      }
     },
     "5001": {
       "name": "Dalton Schultz",
@@ -2762,7 +4365,14 @@
       "trendPct": 5.38,
       "predicted": 53,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 230,
+        "pos_rank": 32,
+        "trend_30d": 53,
+        "trend_pct": 5.38,
+        "age": 29.7,
+        "years_exp": 8
+      }
     },
     "8111": {
       "name": "Cade Otton",
@@ -2774,7 +4384,14 @@
       "trendPct": 14.97,
       "predicted": 147,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 231,
+        "pos_rank": 33,
+        "trend_30d": 147,
+        "trend_pct": 14.97,
+        "age": 27.0,
+        "years_exp": 4
+      }
     },
     "13289": {
       "name": "Drew Allar",
@@ -2786,7 +4403,14 @@
       "trendPct": -2.05,
       "predicted": -20,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 232,
+        "pos_rank": 40,
+        "trend_30d": -20,
+        "trend_pct": -2.05,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12495": {
       "name": "Ollie Gordon",
@@ -2798,7 +4422,14 @@
       "trendPct": -13.46,
       "predicted": -131,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 233,
+        "pos_rank": 67,
+        "trend_30d": -131,
+        "trend_pct": -13.46,
+        "age": 22.2,
+        "years_exp": 1
+      }
     },
     "13277": {
       "name": "CJ Donaldson",
@@ -2810,7 +4441,14 @@
       "trendPct": 0.0,
       "predicted": 0,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 234,
+        "pos_rank": 68,
+        "trend_30d": 0,
+        "trend_pct": 0.0,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "2449": {
       "name": "Stefon Diggs",
@@ -2821,8 +4459,15 @@
       "trend": -353,
       "trendPct": -37.08,
       "predicted": -353,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 235,
+        "pos_rank": 94,
+        "trend_30d": -353,
+        "trend_pct": -37.08,
+        "age": 32.3,
+        "years_exp": 11
+      }
     },
     "12483": {
       "name": "Jack Bech",
@@ -2834,7 +4479,14 @@
       "trendPct": -17.69,
       "predicted": -164,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 236,
+        "pos_rank": 95,
+        "trend_30d": -164,
+        "trend_pct": -17.69,
+        "age": 23.3,
+        "years_exp": 1
+      }
     },
     "13319": {
       "name": "Oscar Delp",
@@ -2846,7 +4498,14 @@
       "trendPct": 0.98,
       "predicted": 9,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 237,
+        "pos_rank": 34,
+        "trend_30d": 9,
+        "trend_pct": 0.98,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "3214": {
       "name": "Hunter Henry",
@@ -2858,7 +4517,14 @@
       "trendPct": -10.56,
       "predicted": -96,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 238,
+        "pos_rank": 35,
+        "trend_30d": -96,
+        "trend_pct": -10.56,
+        "age": 31.3,
+        "years_exp": 10
+      }
     },
     "13307": {
       "name": "Marlin Klein",
@@ -2870,7 +4536,14 @@
       "trendPct": 1.06,
       "predicted": 9,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 239,
+        "pos_rank": 36,
+        "trend_30d": 9,
+        "trend_pct": 1.06,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13318": {
       "name": "Noah Thomas",
@@ -2882,7 +4555,14 @@
       "trendPct": -0.49,
       "predicted": -4,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 240,
+        "pos_rank": 96,
+        "trend_30d": -4,
+        "trend_pct": -0.49,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12457": {
       "name": "Jaydon Blue",
@@ -2894,7 +4574,14 @@
       "trendPct": -1.24,
       "predicted": -10,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 241,
+        "pos_rank": 69,
+        "trend_30d": -10,
+        "trend_pct": -1.24,
+        "age": 22.2,
+        "years_exp": 1
+      }
     },
     "13336": {
       "name": "Dane Key",
@@ -2906,7 +4593,14 @@
       "trendPct": 0.0,
       "predicted": 0,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 242,
+        "pos_rank": 97,
+        "trend_30d": 0,
+        "trend_pct": 0.0,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12541": {
       "name": "Dont'e Thornton",
@@ -2918,7 +4612,14 @@
       "trendPct": 19.31,
       "predicted": 146,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 243,
+        "pos_rank": 98,
+        "trend_30d": 146,
+        "trend_pct": 19.31,
+        "age": 23.3,
+        "years_exp": 1
+      }
     },
     "96": {
       "name": "Aaron Rodgers",
@@ -2930,7 +4631,14 @@
       "trendPct": -4.23,
       "predicted": -32,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 244,
+        "pos_rank": 41,
+        "trend_30d": -32,
+        "trend_pct": -4.23,
+        "age": 42.3,
+        "years_exp": 21
+      }
     },
     "7090": {
       "name": "Darnell Mooney",
@@ -2941,8 +4649,15 @@
       "trend": 403,
       "trendPct": 53.45,
       "predicted": 403,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 245,
+        "pos_rank": 99,
+        "trend_30d": 403,
+        "trend_pct": 53.45,
+        "age": 28.4,
+        "years_exp": 6
+      }
     },
     "12503": {
       "name": "Isaiah Bond",
@@ -2954,7 +4669,14 @@
       "trendPct": -8.11,
       "predicted": -61,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 246,
+        "pos_rank": 100,
+        "trend_30d": -61,
+        "trend_pct": -8.11,
+        "age": 22.0,
+        "years_exp": 1
+      }
     },
     "11647": {
       "name": "Kimani Vidal",
@@ -2965,8 +4687,15 @@
       "trend": -357,
       "trendPct": -48.24,
       "predicted": -357,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 247,
+        "pos_rank": 70,
+        "trend_30d": -357,
+        "trend_pct": -48.24,
+        "age": 24.6,
+        "years_exp": 2
+      }
     },
     "13394": {
       "name": "Josh Cameron",
@@ -2978,7 +4707,14 @@
       "trendPct": 0.0,
       "predicted": 0,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 248,
+        "pos_rank": 101,
+        "trend_30d": 0,
+        "trend_pct": 0.0,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "9506": {
       "name": "Sean Tucker",
@@ -2989,8 +4725,15 @@
       "trend": -357,
       "trendPct": -50.71,
       "predicted": -357,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 249,
+        "pos_rank": 71,
+        "trend_30d": -357,
+        "trend_pct": -50.71,
+        "age": 24.4,
+        "years_exp": 3
+      }
     },
     "12485": {
       "name": "Tez Johnson",
@@ -3002,7 +4745,14 @@
       "trendPct": 11.38,
       "predicted": 80,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 250,
+        "pos_rank": 102,
+        "trend_30d": 80,
+        "trend_pct": 11.38,
+        "age": 23.9,
+        "years_exp": 1
+      }
     },
     "12467": {
       "name": "Jordan James",
@@ -3014,7 +4764,14 @@
       "trendPct": 50.64,
       "predicted": 355,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 251,
+        "pos_rank": 72,
+        "trend_30d": 355,
+        "trend_pct": 50.64,
+        "age": 22.0,
+        "years_exp": 1
+      }
     },
     "13350": {
       "name": "Joe Fagnano",
@@ -3026,7 +4783,14 @@
       "trendPct": 1.87,
       "predicted": 13,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 252,
+        "pos_rank": 42,
+        "trend_30d": 13,
+        "trend_pct": 1.87,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "4017": {
       "name": "Deshaun Watson",
@@ -3037,8 +4801,15 @@
       "trend": 270,
       "trendPct": 38.9,
       "predicted": 270,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 253,
+        "pos_rank": 43,
+        "trend_30d": 270,
+        "trend_pct": 38.9,
+        "age": 30.5,
+        "years_exp": 9
+      }
     },
     "7600": {
       "name": "Pat Freiermuth",
@@ -3050,7 +4821,14 @@
       "trendPct": 15.07,
       "predicted": 102,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 254,
+        "pos_rank": 37,
+        "trend_30d": 102,
+        "trend_pct": 15.07,
+        "age": 27.4,
+        "years_exp": 5
+      }
     },
     "9482": {
       "name": "Michael Mayer",
@@ -3062,7 +4840,14 @@
       "trendPct": 7.29,
       "predicted": 49,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 255,
+        "pos_rank": 38,
+        "trend_30d": 49,
+        "trend_pct": 7.29,
+        "age": 24.7,
+        "years_exp": 3
+      }
     },
     "12521": {
       "name": "Elijah Arroyo",
@@ -3074,7 +4859,14 @@
       "trendPct": -25.93,
       "predicted": -174,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 256,
+        "pos_rank": 39,
+        "trend_30d": -174,
+        "trend_pct": -25.93,
+        "age": 23.0,
+        "years_exp": 1
+      }
     },
     "10213": {
       "name": "Tre Tucker",
@@ -3086,7 +4878,14 @@
       "trendPct": -29.5,
       "predicted": -195,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 257,
+        "pos_rank": 103,
+        "trend_30d": -195,
+        "trend_pct": -29.5,
+        "age": 25.1,
+        "years_exp": 3
+      }
     },
     "12471": {
       "name": "DJ Giddens",
@@ -3098,7 +4897,14 @@
       "trendPct": 24.47,
       "predicted": 161,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 258,
+        "pos_rank": 73,
+        "trend_30d": 161,
+        "trend_pct": 24.47,
+        "age": 22.6,
+        "years_exp": 1
+      }
     },
     "4981": {
       "name": "Calvin Ridley",
@@ -3110,7 +4916,14 @@
       "trendPct": 24.92,
       "predicted": 164,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 259,
+        "pos_rank": 104,
+        "trend_30d": 164,
+        "trend_pct": 24.92,
+        "age": 31.3,
+        "years_exp": 8
+      }
     },
     "13303": {
       "name": "Cade Klubnik",
@@ -3122,7 +4935,14 @@
       "trendPct": 0.15,
       "predicted": 1,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 260,
+        "pos_rank": 44,
+        "trend_30d": 1,
+        "trend_pct": 0.15,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13309": {
       "name": "Aaron Anderson",
@@ -3134,7 +4954,14 @@
       "trendPct": 0.31,
       "predicted": 2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 261,
+        "pos_rank": 105,
+        "trend_30d": 2,
+        "trend_pct": 0.31,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13335": {
       "name": "Cole Payton",
@@ -3146,7 +4973,14 @@
       "trendPct": 0.31,
       "predicted": 2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 262,
+        "pos_rank": 45,
+        "trend_30d": 2,
+        "trend_pct": 0.31,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12476": {
       "name": "Devin Neal",
@@ -3157,8 +4991,15 @@
       "trend": -628,
       "trendPct": -99.52,
       "predicted": -628,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 263,
+        "pos_rank": 74,
+        "trend_30d": -628,
+        "trend_pct": -99.52,
+        "age": 22.6,
+        "years_exp": 1
+      }
     },
     "13322": {
       "name": "Sam Roush",
@@ -3170,7 +5011,14 @@
       "trendPct": 0.32,
       "predicted": 2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 264,
+        "pos_rank": 40,
+        "trend_30d": 2,
+        "trend_pct": 0.32,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "11643": {
       "name": "Jaylen Wright",
@@ -3182,7 +5030,14 @@
       "trendPct": 1.81,
       "predicted": 11,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 265,
+        "pos_rank": 75,
+        "trend_30d": 11,
+        "trend_pct": 1.81,
+        "age": 23.0,
+        "years_exp": 2
+      }
     },
     "12455": {
       "name": "Brashard Smith",
@@ -3193,8 +5048,15 @@
       "trend": -209,
       "trendPct": -34.78,
       "predicted": -209,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 266,
+        "pos_rank": 76,
+        "trend_30d": -209,
+        "trend_pct": -34.78,
+        "age": 23.0,
+        "years_exp": 1
+      }
     },
     "4066": {
       "name": "Evan Engram",
@@ -3206,7 +5068,14 @@
       "trendPct": 9.58,
       "predicted": 57,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 267,
+        "pos_rank": 41,
+        "trend_30d": 57,
+        "trend_pct": 9.58,
+        "age": 31.6,
+        "years_exp": 9
+      }
     },
     "13284": {
       "name": "Dylan Devezin",
@@ -3218,7 +5087,14 @@
       "trendPct": -0.34,
       "predicted": -2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 268,
+        "pos_rank": 77,
+        "trend_30d": -2,
+        "trend_pct": -0.34,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "6865": {
       "name": "Colby Parkinson",
@@ -3229,8 +5105,15 @@
       "trend": -268,
       "trendPct": -46.29,
       "predicted": -268,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 269,
+        "pos_rank": 42,
+        "trend_30d": -268,
+        "trend_pct": -46.29,
+        "age": 27.2,
+        "years_exp": 6
+      }
     },
     "13338": {
       "name": "Kevin Coleman",
@@ -3242,7 +5125,14 @@
       "trendPct": -0.17,
       "predicted": -1,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 270,
+        "pos_rank": 106,
+        "trend_30d": -1,
+        "trend_pct": -0.17,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12511": {
       "name": "Will Howard",
@@ -3254,7 +5144,14 @@
       "trendPct": -20.03,
       "predicted": -115,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 271,
+        "pos_rank": 46,
+        "trend_30d": -115,
+        "trend_pct": -20.03,
+        "age": 24.5,
+        "years_exp": 1
+      }
     },
     "12510": {
       "name": "Jalen Milroe",
@@ -3266,7 +5163,14 @@
       "trendPct": -29.06,
       "predicted": -163,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 272,
+        "pos_rank": 47,
+        "trend_30d": -163,
+        "trend_pct": -29.06,
+        "age": 23.3,
+        "years_exp": 1
+      }
     },
     "9494": {
       "name": "Marvin Mims",
@@ -3278,7 +5182,14 @@
       "trendPct": -31.07,
       "predicted": -174,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 273,
+        "pos_rank": 107,
+        "trend_30d": -174,
+        "trend_pct": -31.07,
+        "age": 24.0,
+        "years_exp": 3
+      }
     },
     "12544": {
       "name": "LeQuint Allen",
@@ -3290,7 +5201,14 @@
       "trendPct": 53.87,
       "predicted": 299,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 274,
+        "pos_rank": 78,
+        "trend_30d": 299,
+        "trend_pct": 53.87,
+        "age": 21.6,
+        "years_exp": 1
+      }
     },
     "7528": {
       "name": "Najee Harris",
@@ -3302,7 +5220,14 @@
       "trendPct": -29.94,
       "predicted": -153,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 275,
+        "pos_rank": 79,
+        "trend_30d": -153,
+        "trend_pct": -29.94,
+        "age": 28.1,
+        "years_exp": 5
+      }
     },
     "12470": {
       "name": "Riley Leonard",
@@ -3314,7 +5239,14 @@
       "trendPct": -6.52,
       "predicted": -33,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 276,
+        "pos_rank": 48,
+        "trend_30d": -33,
+        "trend_pct": -6.52,
+        "age": 23.5,
+        "years_exp": 1
+      }
     },
     "19": {
       "name": "Joe Flacco",
@@ -3325,8 +5257,15 @@
       "trend": 412,
       "trendPct": 83.06,
       "predicted": 412,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 277,
+        "pos_rank": 49,
+        "trend_30d": 412,
+        "trend_pct": 83.06,
+        "age": 41.2,
+        "years_exp": 18
+      }
     },
     "13283": {
       "name": "Hollywood Smothers",
@@ -3338,7 +5277,14 @@
       "trendPct": 0.0,
       "predicted": 0,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 278,
+        "pos_rank": 80,
+        "trend_30d": 0,
+        "trend_pct": 0.0,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "6826": {
       "name": "Cole Kmet",
@@ -3350,7 +5296,14 @@
       "trendPct": -1.03,
       "predicted": -5,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 279,
+        "pos_rank": 43,
+        "trend_30d": -5,
+        "trend_pct": -1.03,
+        "age": 27.1,
+        "years_exp": 6
+      }
     },
     "13392": {
       "name": "Jeff Caldwell",
@@ -3362,7 +5315,14 @@
       "trendPct": 0.42,
       "predicted": 2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 280,
+        "pos_rank": 108,
+        "trend_30d": 2,
+        "trend_pct": 0.42,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12500": {
       "name": "Quinn Ewers",
@@ -3373,8 +5333,15 @@
       "trend": -239,
       "trendPct": -50.74,
       "predicted": -239,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 281,
+        "pos_rank": 50,
+        "trend_30d": -239,
+        "trend_pct": -50.74,
+        "age": 23.0,
+        "years_exp": 1
+      }
     },
     "11596": {
       "name": "Ben Sinnott",
@@ -3385,8 +5352,15 @@
       "trend": -376,
       "trendPct": -81.21,
       "predicted": -376,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 282,
+        "pos_rank": 44,
+        "trend_30d": -376,
+        "trend_pct": -81.21,
+        "age": 23.8,
+        "years_exp": 2
+      }
     },
     "5848": {
       "name": "Marquise Brown",
@@ -3398,7 +5372,14 @@
       "trendPct": 34.72,
       "predicted": 159,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 283,
+        "pos_rank": 109,
+        "trend_30d": 159,
+        "trend_pct": 34.72,
+        "age": 28.8,
+        "years_exp": 7
+      }
     },
     "13316": {
       "name": "Eric Rivers",
@@ -3410,7 +5391,14 @@
       "trendPct": -1.1,
       "predicted": -5,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 284,
+        "pos_rank": 110,
+        "trend_30d": -5,
+        "trend_pct": -1.1,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "2307": {
       "name": "Marcus Mariota",
@@ -3422,7 +5410,14 @@
       "trendPct": -2.68,
       "predicted": -12,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 285,
+        "pos_rank": 51,
+        "trend_30d": -12,
+        "trend_pct": -2.68,
+        "age": 32.4,
+        "years_exp": 11
+      }
     },
     "11626": {
       "name": "Xavier Legette",
@@ -3434,7 +5429,14 @@
       "trendPct": -25.68,
       "predicted": -114,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 286,
+        "pos_rank": 111,
+        "trend_30d": -114,
+        "trend_pct": -25.68,
+        "age": 25.2,
+        "years_exp": 2
+      }
     },
     "4018": {
       "name": "Joe Mixon",
@@ -3445,8 +5447,15 @@
       "trend": -573,
       "trendPct": -130.23,
       "predicted": -573,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 287,
+        "pos_rank": 81,
+        "trend_30d": -573,
+        "trend_pct": -130.23,
+        "age": 29.7,
+        "years_exp": 9
+      }
     },
     "13356": {
       "name": "Trebor Pena",
@@ -3458,7 +5467,14 @@
       "trendPct": 0.23,
       "predicted": 1,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 288,
+        "pos_rank": 112,
+        "trend_30d": 1,
+        "trend_pct": 0.23,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "11834": {
       "name": "Devaughn Vele",
@@ -3470,7 +5486,14 @@
       "trendPct": 4.71,
       "predicted": 20,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 289,
+        "pos_rank": 113,
+        "trend_30d": 20,
+        "trend_pct": 4.71,
+        "age": 28.3,
+        "years_exp": 2
+      }
     },
     "4950": {
       "name": "Christian Kirk",
@@ -3482,7 +5505,14 @@
       "trendPct": 34.43,
       "predicted": 146,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 290,
+        "pos_rank": 114,
+        "trend_30d": 146,
+        "trend_pct": 34.43,
+        "age": 29.4,
+        "years_exp": 8
+      }
     },
     "4039": {
       "name": "Cooper Kupp",
@@ -3494,7 +5524,14 @@
       "trendPct": -20.0,
       "predicted": -83,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 291,
+        "pos_rank": 115,
+        "trend_30d": -83,
+        "trend_pct": -20.0,
+        "age": 32.8,
+        "years_exp": 9
+      }
     },
     "10444": {
       "name": "Cedric Tillman",
@@ -3506,7 +5543,14 @@
       "trendPct": -3.64,
       "predicted": -15,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 292,
+        "pos_rank": 116,
+        "trend_30d": -15,
+        "trend_pct": -3.64,
+        "age": 25.9,
+        "years_exp": 3
+      }
     },
     "1166": {
       "name": "Kirk Cousins",
@@ -3517,8 +5561,15 @@
       "trend": -395,
       "trendPct": -96.11,
       "predicted": -395,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 293,
+        "pos_rank": 52,
+        "trend_30d": -395,
+        "trend_pct": -96.11,
+        "age": 37.6,
+        "years_exp": 14
+      }
     },
     "13273": {
       "name": "Josh Cuevas",
@@ -3530,7 +5581,14 @@
       "trendPct": 2.2,
       "predicted": 9,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 294,
+        "pos_rank": 45,
+        "trend_30d": 9,
+        "trend_pct": 2.2,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "11600": {
       "name": "Ja'Tavion Sanders",
@@ -3542,7 +5600,14 @@
       "trendPct": -21.21,
       "predicted": -84,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 295,
+        "pos_rank": 46,
+        "trend_30d": -84,
+        "trend_pct": -21.21,
+        "age": 23.0,
+        "years_exp": 2
+      }
     },
     "13329": {
       "name": "Malik Benson",
@@ -3554,7 +5619,14 @@
       "trendPct": 0.77,
       "predicted": 3,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 296,
+        "pos_rank": 117,
+        "trend_30d": 3,
+        "trend_pct": 0.77,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13342": {
       "name": "John Michael Gyllenborg",
@@ -3566,7 +5638,14 @@
       "trendPct": 0.79,
       "predicted": 3,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 297,
+        "pos_rank": 47,
+        "trend_30d": 3,
+        "trend_pct": 0.79,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13327": {
       "name": "Desmond Reid",
@@ -3578,7 +5657,14 @@
       "trendPct": 1.31,
       "predicted": 5,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 298,
+        "pos_rank": 82,
+        "trend_30d": 5,
+        "trend_pct": 1.31,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "11575": {
       "name": "Ray Davis",
@@ -3590,7 +5676,14 @@
       "trendPct": -4.2,
       "predicted": -16,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 299,
+        "pos_rank": 83,
+        "trend_30d": -16,
+        "trend_pct": -4.2,
+        "age": 26.4,
+        "years_exp": 2
+      }
     },
     "12531": {
       "name": "Trevor Etienne",
@@ -3602,7 +5695,14 @@
       "trendPct": 24.6,
       "predicted": 93,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 300,
+        "pos_rank": 84,
+        "trend_30d": 93,
+        "trend_pct": 24.6,
+        "age": 21.7,
+        "years_exp": 1
+      }
     },
     "13271": {
       "name": "Mark Fletcher",
@@ -3614,7 +5714,14 @@
       "trendPct": 1.89,
       "predicted": 7,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 301,
+        "pos_rank": 85,
+        "trend_30d": 7,
+        "trend_pct": 1.89,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13315": {
       "name": "Dean Connors",
@@ -3626,7 +5733,14 @@
       "trendPct": -1.13,
       "predicted": -4,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 302,
+        "pos_rank": 86,
+        "trend_30d": -4,
+        "trend_pct": -1.13,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13297": {
       "name": "Reggie Virgil",
@@ -3638,7 +5752,14 @@
       "trendPct": -1.15,
       "predicted": -4,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 303,
+        "pos_rank": 118,
+        "trend_30d": -4,
+        "trend_pct": -1.15,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "8117": {
       "name": "Jalen Tolbert",
@@ -3649,8 +5770,15 @@
       "trend": 331,
       "trendPct": 100.0,
       "predicted": 331,
-      "signal": "BUY",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 304,
+        "pos_rank": 119,
+        "trend_30d": 331,
+        "trend_pct": 100.0,
+        "age": 27.1,
+        "years_exp": 4
+      }
     },
     "7571": {
       "name": "Rashod Bateman",
@@ -3662,7 +5790,14 @@
       "trendPct": -4.6,
       "predicted": -15,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 305,
+        "pos_rank": 120,
+        "trend_30d": -15,
+        "trend_pct": -4.6,
+        "age": 26.3,
+        "years_exp": 5
+      }
     },
     "8147": {
       "name": "John Metchie",
@@ -3674,7 +5809,14 @@
       "trendPct": -21.74,
       "predicted": -70,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 306,
+        "pos_rank": 121,
+        "trend_30d": -70,
+        "trend_pct": -21.74,
+        "age": 25.7,
+        "years_exp": 4
+      }
     },
     "13323": {
       "name": "Rahsul Faison",
@@ -3686,7 +5828,14 @@
       "trendPct": 2.19,
       "predicted": 7,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 307,
+        "pos_rank": 87,
+        "trend_30d": 7,
+        "trend_pct": 2.19,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "9486": {
       "name": "Dontayvion Wicks",
@@ -3698,7 +5847,14 @@
       "trendPct": -13.92,
       "predicted": -43,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 308,
+        "pos_rank": 122,
+        "trend_30d": -43,
+        "trend_pct": -13.92,
+        "age": 24.8,
+        "years_exp": 3
+      }
     },
     "11571": {
       "name": "Isaiah Davis",
@@ -3710,7 +5866,14 @@
       "trendPct": -59.12,
       "predicted": -175,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 309,
+        "pos_rank": 88,
+        "trend_30d": -175,
+        "trend_pct": -59.12,
+        "age": 24.1,
+        "years_exp": 2
+      }
     },
     "8119": {
       "name": "Jahan Dotson",
@@ -3722,7 +5885,14 @@
       "trendPct": 100.0,
       "predicted": 292,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 310,
+        "pos_rank": 123,
+        "trend_30d": 292,
+        "trend_pct": 100.0,
+        "age": 26.0,
+        "years_exp": 4
+      }
     },
     "11783": {
       "name": "Ryan Flournoy",
@@ -3734,7 +5904,14 @@
       "trendPct": -26.8,
       "predicted": -78,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 311,
+        "pos_rank": 124,
+        "trend_30d": -78,
+        "trend_pct": -26.8,
+        "age": 26.4,
+        "years_exp": 2
+      }
     },
     "8172": {
       "name": "Greg Dulcich",
@@ -3746,7 +5923,14 @@
       "trendPct": 50.17,
       "predicted": 146,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 312,
+        "pos_rank": 48,
+        "trend_30d": 146,
+        "trend_pct": 50.17,
+        "age": 26.0,
+        "years_exp": 4
+      }
     },
     "1479": {
       "name": "Keenan Allen",
@@ -3757,8 +5941,15 @@
       "trend": -298,
       "trendPct": -102.41,
       "predicted": -298,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 313,
+        "pos_rank": 125,
+        "trend_30d": -298,
+        "trend_pct": -102.41,
+        "age": 33.9,
+        "years_exp": 13
+      }
     },
     "11581": {
       "name": "MarShawn Lloyd",
@@ -3770,7 +5961,14 @@
       "trendPct": -8.57,
       "predicted": -24,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 314,
+        "pos_rank": 89,
+        "trend_30d": -24,
+        "trend_pct": -8.57,
+        "age": 25.2,
+        "years_exp": 2
+      }
     },
     "9479": {
       "name": "Darnell Washington",
@@ -3782,7 +5980,14 @@
       "trendPct": 26.02,
       "predicted": 70,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 315,
+        "pos_rank": 49,
+        "trend_30d": 70,
+        "trend_pct": 26.02,
+        "age": 24.6,
+        "years_exp": 3
+      }
     },
     "11569": {
       "name": "Jarquez Hunter",
@@ -3794,7 +5999,14 @@
       "trendPct": 23.05,
       "predicted": 62,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 316,
+        "pos_rank": 90,
+        "trend_30d": 62,
+        "trend_pct": 23.05,
+        "age": 23.3,
+        "years_exp": 1
+      }
     },
     "9757": {
       "name": "Kendre Miller",
@@ -3805,8 +6017,15 @@
       "trend": -214,
       "trendPct": -81.37,
       "predicted": -214,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 317,
+        "pos_rank": 91,
+        "trend_30d": -214,
+        "trend_pct": -81.37,
+        "age": 23.8,
+        "years_exp": 3
+      }
     },
     "9501": {
       "name": "DeMario Douglas",
@@ -3818,7 +6037,14 @@
       "trendPct": -37.4,
       "predicted": -98,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 318,
+        "pos_rank": 126,
+        "trend_30d": -98,
+        "trend_pct": -37.4,
+        "age": 25.3,
+        "years_exp": 3
+      }
     },
     "1339": {
       "name": "Zach Ertz",
@@ -3830,7 +6056,14 @@
       "trendPct": -47.49,
       "predicted": -123,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 319,
+        "pos_rank": 50,
+        "trend_30d": -123,
+        "trend_pct": -47.49,
+        "age": 35.4,
+        "years_exp": 13
+      }
     },
     "8143": {
       "name": "Jerome Ford",
@@ -3842,7 +6075,14 @@
       "trendPct": 58.73,
       "predicted": 148,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 320,
+        "pos_rank": 92,
+        "trend_30d": 148,
+        "trend_pct": 58.73,
+        "age": 26.6,
+        "years_exp": 4
+      }
     },
     "12505": {
       "name": "Jalen Royals",
@@ -3854,7 +6094,14 @@
       "trendPct": -42.21,
       "predicted": -103,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 321,
+        "pos_rank": 127,
+        "trend_30d": -103,
+        "trend_pct": -42.21,
+        "age": 23.1,
+        "years_exp": 1
+      }
     },
     "8125": {
       "name": "Calvin Austin",
@@ -3866,7 +6113,14 @@
       "trendPct": 32.79,
       "predicted": 80,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 322,
+        "pos_rank": 128,
+        "trend_30d": 80,
+        "trend_pct": 32.79,
+        "age": 27.0,
+        "years_exp": 4
+      }
     },
     "11579": {
       "name": "Audric Estime",
@@ -3878,7 +6132,14 @@
       "trendPct": -67.08,
       "predicted": -161,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 323,
+        "pos_rank": 93,
+        "trend_30d": -161,
+        "trend_pct": -67.08,
+        "age": 22.6,
+        "years_exp": 2
+      }
     },
     "12543": {
       "name": "Tahj Brooks",
@@ -3890,7 +6151,14 @@
       "trendPct": -4.29,
       "predicted": -10,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 324,
+        "pos_rank": 94,
+        "trend_30d": -10,
+        "trend_pct": -4.29,
+        "age": 23.9,
+        "years_exp": 1
+      }
     },
     "11557": {
       "name": "Joe Milton",
@@ -3902,7 +6170,14 @@
       "trendPct": -38.86,
       "predicted": -89,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 325,
+        "pos_rank": 53,
+        "trend_30d": -89,
+        "trend_pct": -38.86,
+        "age": 26.1,
+        "years_exp": 2
+      }
     },
     "12641": {
       "name": "Jaylin Lane",
@@ -3914,7 +6189,14 @@
       "trendPct": -16.44,
       "predicted": -37,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 326,
+        "pos_rank": 129,
+        "trend_30d": -37,
+        "trend_pct": -16.44,
+        "age": 23.9,
+        "years_exp": 1
+      }
     },
     "6011": {
       "name": "Gardner Minshew",
@@ -3926,7 +6208,14 @@
       "trendPct": 9.46,
       "predicted": 21,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 327,
+        "pos_rank": 54,
+        "trend_30d": 21,
+        "trend_pct": 9.46,
+        "age": 29.9,
+        "years_exp": 7
+      }
     },
     "11562": {
       "name": "Spencer Rattler",
@@ -3938,7 +6227,14 @@
       "trendPct": -16.51,
       "predicted": -36,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 328,
+        "pos_rank": 55,
+        "trend_30d": -36,
+        "trend_pct": -16.51,
+        "age": 25.5,
+        "years_exp": 2
+      }
     },
     "6130": {
       "name": "Devin Singletary",
@@ -3950,7 +6246,14 @@
       "trendPct": -11.74,
       "predicted": -25,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 329,
+        "pos_rank": 95,
+        "trend_30d": -25,
+        "trend_pct": -11.74,
+        "age": 28.6,
+        "years_exp": 7
+      }
     },
     "4993": {
       "name": "Mike Gesicki",
@@ -3962,7 +6265,14 @@
       "trendPct": -66.02,
       "predicted": -136,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 330,
+        "pos_rank": 51,
+        "trend_30d": -136,
+        "trend_pct": -66.02,
+        "age": 30.5,
+        "years_exp": 8
+      }
     },
     "11619": {
       "name": "Ja'Lynn Polk",
@@ -3974,7 +6284,14 @@
       "trendPct": -12.81,
       "predicted": -26,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 331,
+        "pos_rank": 130,
+        "trend_30d": -26,
+        "trend_pct": -12.81,
+        "age": 24.0,
+        "years_exp": 2
+      }
     },
     "11651": {
       "name": "Isaac Guerendo",
@@ -3986,7 +6303,14 @@
       "trendPct": 24.87,
       "predicted": 49,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 332,
+        "pos_rank": 96,
+        "trend_30d": 49,
+        "trend_pct": 24.87,
+        "age": 25.8,
+        "years_exp": 2
+      }
     },
     "7585": {
       "name": "Davis Mills",
@@ -3998,7 +6322,14 @@
       "trendPct": -29.47,
       "predicted": -56,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 333,
+        "pos_rank": 56,
+        "trend_30d": -56,
+        "trend_pct": -29.47,
+        "age": 27.4,
+        "years_exp": 5
+      }
     },
     "3161": {
       "name": "Carson Wentz",
@@ -4010,7 +6341,14 @@
       "trendPct": 100.0,
       "predicted": 188,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 334,
+        "pos_rank": 57,
+        "trend_30d": 188,
+        "trend_pct": 100.0,
+        "age": 33.3,
+        "years_exp": 10
+      }
     },
     "13308": {
       "name": "Bauer Sharp",
@@ -4022,7 +6360,14 @@
       "trendPct": -1.08,
       "predicted": -2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 335,
+        "pos_rank": 52,
+        "trend_30d": -2,
+        "trend_pct": -1.08,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13314": {
       "name": "Luke Altmyer",
@@ -4034,7 +6379,14 @@
       "trendPct": -1.08,
       "predicted": -2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 336,
+        "pos_rank": 58,
+        "trend_30d": -2,
+        "trend_pct": -1.08,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "13310": {
       "name": "Miller Moss",
@@ -4046,7 +6398,14 @@
       "trendPct": -1.08,
       "predicted": -2,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 337,
+        "pos_rank": 59,
+        "trend_30d": -2,
+        "trend_pct": -1.08,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "8188": {
       "name": "Tyquan Thornton",
@@ -4058,7 +6417,14 @@
       "trendPct": 76.76,
       "predicted": 142,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 338,
+        "pos_rank": 131,
+        "trend_30d": 142,
+        "trend_pct": 76.76,
+        "age": 25.6,
+        "years_exp": 4
+      }
     },
     "9481": {
       "name": "Luke Musgrave",
@@ -4070,7 +6436,14 @@
       "trendPct": 2.16,
       "predicted": 4,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 339,
+        "pos_rank": 53,
+        "trend_30d": 4,
+        "trend_pct": 2.16,
+        "age": 25.6,
+        "years_exp": 3
+      }
     },
     "6149": {
       "name": "Darius Slayton",
@@ -4082,7 +6455,14 @@
       "trendPct": -55.31,
       "predicted": -99,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 340,
+        "pos_rank": 132,
+        "trend_30d": -99,
+        "trend_pct": -55.31,
+        "age": 29.2,
+        "years_exp": 7
+      }
     },
     "11650": {
       "name": "Luke McCaffrey",
@@ -4094,7 +6474,14 @@
       "trendPct": -24.54,
       "predicted": -40,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 341,
+        "pos_rank": 133,
+        "trend_30d": -40,
+        "trend_pct": -24.54,
+        "age": 25.0,
+        "years_exp": 2
+      }
     },
     "11256": {
       "name": "Tyson Bagent",
@@ -4106,7 +6493,14 @@
       "trendPct": 23.6,
       "predicted": 38,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 342,
+        "pos_rank": 60,
+        "trend_30d": 38,
+        "trend_pct": 23.6,
+        "age": 25.8,
+        "years_exp": 3
+      }
     },
     "11199": {
       "name": "Emari Demercado",
@@ -4118,7 +6512,14 @@
       "trendPct": 100.0,
       "predicted": 160,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 343,
+        "pos_rank": 97,
+        "trend_30d": 160,
+        "trend_pct": 100.0,
+        "age": 27.2,
+        "years_exp": 3
+      }
     },
     "4098": {
       "name": "Kareem Hunt",
@@ -4130,7 +6531,14 @@
       "trendPct": -108.86,
       "predicted": -172,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 344,
+        "pos_rank": 98,
+        "trend_30d": -172,
+        "trend_pct": -108.86,
+        "age": 30.7,
+        "years_exp": 9
+      }
     },
     "2306": {
       "name": "Jameis Winston",
@@ -4142,7 +6550,14 @@
       "trendPct": -51.92,
       "predicted": -81,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 345,
+        "pos_rank": 61,
+        "trend_30d": -81,
+        "trend_pct": -51.92,
+        "age": 32.2,
+        "years_exp": 11
+      }
     },
     "9999": {
       "name": "Will Levis",
@@ -4154,7 +6569,14 @@
       "trendPct": -5.19,
       "predicted": -8,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 346,
+        "pos_rank": 62,
+        "trend_30d": -8,
+        "trend_pct": -5.19,
+        "age": 26.8,
+        "years_exp": 3
+      }
     },
     "7828": {
       "name": "Noah Gray",
@@ -4166,7 +6588,14 @@
       "trendPct": 1.97,
       "predicted": 3,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 347,
+        "pos_rank": 54,
+        "trend_30d": 3,
+        "trend_pct": 1.97,
+        "age": 26.9,
+        "years_exp": 5
+      }
     },
     "7610": {
       "name": "Trey Lance",
@@ -4178,7 +6607,14 @@
       "trendPct": 16.22,
       "predicted": 24,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 348,
+        "pos_rank": 63,
+        "trend_30d": 24,
+        "trend_pct": 16.22,
+        "age": 25.9,
+        "years_exp": 5
+      }
     },
     "13079": {
       "name": "Jahdae Walker",
@@ -4190,7 +6626,14 @@
       "trendPct": 32.19,
       "predicted": 47,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 349,
+        "pos_rank": 134,
+        "trend_30d": 47,
+        "trend_pct": 32.19,
+        "age": 23.7,
+        "years_exp": 1
+      }
     },
     "7083": {
       "name": "Tyler Huntley",
@@ -4202,7 +6645,14 @@
       "trendPct": 100.0,
       "predicted": 142,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 350,
+        "pos_rank": 64,
+        "trend_30d": 142,
+        "trend_pct": 100.0,
+        "age": 28.2,
+        "years_exp": 6
+      }
     },
     "13296": {
       "name": "Caleb Douglas",
@@ -4214,7 +6664,14 @@
       "trendPct": -0.72,
       "predicted": -1,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 351,
+        "pos_rank": 135,
+        "trend_30d": -1,
+        "trend_pct": -0.72,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "11630": {
       "name": "Roman Wilson",
@@ -4226,7 +6683,14 @@
       "trendPct": -88.41,
       "predicted": -122,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 352,
+        "pos_rank": 136,
+        "trend_30d": -122,
+        "trend_pct": -88.41,
+        "age": 24.8,
+        "years_exp": 2
+      }
     },
     "10218": {
       "name": "Xavier Hutchinson",
@@ -4238,7 +6702,14 @@
       "trendPct": 30.58,
       "predicted": 37,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 353,
+        "pos_rank": 137,
+        "trend_30d": 37,
+        "trend_pct": 30.58,
+        "age": 25.8,
+        "years_exp": 3
+      }
     },
     "3271": {
       "name": "Tyler Higbee",
@@ -4250,7 +6721,14 @@
       "trendPct": -3.31,
       "predicted": -4,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 354,
+        "pos_rank": 55,
+        "trend_30d": -4,
+        "trend_pct": -3.31,
+        "age": 33.2,
+        "years_exp": 10
+      }
     },
     "12482": {
       "name": "Savion Williams",
@@ -4262,7 +6740,14 @@
       "trendPct": -25.83,
       "predicted": -31,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 355,
+        "pos_rank": 138,
+        "trend_30d": -31,
+        "trend_pct": -25.83,
+        "age": 24.4,
+        "years_exp": 1
+      }
     },
     "7562": {
       "name": "Tutu Atwell",
@@ -4274,7 +6759,14 @@
       "trendPct": 71.19,
       "predicted": 84,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 356,
+        "pos_rank": 139,
+        "trend_30d": 84,
+        "trend_pct": 71.19,
+        "age": 26.5,
+        "years_exp": 5
+      }
     },
     "5857": {
       "name": "Noah Fant",
@@ -4286,7 +6778,14 @@
       "trendPct": 35.9,
       "predicted": 42,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 357,
+        "pos_rank": 56,
+        "trend_30d": 42,
+        "trend_pct": 35.9,
+        "age": 28.4,
+        "years_exp": 7
+      }
     },
     "8160": {
       "name": "Kenny Pickett",
@@ -4298,7 +6797,14 @@
       "trendPct": 54.78,
       "predicted": 63,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 358,
+        "pos_rank": 65,
+        "trend_30d": 63,
+        "trend_pct": 54.78,
+        "age": 27.8,
+        "years_exp": 4
+      }
     },
     "11577": {
       "name": "Will Shipley",
@@ -4310,7 +6816,14 @@
       "trendPct": 54.78,
       "predicted": 63,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 359,
+        "pos_rank": 99,
+        "trend_30d": 63,
+        "trend_pct": 54.78,
+        "age": 23.6,
+        "years_exp": 2
+      }
     },
     "4177": {
       "name": "Mack Hollins",
@@ -4322,7 +6835,14 @@
       "trendPct": 66.67,
       "predicted": 76,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 360,
+        "pos_rank": 140,
+        "trend_30d": 76,
+        "trend_pct": 66.67,
+        "age": 32.5,
+        "years_exp": 9
+      }
     },
     "10216": {
       "name": "Kenny McIntosh",
@@ -4334,7 +6854,14 @@
       "trendPct": 100.0,
       "predicted": 104,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 361,
+        "pos_rank": 100,
+        "trend_30d": 104,
+        "trend_pct": 100.0,
+        "age": 26.1,
+        "years_exp": 3
+      }
     },
     "4454": {
       "name": "Kendrick Bourne",
@@ -4346,7 +6873,14 @@
       "trendPct": 100.0,
       "predicted": 102,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 362,
+        "pos_rank": 141,
+        "trend_30d": 102,
+        "trend_pct": 100.0,
+        "age": 30.7,
+        "years_exp": 9
+      }
     },
     "9230": {
       "name": "Tanner McKee",
@@ -4358,7 +6892,14 @@
       "trendPct": 5.0,
       "predicted": 5,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 363,
+        "pos_rank": 66,
+        "trend_30d": 5,
+        "trend_pct": 5.0,
+        "age": 25.9,
+        "years_exp": 3
+      }
     },
     "5995": {
       "name": "Justice Hill",
@@ -4370,7 +6911,14 @@
       "trendPct": 73.47,
       "predicted": 72,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 364,
+        "pos_rank": 101,
+        "trend_30d": 72,
+        "trend_pct": 73.47,
+        "age": 28.4,
+        "years_exp": 7
+      }
     },
     "12486": {
       "name": "Dillon Gabriel",
@@ -4381,8 +6929,15 @@
       "trend": -237,
       "trendPct": -263.33,
       "predicted": -237,
-      "signal": "SELL",
-      "features": {}
+      "signal": "HOLD",
+      "features": {
+        "rank": 365,
+        "pos_rank": 67,
+        "trend_30d": -237,
+        "trend_pct": -263.33,
+        "age": 25.3,
+        "years_exp": 1
+      }
     },
     "13299": {
       "name": "Nate Boerkircher",
@@ -4394,7 +6949,14 @@
       "trendPct": -1.12,
       "predicted": -1,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 366,
+        "pos_rank": 57,
+        "trend_30d": -1,
+        "trend_pct": -1.12,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "5906": {
       "name": "Dawson Knox",
@@ -4406,7 +6968,14 @@
       "trendPct": -88.1,
       "predicted": -74,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 367,
+        "pos_rank": 58,
+        "trend_30d": -74,
+        "trend_pct": -88.1,
+        "age": 29.4,
+        "years_exp": 7
+      }
     },
     "4144": {
       "name": "Jonnu Smith",
@@ -4418,7 +6987,14 @@
       "trendPct": -124.68,
       "predicted": -96,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 368,
+        "pos_rank": 59,
+        "trend_30d": -96,
+        "trend_pct": -124.68,
+        "age": 30.6,
+        "years_exp": 9
+      }
     },
     "6271": {
       "name": "Olamide Zaccheaus",
@@ -4430,7 +7006,14 @@
       "trendPct": 100.0,
       "predicted": 74,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 369,
+        "pos_rank": 142,
+        "trend_30d": 74,
+        "trend_pct": 100.0,
+        "age": 28.7,
+        "years_exp": 7
+      }
     },
     "12523": {
       "name": "Jimmy Horn",
@@ -4442,7 +7025,14 @@
       "trendPct": -45.21,
       "predicted": -33,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 370,
+        "pos_rank": 143,
+        "trend_30d": -33,
+        "trend_pct": -45.21,
+        "age": 23.5,
+        "years_exp": 1
+      }
     },
     "12670": {
       "name": "KeAndre Lambert-Smith",
@@ -4454,7 +7044,14 @@
       "trendPct": -159.42,
       "predicted": -110,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 371,
+        "pos_rank": 144,
+        "trend_30d": -110,
+        "trend_pct": -159.42,
+        "age": 24.5,
+        "years_exp": 1
+      }
     },
     "4147": {
       "name": "Samaje Perine",
@@ -4466,7 +7063,14 @@
       "trendPct": 26.47,
       "predicted": 18,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 372,
+        "pos_rank": 102,
+        "trend_30d": 18,
+        "trend_pct": 26.47,
+        "age": 30.5,
+        "years_exp": 9
+      }
     },
     "7587": {
       "name": "Dyami Brown",
@@ -4478,7 +7082,14 @@
       "trendPct": 100.0,
       "predicted": 68,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 373,
+        "pos_rank": 145,
+        "trend_30d": 68,
+        "trend_pct": 100.0,
+        "age": 26.4,
+        "years_exp": 5
+      }
     },
     "13339": {
       "name": "Davon Booth",
@@ -4490,7 +7101,14 @@
       "trendPct": 0.0,
       "predicted": 0,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 374,
+        "pos_rank": 103,
+        "trend_30d": 0,
+        "trend_pct": 0.0,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "12048": {
       "name": "George Holani",
@@ -4502,7 +7120,14 @@
       "trendPct": 100.0,
       "predicted": 65,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 375,
+        "pos_rank": 104,
+        "trend_30d": 65,
+        "trend_pct": 100.0,
+        "age": 26.3,
+        "years_exp": 2
+      }
     },
     "12897": {
       "name": "Nathan Carter",
@@ -4514,7 +7139,14 @@
       "trendPct": 46.88,
       "predicted": 30,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 376,
+        "pos_rank": 105,
+        "trend_30d": 30,
+        "trend_pct": 46.88,
+        "age": 23.9,
+        "years_exp": 1
+      }
     },
     "6111": {
       "name": "Jake Browning",
@@ -4526,7 +7158,14 @@
       "trendPct": 100.0,
       "predicted": 62,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 377,
+        "pos_rank": 68,
+        "trend_30d": 62,
+        "trend_pct": 100.0,
+        "age": 30.0,
+        "years_exp": 7
+      }
     },
     "12496": {
       "name": "Tai Felton",
@@ -4538,7 +7177,14 @@
       "trendPct": 15.52,
       "predicted": 9,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 378,
+        "pos_rank": 146,
+        "trend_30d": 9,
+        "trend_pct": 15.52,
+        "age": 23.0,
+        "years_exp": 1
+      }
     },
     "8917": {
       "name": "KaVontae Turpin",
@@ -4550,7 +7196,14 @@
       "trendPct": 0.0,
       "predicted": 0,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 379,
+        "pos_rank": 147,
+        "trend_30d": 0,
+        "trend_pct": 0.0,
+        "age": 29.7,
+        "years_exp": 4
+      }
     },
     "12542": {
       "name": "Efton Chism",
@@ -4562,7 +7215,14 @@
       "trendPct": -103.85,
       "predicted": -54,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 380,
+        "pos_rank": 148,
+        "trend_30d": -54,
+        "trend_pct": -103.85,
+        "age": 24.4,
+        "years_exp": 1
+      }
     },
     "8800": {
       "name": "Malik Davis",
@@ -4574,7 +7234,14 @@
       "trendPct": -57.14,
       "predicted": -28,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 381,
+        "pos_rank": 106,
+        "trend_30d": -28,
+        "trend_pct": -57.14,
+        "age": 27.3,
+        "years_exp": 4
+      }
     },
     "11439": {
       "name": "Jaleel McLaughlin",
@@ -4586,7 +7253,14 @@
       "trendPct": 100.0,
       "predicted": 45,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 382,
+        "pos_rank": 107,
+        "trend_30d": 45,
+        "trend_pct": 100.0,
+        "age": 25.5,
+        "years_exp": 3
+      }
     },
     "7670": {
       "name": "Joshua Palmer",
@@ -4598,7 +7272,14 @@
       "trendPct": -224.24,
       "predicted": -74,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 383,
+        "pos_rank": 149,
+        "trend_30d": -74,
+        "trend_pct": -224.24,
+        "age": 26.5,
+        "years_exp": 5
+      }
     },
     "9497": {
       "name": "Jalin Hyatt",
@@ -4610,7 +7291,14 @@
       "trendPct": 100.0,
       "predicted": 32,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 384,
+        "pos_rank": 150,
+        "trend_30d": 32,
+        "trend_pct": 100.0,
+        "age": 24.5,
+        "years_exp": 3
+      }
     },
     "6136": {
       "name": "Jarrett Stidham",
@@ -4622,7 +7310,14 @@
       "trendPct": 100.0,
       "predicted": 31,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 385,
+        "pos_rank": 69,
+        "trend_30d": 31,
+        "trend_pct": 100.0,
+        "age": 29.6,
+        "years_exp": 7
+      }
     },
     "6828": {
       "name": "A.J. Dillon",
@@ -4634,7 +7329,14 @@
       "trendPct": 100.0,
       "predicted": 29,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 386,
+        "pos_rank": 108,
+        "trend_30d": 29,
+        "trend_pct": 100.0,
+        "age": 27.9,
+        "years_exp": 6
+      }
     },
     "8225": {
       "name": "Daniel Bellinger",
@@ -4646,7 +7348,14 @@
       "trendPct": 100.0,
       "predicted": 28,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 387,
+        "pos_rank": 60,
+        "trend_30d": 28,
+        "trend_pct": 100.0,
+        "age": 25.5,
+        "years_exp": 4
+      }
     },
     "12738": {
       "name": "Phil Mafah",
@@ -4658,7 +7367,14 @@
       "trendPct": -3.57,
       "predicted": -1,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 388,
+        "pos_rank": 109,
+        "trend_30d": -1,
+        "trend_pct": -3.57,
+        "age": 23.4,
+        "years_exp": 1
+      }
     },
     "12718": {
       "name": "Konata Mumpfield",
@@ -4670,7 +7386,14 @@
       "trendPct": 3.57,
       "predicted": 1,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 389,
+        "pos_rank": 151,
+        "trend_30d": 1,
+        "trend_pct": 3.57,
+        "age": 23.4,
+        "years_exp": 1
+      }
     },
     "8129": {
       "name": "Dameon Pierce",
@@ -4682,7 +7405,14 @@
       "trendPct": 100.0,
       "predicted": 21,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 390,
+        "pos_rank": 110,
+        "trend_30d": 21,
+        "trend_pct": 100.0,
+        "age": 26.1,
+        "years_exp": 4
+      }
     },
     "6789": {
       "name": "Henry Ruggs",
@@ -4694,7 +7424,14 @@
       "trendPct": 100.0,
       "predicted": 20,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 391,
+        "pos_rank": 152,
+        "trend_30d": 20,
+        "trend_pct": 100.0,
+        "age": 27.2,
+        "years_exp": 2
+      }
     },
     "13292": {
       "name": "Lake McRee",
@@ -4706,7 +7443,14 @@
       "trendPct": -5.56,
       "predicted": -1,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 392,
+        "pos_rank": 61,
+        "trend_30d": -1,
+        "trend_pct": -5.56,
+        "age": 0,
+        "years_exp": 0
+      }
     },
     "11729": {
       "name": "Sione Vaki",
@@ -4718,7 +7462,14 @@
       "trendPct": 100.0,
       "predicted": 17,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 393,
+        "pos_rank": 111,
+        "trend_30d": 17,
+        "trend_pct": 100.0,
+        "age": 24.7,
+        "years_exp": 2
+      }
     },
     "11616": {
       "name": "Jacob Cowing",
@@ -4730,7 +7481,14 @@
       "trendPct": 100.0,
       "predicted": 17,
       "signal": "HOLD+",
-      "features": {}
+      "features": {
+        "rank": 394,
+        "pos_rank": 153,
+        "trend_30d": 17,
+        "trend_pct": 100.0,
+        "age": 25.2,
+        "years_exp": 2
+      }
     },
     "7496": {
       "name": "Nick Westbrook-Ikhine",
@@ -4742,7 +7500,14 @@
       "trendPct": 100.0,
       "predicted": 15,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 395,
+        "pos_rank": 154,
+        "trend_30d": 15,
+        "trend_pct": 100.0,
+        "age": 29.0,
+        "years_exp": 6
+      }
     },
     "11370": {
       "name": "Chris Brooks",
@@ -4754,7 +7519,14 @@
       "trendPct": 100.0,
       "predicted": 12,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 396,
+        "pos_rank": 112,
+        "trend_30d": 12,
+        "trend_pct": 100.0,
+        "age": 26.2,
+        "years_exp": 3
+      }
     },
     "8127": {
       "name": "Charlie Kolar",
@@ -4766,7 +7538,14 @@
       "trendPct": 100.0,
       "predicted": 7,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 397,
+        "pos_rank": 62,
+        "trend_30d": 7,
+        "trend_pct": 100.0,
+        "age": 27.1,
+        "years_exp": 4
+      }
     },
     "12472": {
       "name": "Raheim Sanders",
@@ -4778,7 +7557,14 @@
       "trendPct": -885.71,
       "predicted": -62,
       "signal": "HOLD",
-      "features": {}
+      "features": {
+        "rank": 398,
+        "pos_rank": 113,
+        "trend_30d": -62,
+        "trend_pct": -885.71,
+        "age": 23.8,
+        "years_exp": 1
+      }
     }
   }
 }
