@@ -68,7 +68,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div class="logo">D</div>
     <div><div style="font-size:17px;font-weight:800;letter-spacing:-.03em">Dynasty Trade Finder</div><div style="font-size:11px;color:var(--t3);font-weight:500;margin-top:1px">Sleeper + FantasyCalc Values</div></div>
     <div class="hdr-r">
-      <div class="dots"><div class="dot on" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div><div class="dot" id="d4"></div></div>
+      <div class="dots"><div class="dot on" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div><div class="dot" id="d4"></div><div class="dot" id="d5"></div></div>
       <button class="btn btn-o btn-s hidden" id="brst" onclick="resetApp()">Reset</button>
     </div>
   </div>
@@ -108,6 +108,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
       <div><div style="font-size:20px;font-weight:800;letter-spacing:-.03em" id="rosT"></div><div style="font-size:13px;color:var(--t2)" id="rosSub"></div></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-o btn-s" style="border-color:rgba(0,230,118,0.3);color:var(--grn)" onclick="openMomentum()">📈 Momentum</button>
         <button class="btn btn-o btn-s" style="border-color:rgba(255,152,0,0.3);color:#ff9800" onclick="openRebuildAnalyzer()">🔄 Rebuild Analyzer</button>
         <button class="btn btn-o btn-s" style="border-color:var(--pur2);color:var(--pur)" onclick="openPickEditor()">📝 Edit Picks</button>
         <button class="btn btn-o btn-s" onclick="go('lea')">← Leagues</button>
@@ -167,6 +168,27 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div id="trdList"></div>
   </div>
 
+  <!-- MOMENTUM TRACKER -->
+  <div id="s-mom" class="sec hidden">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📈 Value Momentum</div>
+        <div style="font-size:13px;color:var(--t2)" id="momSub">30-day value trends from FantasyCalc — find buy-low and sell-high windows</div>
+      </div>
+      <button class="btn btn-o btn-s" onclick="go('ros')">← Back to Rosters</button>
+    </div>
+    <!-- FILTER TABS -->
+    <div id="momFilters" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap"></div>
+    <!-- MY ROSTER MOMENTUM -->
+    <div id="momMyRoster" style="margin-bottom:20px"></div>
+    <!-- LEAGUE-WIDE RISERS -->
+    <div id="momRisers" style="margin-bottom:20px"></div>
+    <!-- LEAGUE-WIDE FALLERS -->
+    <div id="momFallers" style="margin-bottom:20px"></div>
+    <!-- BUY LOW / SELL HIGH SIGNALS -->
+    <div id="momSignals" style="margin-bottom:20px"></div>
+  </div>
+
   <!-- REBUILD ANALYZER -->
   <div id="s-reb" class="sec hidden">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px">
@@ -205,6 +227,7 @@ var S = {
   rosters:[], users:[], players:{}, playersLoaded:false,
   myRid:null, tgtRid:null, tgtPids:[],
   vals:{}, picks:{}, pickVals:{}, valsLoaded:false,
+  fcMeta:{}, // sleeperId → {trend30Day, age, yoe, rank, posRank, tier, stdDev}
   tradedPicks:[], drafts:[], slotOverrides:{}
 };
 var TOL = 0.12;
@@ -247,6 +270,17 @@ async function loadFantasyCalcValues() {
       pkc++;
     } else if (item.player.sleeperId) {
       S.vals[item.player.sleeperId] = item.value;
+      S.fcMeta[item.player.sleeperId] = {
+        trend: item.trend30Day || 0,
+        age: item.player.maybeAge || 0,
+        yoe: item.player.maybeYoe || 0,
+        rank: item.overallRank || 999,
+        posRank: item.positionRank || 999,
+        tier: item.maybeTier || 0,
+        stdDev: item.maybeMovingStandardDeviation || 0,
+        team: item.player.maybeTeam || '',
+        pos: item.player.position || ''
+      };
       pc++;
     }
   }
@@ -830,6 +864,209 @@ function pRow(a){var pos=a.type==='pick'?'PICK':((S.players[a.id]||{}).position|
     +'<span class="v '+vcn(a.v)+'">'+a.v.toLocaleString()+'</span></div>';}
 
 // ==========================================
+// MOMENTUM TRACKER
+// ==========================================
+function openMomentum() {
+  if (!S.valsLoaded || !S.myRid) { alert('Load a league and identify your team first.'); return; }
+  go('mom');
+  loadPredictions().then(function() { renderMomentum('ALL'); });
+}
+
+async function loadPredictions() {
+  if (S.predictions) return; // already loaded
+  try {
+    // Try loading from same directory (GitHub Pages serves data/predictions.json)
+    var data = await fetchJSON('data/predictions.json', true);
+    if (data && data.players && Object.keys(data.players).length > 0) {
+      S.predictions = data;
+      var updated = data.updated ? new Date(data.updated).toLocaleDateString() : 'unknown';
+      document.getElementById('momSub').textContent = 'Live trends from FantasyCalc + model predictions (updated ' + updated + ')';
+    }
+  } catch(e) {
+    console.log('No predictions.json found, using FantasyCalc trends only');
+    S.predictions = null;
+  }
+}
+
+function renderMomentum(posFilter) {
+  var my = null;
+  for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].roster_id === S.myRid) { my = S.rosters[i]; break; }
+  if (!my) return;
+
+  // Build all player data with momentum info
+  var allPlayers = [];
+  for (var i = 0; i < S.rosters.length; i++) {
+    var r = S.rosters[i];
+    if (!r.players) continue;
+    for (var j = 0; j < r.players.length; j++) {
+      var id = r.players[j], p = S.players[id], v = gv(id), meta = S.fcMeta[id];
+      if (!p || !v || !meta || !REL_POS.has(p.position)) continue;
+      if (posFilter !== 'ALL' && p.position !== posFilter) continue;
+      var trend = meta.trend || 0;
+      var trendPct = v > 0 ? (trend / v * 100) : 0;
+      var age = meta.age || p.age || 0;
+      var signal = computeSignal(v, trend, trendPct, age, p.position, id);
+      allPlayers.push({
+        id:id, p:p, v:v, trend:trend, trendPct:trendPct, age:age,
+        pos:p.position, meta:meta, signal:signal,
+        isMine: my.players && my.players.indexOf(id) >= 0,
+        ownerRid: r.roster_id
+      });
+    }
+  }
+
+  // Render filter tabs
+  var filters = ['ALL','QB','RB','WR','TE'];
+  var filterHtml = '';
+  for (var i = 0; i < filters.length; i++) {
+    var f = filters[i], active = f === posFilter;
+    filterHtml += '<button class="sbtn'+(active?' on':'')+'" style="padding:6px 14px;font-size:12px" onclick="renderMomentum(\''+f+'\')">'+f+'</button>';
+  }
+  document.getElementById('momFilters').innerHTML = '<div class="stog">'+filterHtml+'</div>';
+
+  // MY ROSTER MOMENTUM
+  var myPlayers = allPlayers.filter(function(a){return a.isMine;});
+  myPlayers.sort(function(a,b){return b.trend - a.trend;});
+
+  var myHtml = '<div class="card" style="margin-bottom:16px"><div style="font-size:15px;font-weight:800;margin-bottom:12px">Your Roster Momentum</div>';
+  if (myPlayers.length === 0) {
+    myHtml += '<div style="color:var(--t3);font-size:12px">No players with trend data.</div>';
+  } else {
+    myHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px">';
+    var totalTrend = myPlayers.reduce(function(s,p){return s+p.trend;},0);
+    var risers = myPlayers.filter(function(p){return p.trend>0;}).length;
+    var fallers = myPlayers.filter(function(p){return p.trend<0;}).length;
+    myHtml += metricCard('Net Momentum', (totalTrend>=0?'+':'')+totalTrend.toLocaleString(), totalTrend>=0?'var(--grn)':'var(--red)');
+    myHtml += metricCard('Rising', risers+' players', 'var(--grn)');
+    myHtml += metricCard('Falling', fallers+' players', 'var(--red)');
+    myHtml += '</div>';
+
+    for (var i = 0; i < myPlayers.length; i++) {
+      myHtml += momentumRow(myPlayers[i], true);
+    }
+  }
+  myHtml += '</div>';
+  document.getElementById('momMyRoster').innerHTML = myHtml;
+
+  // LEAGUE RISERS (top 15 trending up that you don't own)
+  var otherPlayers = allPlayers.filter(function(a){return !a.isMine;});
+  var risers = otherPlayers.slice().sort(function(a,b){return b.trend-a.trend;}).filter(function(a){return a.trend>0;}).slice(0,15);
+
+  var rHtml = '<div class="card" style="margin-bottom:16px"><div style="font-size:15px;font-weight:800;margin-bottom:4px;color:var(--grn)">🚀 League Risers (30d)</div>';
+  rHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Players gaining the most value — potential buy targets before they get more expensive</div>';
+  for (var i = 0; i < risers.length; i++) rHtml += momentumRow(risers[i], false);
+  if (!risers.length) rHtml += '<div style="color:var(--t3);font-size:12px">No risers with current filter.</div>';
+  rHtml += '</div>';
+  document.getElementById('momRisers').innerHTML = rHtml;
+
+  // LEAGUE FALLERS (top 15 trending down that you don't own)
+  var fallers = otherPlayers.slice().sort(function(a,b){return a.trend-b.trend;}).filter(function(a){return a.trend<0;}).slice(0,15);
+
+  var fHtml = '<div class="card" style="margin-bottom:16px"><div style="font-size:15px;font-weight:800;margin-bottom:4px;color:var(--red)">📉 League Fallers (30d)</div>';
+  fHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Players losing value — potential buy-low if the decline is overblown, or avoid if justified</div>';
+  for (var i = 0; i < fallers.length; i++) fHtml += momentumRow(fallers[i], false);
+  if (!fallers.length) fHtml += '<div style="color:var(--t3);font-size:12px">No fallers with current filter.</div>';
+  fHtml += '</div>';
+  document.getElementById('momFallers').innerHTML = fHtml;
+
+  // BUY LOW / SELL HIGH SIGNALS
+  var buyLow = allPlayers.filter(function(a){return !a.isMine && a.signal==='BUY';}).sort(function(a,b){return a.trendPct-b.trendPct;}).slice(0,10);
+  var sellHigh = myPlayers.filter(function(a){return a.signal==='SELL';}).sort(function(a,b){return b.trendPct-a.trendPct;}).slice(0,10);
+  var holdStrong = myPlayers.filter(function(a){return a.signal==='HOLD+';}).sort(function(a,b){return b.v-a.v;}).slice(0,10);
+
+  var sHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px">🎯 Signals</div>';
+  if (S.predictions && S.predictions.updated) {
+    sHtml += '<div style="font-size:10px;color:var(--pur);margin-bottom:12px">🤖 Model predictions loaded (updated ' + new Date(S.predictions.updated).toLocaleDateString() + ') — signals use XGBoost model trained on usage trends</div>';
+  } else {
+    sHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:12px">Using heuristic signals from FantasyCalc trends + age curves. Run the GitHub Action to enable ML model predictions.</div>';
+  }
+  sHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">';
+
+  // Sell High column
+  sHtml += '<div><div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px">SELL HIGH — Your players peaking</div>';
+  if (sellHigh.length) { for (var i = 0; i < sellHigh.length; i++) sHtml += signalRow(sellHigh[i]); }
+  else sHtml += '<div style="font-size:11px;color:var(--t3)">No sell-high signals on your roster.</div>';
+  sHtml += '</div>';
+
+  // Buy Low column
+  sHtml += '<div><div style="font-size:12px;font-weight:700;color:var(--grn);margin-bottom:8px">BUY LOW — Undervalued on other rosters</div>';
+  if (buyLow.length) { for (var i = 0; i < buyLow.length; i++) sHtml += signalRow(buyLow[i]); }
+  else sHtml += '<div style="font-size:11px;color:var(--t3)">No buy-low signals with current filter.</div>';
+  sHtml += '</div>';
+
+  // Hold Strong column
+  sHtml += '<div><div style="font-size:12px;font-weight:700;color:var(--blu);margin-bottom:8px">HOLD — Your rising stars</div>';
+  if (holdStrong.length) { for (var i = 0; i < holdStrong.length; i++) sHtml += signalRow(holdStrong[i]); }
+  else sHtml += '<div style="font-size:11px;color:var(--t3)">No hold signals.</div>';
+  sHtml += '</div>';
+
+  sHtml += '</div></div>';
+  document.getElementById('momSignals').innerHTML = sHtml;
+}
+
+function computeSignal(value, trend, trendPct, age, pos, sleeperId) {
+  // Use model prediction if available
+  if (S.predictions && S.predictions.players && S.predictions.players[sleeperId]) {
+    return S.predictions.players[sleeperId].signal;
+  }
+
+  // Fallback: heuristic signals
+  var peakAge = {QB: 32, RB: 27, WR: 29, TE: 29}[pos] || 28;
+  var isYoung = age > 0 && age < peakAge - 2;
+  var isOld = age >= peakAge;
+  var isPeaking = age >= peakAge - 2 && age < peakAge;
+
+  if (isOld && trendPct > 3 && value >= 3000) return 'SELL';
+  if (isPeaking && trendPct > 8 && value >= 4000) return 'SELL';
+  if (isYoung && trendPct < -5 && value >= 2000) return 'BUY';
+  if (isYoung && trendPct < -10 && value >= 1000) return 'BUY';
+  if (isYoung && trendPct > 3) return 'HOLD+';
+  return 'NEUTRAL';
+}
+
+function momentumRow(pd, showSignal) {
+  var trendColor = pd.trend > 0 ? 'var(--grn)' : pd.trend < 0 ? 'var(--red)' : 'var(--t3)';
+  var trendArrow = pd.trend > 0 ? '▲' : pd.trend < 0 ? '▼' : '—';
+  var sigBadge = '';
+  if (showSignal && pd.signal !== 'NEUTRAL') {
+    var sc = pd.signal === 'SELL' ? 'var(--red)' : pd.signal === 'BUY' ? 'var(--grn)' : 'var(--blu)';
+    var sb = pd.signal === 'SELL' ? 'var(--red2)' : pd.signal === 'BUY' ? 'var(--grn2)' : 'var(--blu2)';
+    sigBadge = '<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:'+sb+';color:'+sc+'">'+pd.signal+'</span>';
+  }
+  var ownerTag = !pd.isMine ? '<span style="font-size:10px;color:var(--t3)"> — '+getOwnerName(pd.ownerRid)+'</span>' : '';
+
+  // Model prediction badge
+  var predBadge = '';
+  if (S.predictions && S.predictions.players && S.predictions.players[pd.id]) {
+    var mp = S.predictions.players[pd.id];
+    var predColor = mp.predicted > 0 ? 'var(--grn)' : mp.predicted < 0 ? 'var(--red)' : 'var(--t3)';
+    predBadge = '<span style="font-size:9px;color:'+predColor+';font-family:\'DM Mono\',monospace" title="Model predicted 30-day change">🤖'+(mp.predicted>=0?'+':'')+mp.predicted+'</span>';
+  }
+
+  return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--bdr)">'
+    + '<span class="pos pos-'+pd.pos+'">'+pd.pos+'</span>'
+    + '<div style="flex:1"><div style="font-size:13px;font-weight:500">'+esc(pd.p.full_name)+ownerTag+'</div>'
+    + '<div style="font-size:10px;color:var(--t3)">Age '+(pd.age?pd.age.toFixed(1):'?')+' · Rank #'+(pd.meta.rank||'?')+'</div></div>'
+    + predBadge + ' '
+    + sigBadge
+    + '<div style="text-align:right;min-width:60px"><span class="v '+vcn(pd.v)+'">'+pd.v.toLocaleString()+'</span></div>'
+    + '<div style="text-align:right;min-width:70px;font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+trendColor+'">'
+    + trendArrow + ' ' + (pd.trend>=0?'+':'') + pd.trend.toLocaleString()
+    + '<div style="font-size:9px;font-weight:500;color:var(--t3)">'+(pd.trendPct>=0?'+':'')+pd.trendPct.toFixed(1)+'%</div></div>'
+    + '</div>';
+}
+
+function signalRow(pd) {
+  var trendColor = pd.trend > 0 ? 'var(--grn)' : 'var(--red)';
+  return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px solid var(--bdr)">'
+    + '<span class="pos pos-'+pd.pos+'" style="font-size:8px;padding:1px 4px">'+pd.pos+'</span>'
+    + '<span style="flex:1;font-size:12px;font-weight:500">'+esc(pd.p.full_name)+'</span>'
+    + '<span class="v '+vcn(pd.v)+'" style="font-size:10px">'+pd.v.toLocaleString()+'</span>'
+    + '<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:'+trendColor+'">'+(pd.trend>=0?'+':'')+pd.trend+'</span>'
+    + '</div>';
+}
+
+// ==========================================
 // REBUILD ANALYZER
 // ==========================================
 function openRebuildAnalyzer() {
@@ -1164,10 +1401,10 @@ function genTrades(){if(!S.valsLoaded)return;var my=null;for(var i=0;i<S.rosters
 function setS(v,el){S.season=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 function setQB(v,el){S.numQbs=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 
-var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',trd:'s-trd',reb:'s-reb'};
-var STEP_IDX={con:0,lea:1,ros:2,trd:3,reb:4};
-function go(k){var ks=Object.keys(STEPS);for(var i=0;i<ks.length;i++)document.getElementById(STEPS[ks[i]]).classList.toggle('hidden',ks[i]!==k);for(var i=0;i<5;i++){var d=document.getElementById('d'+i);d.className='dot'+(i===STEP_IDX[k]?' on':i<STEP_IDX[k]?' done':'');}document.getElementById('brst').classList.toggle('hidden',k==='con');}
-function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
+var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',trd:'s-trd',mom:'s-mom',reb:'s-reb'};
+var STEP_IDX={con:0,lea:1,ros:2,trd:3,mom:4,reb:5};
+function go(k){var ks=Object.keys(STEPS);for(var i=0;i<ks.length;i++)document.getElementById(STEPS[ks[i]]).classList.toggle('hidden',ks[i]!==k);for(var i=0;i<6;i++){var d=document.getElementById('d'+i);d.className='dot'+(i===STEP_IDX[k]?' on':i<STEP_IDX[k]?' done':'');}document.getElementById('brst').classList.toggle('hidden',k==='con');}
+function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
 </script>
 </body>
 </html>

@@ -1,67 +1,81 @@
 # Dynasty Trade Finder
 
-A free dynasty fantasy football trade tool that syncs with your **Sleeper** leagues and uses live player values from **FantasyCalc** to generate balanced trade proposals — including draft picks.
+Free dynasty fantasy football trade tool — syncs with **Sleeper**, uses live **FantasyCalc** values, generates balanced trade proposals, tracks value momentum, and runs ML predictions via GitHub Actions.
 
-🔗 **[Use it live →](https://YOURUSERNAME.github.io/dynasty-trade-finder/)** *(update this URL after deploying)*
-
----
+🔗 **[Use it live →](https://YOURUSERNAME.github.io/dynasty-trade-finder/)** *(update URL after deploying)*
 
 ## Features
 
-- **Sleeper Sync** — Enter your username to pull all your leagues, rosters, and traded picks directly from the Sleeper API
-- **Live Dynasty Values** — Player values fetched from FantasyCalc's free API (no key needed), derived from 2M+ real trades
-- **Draft Pick Values** — 2025 confirmed slots, 2026 per-slot values (1.01 ≠ 1.10), 2027+ Early/Mid/Late estimates
-- **Pick Editor** — Manually correct future pick positions since Sleeper's API doesn't expose unfinished draft order
-- **Trade Generator** — Finds balanced trade proposals within 12% value tolerance, searching all combinations of players and picks
-- **Rebuild Analyzer** — Competitive outlook, strategy recommendations (Compete / Sell High / Rebuild), sell candidates, buy targets, and suggested trades
-- **Superflex + 1QB** — Toggle between formats; values adjust accordingly
-- **No Backend** — Runs entirely in your browser. No accounts, no API keys, no data stored anywhere
+### 🔄 Trade Finder
+- Sleeper sync — enter your username to pull leagues, rosters, traded picks
+- Live FantasyCalc values (no API key), including per-slot draft pick values
+- Pick editor to correct future pick ownership
+- Balanced trade proposals within 12% value tolerance
 
-## How to Use
+### 📈 Value Momentum
+- Your roster's 30-day value trend from FantasyCalc
+- League-wide risers & fallers
+- Buy Low / Sell High / Hold signals (heuristic + ML when available)
+- Position filters (QB / RB / WR / TE)
 
-1. Open the site
-2. Enter your Sleeper username and pick the season/format
-3. Select a league — values load automatically
-4. Click your team, then click a trade partner's team
-5. Select up to 3 players/picks you want from them
-6. Click **Find Balanced Trades** to see proposals
+### 🔄 Rebuild Analyzer
+- Power ranking visualization
+- Strategy recommendation (Compete / Sell High / Rebuild)
+- Sell candidates + buy targets with trade suggestions
+
+### 🤖 ML Predictions (via GitHub Actions)
+- XGBoost models trained per position on nflfastr usage trends
+- Runs weekly on a schedule — no local Python needed
+- Predictions auto-committed to `data/predictions.json`
+- Web tool loads predictions and shows 🤖 model signals
+
+## Setup
+
+### 1. Deploy the site
+
+1. Create a new GitHub repo called `dynasty-trade-finder`
+2. Upload ALL files from this project (keep the folder structure!)
+3. Go to **Settings → Pages → Source** → `main` branch, `/ (root)` → Save
+4. Site is live at `https://yourusername.github.io/dynasty-trade-finder/`
+
+### 2. Enable ML predictions (optional)
+
+The GitHub Action runs automatically every Tuesday at 3am EST. To trigger it manually:
+
+1. Go to your repo → **Actions** tab
+2. Click **"Update Dynasty Predictions"** workflow
+3. Click **"Run workflow"** → **"Run workflow"**
+4. Wait ~2 minutes — predictions appear in `data/predictions.json`
+5. The site auto-loads them on the Momentum page
+
+**Important:** Go to **Settings → Actions → General** and make sure "Read and write permissions" is enabled under "Workflow permissions". This lets the Action commit the predictions file.
+
+## File Structure
+
+```
+dynasty-trade-finder/
+├── index.html                          # The web app (all you need for basic use)
+├── data/
+│   └── predictions.json                # ML predictions (auto-updated by GitHub Action)
+├── scripts/
+│   └── generate_predictions.py         # Prediction pipeline (runs in GitHub Actions)
+├── .github/
+│   └── workflows/
+│       └── update-predictions.yml      # GitHub Action config
+├── dynasty_exploration.py              # Optional: local data exploration
+├── dynasty_model_pipeline.py           # Optional: local model training
+├── requirements.txt                    # Python dependencies
+├── README.md
+└── LICENSE
+```
 
 ## Data Sources
 
-| Source | What it provides | API Key? |
-|--------|-----------------|----------|
-| [Sleeper API](https://docs.sleeper.com) | Leagues, rosters, users, draft order, traded picks | No |
-| [FantasyCalc API](https://fantasycalc.com) | Dynasty player values + draft pick values from real trades | No |
-
-## Draft Pick Notes
-
-- **2025**: Slot assignments come from the Sleeper draft's `slot_to_roster_id` field (confirmed)
-- **2026**: Per-slot values from FantasyCalc (e.g., "2026 Pick 1.01" = 7065). Slot order is projected by roster strength — use the **📝 Edit Picks** tool to correct
-- **2027+**: Estimated as Early / Mid / Late tiers based on roster value since exact positions are unknown
-- Pick ownership from trades is applied via Sleeper's `traded_picks` endpoint
-
-## Hosting / Deployment
-
-This is a single `index.html` file. To deploy:
-
-1. Fork or clone this repo
-2. Go to **Settings → Pages → Source** → select `main` branch
-3. Your site is live at `https://yourusername.github.io/dynasty-trade-finder/`
-
-Or drag `index.html` onto [Netlify Drop](https://app.netlify.com/drop) for instant hosting.
-
-## Updating
-
-To update player values: just refresh the page — FantasyCalc values are fetched live every time you load a league.
-
-To update the tool itself: edit `index.html` and push to GitHub. Changes go live in ~1 minute via GitHub Pages.
-
-## Built With
-
-- Vanilla HTML/CSS/JavaScript (no frameworks, no build step)
-- [Sleeper API](https://docs.sleeper.com)
-- [FantasyCalc API](https://fantasycalc.com)
-- [Google Fonts (DM Sans + DM Mono)](https://fonts.google.com)
+| Source | Provides | Key? |
+|--------|----------|------|
+| [Sleeper API](https://docs.sleeper.com) | Leagues, rosters, draft order, traded picks | No |
+| [FantasyCalc API](https://fantasycalc.com) | Dynasty values, pick values, 30-day trends | No |
+| [nflfastr](https://github.com/nflverse/nflverse-data) | Weekly player stats (targets, carries, etc.) | No |
 
 ## License
 
