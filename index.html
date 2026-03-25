@@ -1010,17 +1010,30 @@ function computeSignal(value, trend, trendPct, age, pos, sleeperId) {
     return S.predictions.players[sleeperId].signal;
   }
 
-  // Fallback: heuristic signals
-  var peakAge = {QB: 32, RB: 27, WR: 29, TE: 29}[pos] || 28;
+  // Fallback: heuristic — matches Python compute_signal() logic
+  // BUY LOW  = young + value DROPPING (buy the dip)
+  // SELL HIGH = old + value RISING (sell before cliff)
+  // HOLD+    = young + value rising (great asset, keep)
+  // AVOID    = old + value dropping (stay away)
+  var peakAge = {QB:32, RB:27, WR:29, TE:29}[pos] || 28;
   var isYoung = age > 0 && age < peakAge - 2;
+  var isPrime = age >= peakAge - 2 && age < peakAge;
   var isOld = age >= peakAge;
-  var isPeaking = age >= peakAge - 2 && age < peakAge;
+  var isRising = trendPct > 3;
+  var isFalling = trendPct < -3;
 
-  if (isOld && trendPct > 3 && value >= 3000) return 'SELL';
-  if (isPeaking && trendPct > 8 && value >= 4000) return 'SELL';
-  if (isYoung && trendPct < -5 && value >= 2000) return 'BUY';
-  if (isYoung && trendPct < -10 && value >= 1000) return 'BUY';
-  if (isYoung && trendPct > 3) return 'HOLD+';
+  // SELL: old + rising = peaking before cliff
+  if (isOld && isRising && value >= 3000) return 'SELL';
+  if (isPrime && trendPct > 8 && value >= 4000) return 'SELL';
+
+  // BUY: young + falling = market overreaction, buy the dip
+  if (isYoung && isFalling && value >= 1500) return 'BUY';
+  if (isPrime && trendPct < -8 && value >= 3000) return 'BUY';
+
+  // HOLD+: young + rising = great dynasty asset
+  if (isYoung && isRising) return 'HOLD+';
+  if (isYoung && value >= 5000 && Math.abs(trendPct) < 3) return 'HOLD+';
+
   return 'NEUTRAL';
 }
 
@@ -1029,8 +1042,8 @@ function momentumRow(pd, showSignal) {
   var trendArrow = pd.trend > 0 ? '▲' : pd.trend < 0 ? '▼' : '—';
   var sigBadge = '';
   if (showSignal && pd.signal !== 'NEUTRAL') {
-    var sc = pd.signal === 'SELL' ? 'var(--red)' : pd.signal === 'BUY' ? 'var(--grn)' : 'var(--blu)';
-    var sb = pd.signal === 'SELL' ? 'var(--red2)' : pd.signal === 'BUY' ? 'var(--grn2)' : 'var(--blu2)';
+    var sc = pd.signal === 'SELL' ? 'var(--red)' : pd.signal === 'BUY' ? 'var(--grn)' : pd.signal === 'AVOID' ? 'var(--red)' : 'var(--blu)';
+    var sb = pd.signal === 'SELL' ? 'var(--red2)' : pd.signal === 'BUY' ? 'var(--grn2)' : pd.signal === 'AVOID' ? 'var(--red2)' : 'var(--blu2)';
     sigBadge = '<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:'+sb+';color:'+sc+'">'+pd.signal+'</span>';
   }
   var ownerTag = !pd.isMine ? '<span style="font-size:10px;color:var(--t3)"> — '+getOwnerName(pd.ownerRid)+'</span>' : '';
