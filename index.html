@@ -107,17 +107,53 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   <div id="s-ros" class="sec hidden">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
       <div><div style="font-size:20px;font-weight:800;letter-spacing:-.03em" id="rosT"></div><div style="font-size:13px;color:var(--t2)" id="rosSub"></div></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-o btn-s" style="border-color:rgba(0,230,118,0.3);color:var(--grn)" onclick="openMomentum()">📈 Momentum</button>
-        <button class="btn btn-o btn-s" style="border-color:rgba(255,152,0,0.3);color:#ff9800" onclick="openRebuildAnalyzer()">🔄 Rebuild Analyzer</button>
-        <button class="btn btn-o btn-s" style="border-color:var(--pur2);color:var(--pur)" onclick="openPickEditor()">📝 Edit Picks</button>
-        <button class="btn btn-o btn-s" onclick="go('lea')">← Leagues</button>
-      </div>
+      <button class="btn btn-o btn-s" onclick="go('lea')">← Change League</button>
     </div>
     <div id="noVal" class="warn hidden"><span style="font-size:18px">⚠️</span><div><strong>Loading values...</strong></div></div>
     <div id="fetchP" class="fp hidden">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="display:flex;align-items:center;gap:8px"><div class="spin" id="fSpin"></div><span style="font-size:13px;font-weight:600" id="fStat">Loading...</span></div>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)" id="fPct">0%</span>
+      </div>
+      <div class="pb"><div class="pf" id="fBar" style="width:0%"></div></div>
+      <div class="fl" id="fLog"></div>
+    </div>
+
+    <!-- TOOLS DASHBOARD -->
+    <div id="toolsDash" class="hidden" style="margin-bottom:20px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--t1)">🧰 Tools</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+        <div class="card" style="cursor:pointer;padding:16px;border-color:var(--grn3);transition:.2s" onclick="openMomentum()" onmouseover="this.style.background='rgba(0,230,118,0.06)'" onmouseout="this.style.background=''">
+          <div style="font-size:22px;margin-bottom:6px">📈</div>
+          <div style="font-size:14px;font-weight:700;color:var(--grn);margin-bottom:4px">Momentum</div>
+          <div style="font-size:11px;color:var(--t3);line-height:1.5">See 30-day value trends. Find who's rising, falling, and where to buy low or sell high across your league.</div>
+        </div>
+        <div class="card" style="cursor:pointer;padding:16px;border-color:rgba(255,152,0,0.3);transition:.2s" onclick="openRebuildAnalyzer()" onmouseover="this.style.background='rgba(255,152,0,0.06)'" onmouseout="this.style.background=''">
+          <div style="font-size:22px;margin-bottom:6px">🔄</div>
+          <div style="font-size:14px;font-weight:700;color:#ff9800;margin-bottom:4px">Rebuild Analyzer</div>
+          <div style="font-size:11px;color:var(--t3);line-height:1.5">Should you compete or rebuild? Get strategy advice, sell candidates, buy targets, and trade suggestions.</div>
+        </div>
+        <div class="card" style="cursor:pointer;padding:16px;border-color:var(--pur2);transition:.2s" onclick="openPickEditor()" onmouseover="this.style.background='rgba(179,136,255,0.06)'" onmouseout="this.style.background=''">
+          <div style="font-size:22px;margin-bottom:6px">📝</div>
+          <div style="font-size:14px;font-weight:700;color:var(--pur);margin-bottom:4px">Edit Picks</div>
+          <div style="font-size:11px;color:var(--t3);line-height:1.5">Correct future draft pick ownership. 2026 picks have per-slot values, 2027+ are Early/Mid/Late tiers.</div>
+        </div>
+        <div class="card" style="cursor:pointer;padding:16px;border-color:var(--blu3);transition:.2s" onclick="scrollToRosters()" onmouseover="this.style.background='rgba(68,138,255,0.06)'" onmouseout="this.style.background=''">
+          <div style="font-size:22px;margin-bottom:6px">🤝</div>
+          <div style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:4px">Find Trades</div>
+          <div style="font-size:11px;color:var(--t3);line-height:1.5">Select a trade partner below, pick players/picks you want, and get balanced trade proposals.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUY LOW TICKER -->
+    <div id="buyLowBar" class="hidden" style="margin-bottom:16px;padding:12px 16px;border-radius:10px;background:rgba(0,230,118,0.04);border:1px solid var(--grn3)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:700;color:var(--grn)">💰 Buy Low Targets</div>
+        <span style="font-size:10px;color:var(--t3)">Young players dropping in value — potential steals</span>
+      </div>
+      <div id="buyLowList" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px"></div>
+    </div>
         <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)" id="fPct">0%</span>
       </div>
       <div class="pb"><div class="pf" id="fBar" style="width:0%"></div></div>
@@ -786,15 +822,93 @@ function renderLeagues() {
   document.getElementById('leaList').innerHTML=html;
 }
 
+function scrollToRosters() {
+  var grid = document.getElementById('rosGrid');
+  if (grid) grid.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderBuyLowBar() {
+  var bar = document.getElementById('buyLowBar');
+  var list = document.getElementById('buyLowList');
+  if (!bar || !list || !S.valsLoaded || !S.myRid) { if(bar) bar.classList.add('hidden'); return; }
+
+  // Find buy-low candidates across all rosters (not mine)
+  var buys = [];
+  for (var i = 0; i < S.rosters.length; i++) {
+    var r = S.rosters[i];
+    if (r.roster_id === S.myRid || !r.players) continue;
+    for (var j = 0; j < r.players.length; j++) {
+      var id = r.players[j], p = S.players[id], v = gv(id), meta = S.fcMeta[id];
+      if (!p || !v || !meta || !REL_POS.has(p.position)) continue;
+      var age = meta.age || p.age || 0;
+      var trend = meta.trend || 0;
+      var trendPct = v > 0 ? (trend / v * 100) : 0;
+      var sig = computeSignal(v, trend, trendPct, age, p.position, id);
+      if (sig === 'BUY') buys.push({id:id, p:p, v:v, trend:trend, trendPct:trendPct, age:age, ownerRid:r.roster_id});
+    }
+  }
+  buys.sort(function(a,b){ return a.trendPct - b.trendPct; }); // most negative first
+
+  if (buys.length === 0) { bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+
+  var html = '';
+  for (var i = 0; i < Math.min(buys.length, 12); i++) {
+    var b = buys[i];
+    html += '<div style="flex-shrink:0;padding:8px 12px;border-radius:8px;background:var(--bg2);border:1px solid var(--bdr);min-width:160px;cursor:pointer" onclick="clickR('+b.ownerRid+')">';
+    html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">';
+    html += '<span class="pos pos-'+b.p.position+'" style="font-size:8px;padding:1px 4px">'+b.p.position+'</span>';
+    html += '<span style="font-size:12px;font-weight:600;color:var(--t1)">'+esc(b.p.full_name)+'</span>';
+    html += '</div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+    html += '<span class="v '+vcn(b.v)+'">'+b.v.toLocaleString()+'</span>';
+    html += '<span style="font-family:\'DM Mono\',monospace;font-size:11px;font-weight:700;color:var(--red)">▼ '+(b.trendPct<0?'':'+')+ Math.round(b.trendPct)+'%</span>';
+    html += '</div>';
+    html += '<div style="font-size:9px;color:var(--t3);margin-top:2px">Age '+b.age.toFixed(1)+' · '+getOwnerName(b.ownerRid)+'</div>';
+    html += '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function getSignalBadge(sleeperId) {
+  // Returns HTML for a small signal badge, or empty string
+  var sig = '';
+  if (S.predictions && S.predictions.players && S.predictions.players[sleeperId]) {
+    sig = S.predictions.players[sleeperId].signal;
+  } else if (S.fcMeta[sleeperId]) {
+    var meta = S.fcMeta[sleeperId];
+    var v = gv(sleeperId) || 0;
+    var trend = meta.trend || 0;
+    var trendPct = v > 0 ? (trend / v * 100) : 0;
+    sig = computeSignal(v, trend, trendPct, meta.age || 0, meta.pos || '', sleeperId);
+  }
+  if (!sig || sig === 'HOLD' || sig === 'NEUTRAL') return '';
+  var colors = {
+    'BUY': {c:'var(--grn)',b:'var(--grn2)'},
+    'SELL': {c:'var(--red)',b:'var(--red2)'},
+    'HOLD+': {c:'var(--blu)',b:'var(--blu2)'},
+    'AVOID': {c:'var(--red)',b:'var(--red2)'}
+  };
+  var col = colors[sig] || {c:'var(--t3)',b:'rgba(255,255,255,0.05)'};
+  return '<span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:'+col.b+';color:'+col.c+';margin-left:4px">'+sig+'</span>';
+}
+
 function renderRosters() {
   document.getElementById('rosT').textContent=S.league?S.league.name:'';
   var vc2=Object.keys(S.vals).length;
   document.getElementById('rosSub').textContent=S.valsLoaded
-    ?vc2+' player values loaded. '+(S.myRid?'Your team highlighted — pick a trade partner.':'Click your team to ID yourself.')
+    ?vc2+' player values loaded. '+(S.myRid?'Pick a tool above or select a trade partner below.':'Click your team to identify yourself.')
     :'Loading values...';
-  // Show pick disclaimer once values are loaded
   var disc = document.getElementById('pickDisclaimer');
   if (disc) disc.classList.toggle('hidden', !S.valsLoaded);
+
+  // Show tools dashboard
+  var dash = document.getElementById('toolsDash');
+  if (dash) dash.classList.toggle('hidden', !S.valsLoaded);
+
+  // Populate buy-low bar
+  renderBuyLowBar();
+
   var sorted=S.rosters.slice().sort(function(a,b){return rosterTotal(b).t-rosterTotal(a).t;});
   var html='';
   for(var ri=0;ri<sorted.length;ri++){var r=sorted[ri];
@@ -808,8 +922,9 @@ function renderRosters() {
     html+='</div><div style="font-size:11px;color:var(--t3)">'+(r.players?r.players.length:0)+' players + '+getPicksForRoster(r.roster_id).length+' picks</div></div>';
     html+='<div style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:500;color:'+(mine?'var(--grn)':tgt?'var(--blu)':'var(--t2)')+'">'+(rt.n?rt.t.toLocaleString():'—')+'</div></div>';
     for(var ti=0;ti<top.length;ti++){var a=top[ti],b=a.v!==null?vc(a.v):{t:'—',c:'vN'};
-      html+='<div style="display:flex;justify-content:space-between;padding:2px 0;border-top:1px solid var(--bdr);font-size:11px;color:var(--t2)">';
-      html+='<span style="display:flex;align-items:center;gap:4px"><span class="pos pos-'+(a.p.position||'')+'" style="font-size:8px;padding:1px 4px">'+(a.p.position||'??')+'</span>'+esc(a.p.full_name||a.id)+'</span>';
+      var sigB = a.type==='player' ? getSignalBadge(a.id) : '';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-top:1px solid var(--bdr);font-size:11px;color:var(--t2)">';
+      html+='<span style="display:flex;align-items:center;gap:4px"><span class="pos pos-'+(a.p.position||'')+'" style="font-size:8px;padding:1px 4px">'+(a.p.position||'??')+'</span>'+esc(a.p.full_name||a.id)+sigB+'</span>';
       html+='<span class="v '+b.c+'" style="font-size:10px;padding:1px 6px">'+b.t+'</span></div>';}
     if(sortedAssets(r).length>7)html+='<div style="text-align:center;padding-top:4px;font-size:10px;color:var(--t3)">+'+(sortedAssets(r).length-7)+' more</div>';
     html+='</div>';}
@@ -825,9 +940,10 @@ function renderTgtPanel() {
   document.getElementById('tgtT').textContent='Select from '+userName(r.owner_id);
   var pl=sortedAssets(r),html='';
   for(var i=0;i<pl.length;i++){var a=pl[i],sel=S.tgtPids.indexOf(a.id)>=0,b=a.v!==null?vc(a.v):{t:'—',c:'vN'};
+    var sigB = a.type==='player' ? getSignalBadge(a.id) : '';
     html+='<div class="pr '+(sel?'sel':'')+'" onclick="togTgt(\''+a.id.replace(/'/g,"\\'")+'\')">';
     html+='<span class="pos pos-'+(a.p.position||'')+'">'+(a.p.position||'??')+'</span>';
-    html+='<span class="nm">'+esc(a.p.full_name||a.id)+'</span>';
+    html+='<span class="nm">'+esc(a.p.full_name||a.id)+sigB+'</span>';
     html+='<span class="v '+b.c+'">'+b.t+'</span></div>';}
   document.getElementById('tgtList').innerHTML=html;
   var tv=0;for(var i=0;i<S.tgtPids.length;i++){var id=S.tgtPids[i];if(S.picks[id])tv+=S.picks[id].value;else tv+=(gv(id)||0);}
@@ -858,9 +974,10 @@ function renderTrades(trades) {
   el.innerHTML=html;
 }
 function pRow(a){var pos=a.type==='pick'?'PICK':((S.players[a.id]||{}).position||'??');
+  var sigB = a.type==='player' ? getSignalBadge(a.id) : '';
   return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;margin-bottom:2px">'
     +'<span class="pos pos-'+pos+'">'+pos+'</span>'
-    +'<span style="flex:1;font-size:12px;font-weight:500">'+esc(a.name)+'</span>'
+    +'<span style="flex:1;font-size:12px;font-weight:500">'+esc(a.name)+sigB+'</span>'
     +'<span class="v '+vcn(a.v)+'">'+a.v.toLocaleString()+'</span></div>';}
 
 // ==========================================
