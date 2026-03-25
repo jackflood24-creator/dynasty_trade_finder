@@ -22,6 +22,53 @@ print(f"Run time: {datetime.now(timezone.utc).isoformat()}")
 print("=" * 60)
 
 # ============================================================
+# SIGNAL LOGIC (one function, used everywhere)
+# ============================================================
+# BUY LOW  = young player whose value is DROPPING (buy the dip)
+# SELL HIGH = older player whose value is RISING or at peak (sell before cliff)
+# HOLD+    = young player whose value is rising (keep — great asset)
+# AVOID    = old player whose value is dropping (don't buy)
+# HOLD     = neutral / nothing actionable
+
+def compute_signal(pos, age, value, trend, trend_pct):
+    """Compute buy/sell signal based on age curve + value trend direction."""
+    peak_age = {'QB': 32, 'RB': 27, 'WR': 29, 'TE': 29}.get(pos, 28)
+    is_young = 0 < age < peak_age - 2
+    is_prime = peak_age - 2 <= age < peak_age
+    is_old = age >= peak_age
+    is_rising = trend_pct > 3
+    is_falling = trend_pct < -3
+    is_high_val = value >= 3000
+    is_mid_val = value >= 1500
+
+    # SELL HIGH: value going UP but player is aging — peak before the cliff
+    if is_old and is_rising and is_high_val:
+        return 'SELL'
+    # SELL HIGH: prime age, surging value — could be peaking
+    if is_prime and trend_pct > 8 and is_high_val:
+        return 'SELL'
+    # AVOID: old and falling — stay away
+    if is_old and is_falling and is_high_val:
+        return 'AVOID'
+
+    # BUY LOW: young player whose value is DROPPING — market overreaction
+    if is_young and is_falling and is_mid_val:
+        return 'BUY'
+    # BUY LOW: prime player with significant drop — potential bargain
+    if is_prime and trend_pct < -8 and is_high_val:
+        return 'BUY'
+
+    # HOLD+: young and rising — great dynasty asset, keep
+    if is_young and is_rising:
+        return 'HOLD+'
+    # HOLD+: young and stable with high value — core piece
+    if is_young and value >= 5000 and abs(trend_pct) < 3:
+        return 'HOLD+'
+
+    return 'HOLD'
+
+
+# ============================================================
 # 1. LOAD FANTASYCALC
 # ============================================================
 print("\n📊 Loading FantasyCalc values...")
@@ -39,23 +86,27 @@ for item in fc_data:
     if val <= 0:
         continue
     trend = item.get('trend30Day') or 0
+    age = round((p.get('maybeAge') or 0), 1)
+    trendPct = round(trend / max(val, 1) * 100, 2)
+    pos = p['position']
     fc_map[p['name'].lower().strip()] = {
         'sleeper_id': p['sleeperId'],
         'name': p['name'],
-        'pos': p['position'],
+        'pos': pos,
         'team': p.get('maybeTeam') or '',
-        'age': round((p.get('maybeAge') or 0), 1),
+        'age': age,
         'yoe': p.get('maybeYoe') or 0,
         'value': val,
         'trend': trend,
-        'trendPct': round(trend / max(val, 1) * 100, 2),
+        'trendPct': trendPct,
         'rank': item.get('overallRank') or 999,
         'posRank': item.get('positionRank') or 999,
+        'signal': compute_signal(pos, age, val, trend, trendPct),
     }
 print(f"   {len(fc_map)} players")
 
 # ============================================================
-# 2. LOAD NFLFASTR WEEKLY STATS (try each year individually)
+# 2. LOAD NFLFASTR WEEKLY STATS
 # ============================================================
 print("\n🏈 Loading nflfastr weekly stats...")
 available_seasons = []
@@ -129,6 +180,11 @@ def build_features(df, window=4):
 output = {}
 model_info = {}
 
+# Helper: normalize name for matching
+def norm_name(n):
+    return n.lower().strip().replace('.', '').replace('-', '').replace("'", '').replace(' jr', '').replace(' iii', '').replace(' ii', '').replace(' iv', '')
+
+# TRY MODEL PATH (nflfastr + XGBoost)
 if len(weekly) > 0:
     print("\n⚙️  Building features...")
     df_feat = build_features(weekly)
@@ -136,163 +192,117 @@ if len(weekly) > 0:
 
     latest = df_feat[df_feat['season'] == df_feat['season'].max()]
     latest = latest[latest['week'] == latest['week'].max()].copy()
-    latest['merge_name'] = latest['player_name'].str.lower().str.strip().str.replace(r'[.\-\']', '', regex=True)
+    latest['merge_name'] = latest['player_name'].apply(norm_name)
     print(f"   {len(latest)} players at latest week")
-
-    # Debug: show sample names from both sides
-    print(f"   nflfastr sample names: {latest['merge_name'].head(5).tolist()}")
+    print(f"   nflfastr samples: {latest['merge_name'].head(5).tolist()}")
 
     print("\n🤖 Training models...")
     fc_df = pd.DataFrame(fc_map.values())
-    fc_df['merge_name'] = fc_df['name'].str.lower().str.strip().str.replace(r'[.\-\']', '', regex=True)
-    print(f"   FantasyCalc sample names: {fc_df['merge_name'].head(5).tolist()}")
+    fc_df['merge_name'] = fc_df['name'].apply(norm_name)
+    print(f"   FantasyCalc samples: {fc_df['merge_name'].head(5).tolist()}")
 
     merged = latest.merge(
-        fc_df[['merge_name', 'sleeper_id', 'value', 'trend', 'trendPct', 'age', 'yoe', 'rank', 'posRank']],
+        fc_df[['merge_name', 'sleeper_id', 'value', 'trend', 'trendPct', 'age', 'yoe', 'rank', 'posRank', 'signal']],
         on='merge_name', how='inner'
     )
-    print(f"   {len(merged)} players matched by name")
+    print(f"   {len(merged)} players matched")
 
-    # If merge found very few, show unmatched for debugging
     if len(merged) < 50:
         fc_names = set(fc_df['merge_name'].tolist())
         nfl_names = set(latest['merge_name'].tolist())
-        only_fc = list(fc_names - nfl_names)[:10]
-        only_nfl = list(nfl_names - fc_names)[:10]
-        print(f"   ⚠️ Low match count! FC-only names sample: {only_fc}")
-        print(f"   ⚠️ nflfastr-only names sample: {only_nfl}")
+        print(f"   ⚠️ Low match! FC-only samples: {list(fc_names - nfl_names)[:8]}")
+        print(f"   ⚠️ nflfastr-only samples: {list(nfl_names - fc_names)[:8]}")
 
-    feat_cols = [c for c in merged.columns
-                 if c.endswith('_avg') or c.endswith('_trend') or c.endswith('_trend_pct')
-                 or c in ['age', 'yoe', 'value', 'rank', 'touches_avg', 'yards_per_target', 'yards_per_carry']]
-    valid_feats = [c for c in feat_cols if merged[c].notna().sum() > len(merged) * 0.3]
+    if len(merged) >= 50:
+        feat_cols = [c for c in merged.columns
+                     if c.endswith('_avg') or c.endswith('_trend') or c.endswith('_trend_pct')
+                     or c in ['age', 'yoe', 'value', 'rank', 'touches_avg', 'yards_per_target', 'yards_per_carry']]
+        valid_feats = [c for c in feat_cols if merged[c].notna().sum() > len(merged) * 0.3]
 
-    for pos in ['QB', 'RB', 'WR', 'TE']:
-        pos_data = merged[merged['position'] == pos].copy()
-        if len(pos_data) < 10:
-            print(f"   {pos}: skipping ({len(pos_data)} players)")
-            continue
+        for pos in ['QB', 'RB', 'WR', 'TE']:
+            pos_data = merged[merged['position'] == pos].copy()
+            if len(pos_data) < 10:
+                print(f"   {pos}: skipping ({len(pos_data)} players)")
+                continue
 
-        X = pos_data[valid_feats].fillna(0)
-        y = pos_data['trend']
+            X = pos_data[valid_feats].fillna(0)
+            y = pos_data['trend']
 
-        model = xgb.XGBRegressor(
-            n_estimators=100, max_depth=4, learning_rate=0.1,
-            min_child_weight=3, subsample=0.8, colsample_bytree=0.8, random_state=42
-        )
-        model.fit(X, y)
-        pos_data = pos_data.copy()
-        pos_data['predicted'] = model.predict(X).round(0).astype(int)
+            model = xgb.XGBRegressor(
+                n_estimators=100, max_depth=4, learning_rate=0.1,
+                min_child_weight=3, subsample=0.8, colsample_bytree=0.8, random_state=42
+            )
+            model.fit(X, y)
+            pos_data = pos_data.copy()
+            pos_data['predicted'] = model.predict(X).round(0).astype(int)
 
-        importances = pd.Series(model.feature_importances_, index=valid_feats).sort_values(ascending=False)
-        mae = mean_absolute_error(y, model.predict(X))
-        model_info[pos] = {
-            'mae': round(mae),
-            'n_players': len(pos_data),
-            'top_features': importances.head(5).index.tolist()
-        }
-        print(f"   {pos}: {len(pos_data)} players, MAE={mae:.0f}")
-
-        for _, row in pos_data.iterrows():
-            sid = row['sleeper_id']
-            pred = int(row['predicted'])
-            age = float(row['age'] or 0)
-            val = int(row['value'] or 0)
-            trend_pct = float(row['trendPct'] if pd.notna(row['trendPct']) else 0)
-
-            peak_age = {'QB': 32, 'RB': 27, 'WR': 29, 'TE': 29}.get(pos, 28)
-            is_young = 0 < age < peak_age - 2
-            is_old = age >= peak_age
-
-            if is_old and (pred > 50 or trend_pct > 3) and val >= 3000:
-                signal = 'SELL'
-            elif is_young and (pred < -50 or trend_pct < -5) and val >= 1500:
-                signal = 'BUY'
-            elif is_young and (pred > 50 or trend_pct > 3):
-                signal = 'HOLD+'
-            elif pred > 150:
-                signal = 'BUY'
-            elif pred < -150:
-                signal = 'SELL'
-            else:
-                signal = 'HOLD'
-
-            feat_snapshot = {}
-            for f in ['targets_avg', 'carries_avg', 'fantasy_points_ppr_avg', 'target_share_avg',
-                       'targets_trend', 'carries_trend', 'target_share_trend', 'touches_avg',
-                       'yards_per_target', 'yards_per_carry']:
-                if f in row.index and pd.notna(row[f]):
-                    feat_snapshot[f] = round(float(row[f]), 2)
-
-            output[sid] = {
-                'name': row['player_name'], 'pos': pos,
-                'team': fc_map.get(row['merge_name'], {}).get('team', ''),
-                'age': round(age, 1), 'value': val,
-                'trend': int(row['trend'] if pd.notna(row['trend']) else 0),
-                'trendPct': round(trend_pct, 1),
-                'predicted': pred, 'signal': signal,
-                'features': feat_snapshot
+            importances = pd.Series(model.feature_importances_, index=valid_feats).sort_values(ascending=False)
+            mae = mean_absolute_error(y, model.predict(X))
+            model_info[pos] = {
+                'mae': round(mae),
+                'n_players': len(pos_data),
+                'top_features': importances.head(5).index.tolist()
             }
+            print(f"   {pos}: {len(pos_data)} players, MAE={mae:.0f}, top={importances.index[0]}")
 
-else:
-    # FALLBACK: FantasyCalc trends only (no nflfastr data)
-    print("\n⚙️  No weekly stats — using FantasyCalc trend-only predictions...")
-    for name_key, pdata in fc_map.items():
-        age = pdata['age']
-        val = pdata['value']
-        trend = pdata['trend']
-        trendPct = pdata['trendPct']
-        pos = pdata['pos']
+            for _, row in pos_data.iterrows():
+                sid = row['sleeper_id']
+                pred = int(row['predicted'])
+                age = float(row['age'] or 0)
+                val = int(row['value'] or 0)
+                trend_val = int(row['trend'] if pd.notna(row['trend']) else 0)
+                trend_pct = float(row['trendPct'] if pd.notna(row['trendPct']) else 0)
 
-        peak_age = {'QB': 32, 'RB': 27, 'WR': 29, 'TE': 29}.get(pos, 28)
-        is_young = 0 < age < peak_age - 2
-        is_old = age >= peak_age
+                # Use the proper signal function
+                signal = compute_signal(pos, age, val, trend_val, trend_pct)
 
-        if is_old and trendPct > 3 and val >= 3000: signal = 'SELL'
-        elif is_young and trendPct < -5 and val >= 1500: signal = 'BUY'
-        elif is_young and trendPct > 3: signal = 'HOLD+'
-        elif trend > 200: signal = 'BUY'
-        elif trend < -200: signal = 'SELL'
-        else: signal = 'HOLD'
+                feat_snapshot = {}
+                for f in ['targets_avg', 'carries_avg', 'fantasy_points_ppr_avg', 'target_share_avg',
+                           'targets_trend', 'carries_trend', 'target_share_trend', 'touches_avg',
+                           'yards_per_target', 'yards_per_carry']:
+                    if f in row.index and pd.notna(row[f]):
+                        feat_snapshot[f] = round(float(row[f]), 2)
 
-        output[pdata['sleeper_id']] = {
-            'name': pdata['name'], 'pos': pos, 'team': pdata['team'],
-            'age': age, 'value': val, 'trend': trend, 'trendPct': trendPct,
-            'predicted': trend, 'signal': signal, 'features': {}
-        }
-    model_info = {'note': 'FantasyCalc trends only — no nflfastr data available'}
-    print(f"   Generated {len(output)} trend-based predictions")
+                output[sid] = {
+                    'name': row['player_name'], 'pos': pos,
+                    'team': fc_map.get(row['merge_name'], {}).get('team', ''),
+                    'age': round(age, 1), 'value': val,
+                    'trend': trend_val, 'trendPct': round(trend_pct, 1),
+                    'predicted': pred, 'signal': signal,
+                    'features': feat_snapshot
+                }
 
 # ============================================================
-# 5. SAFETY NET — if model path produced nothing, use FC-only
+# 5. SAFETY NET — if model produced nothing, use FC-only
 # ============================================================
 if len(output) == 0:
-    print("\n⚠️  Model produced 0 predictions — falling back to FantasyCalc trends...")
+    if len(weekly) > 0:
+        print("\n⚠️  Model merge found too few matches — falling back to FantasyCalc trends...")
+    else:
+        print("\n⚙️  No weekly stats — using FantasyCalc trend-only predictions...")
+
     for name_key, pdata in fc_map.items():
-        age = pdata['age']
-        val = pdata['value']
-        trend = pdata['trend']
-        trendPct = pdata['trendPct']
-        pos = pdata['pos']
-
-        peak_age = {'QB': 32, 'RB': 27, 'WR': 29, 'TE': 29}.get(pos, 28)
-        is_young = 0 < age < peak_age - 2
-        is_old = age >= peak_age
-
-        if is_old and trendPct > 3 and val >= 3000: signal = 'SELL'
-        elif is_young and trendPct < -5 and val >= 1500: signal = 'BUY'
-        elif is_young and trendPct > 3: signal = 'HOLD+'
-        elif trend > 200: signal = 'BUY'
-        elif trend < -200: signal = 'SELL'
-        else: signal = 'HOLD'
-
         output[pdata['sleeper_id']] = {
-            'name': pdata['name'], 'pos': pos, 'team': pdata['team'],
-            'age': age, 'value': val, 'trend': trend, 'trendPct': trendPct,
-            'predicted': trend, 'signal': signal, 'features': {}
+            'name': pdata['name'],
+            'pos': pdata['pos'],
+            'team': pdata['team'],
+            'age': pdata['age'],
+            'value': pdata['value'],
+            'trend': pdata['trend'],
+            'trendPct': pdata['trendPct'],
+            'predicted': pdata['trend'],
+            'signal': pdata['signal'],  # already computed with compute_signal()
+            'features': {
+                'rank': pdata['rank'],
+                'pos_rank': pdata['posRank'],
+                'trend_30d': pdata['trend'],
+                'trend_pct': pdata['trendPct'],
+                'age': pdata['age'],
+                'years_exp': pdata['yoe'],
+            }
         }
-    model_info = {'note': 'FantasyCalc trends only — name matching failed for model training'}
-    print(f"   Generated {len(output)} fallback predictions")
+    model_info = {'note': 'FantasyCalc trends + age curves (no nflfastr model this run)'}
+    print(f"   Generated {len(output)} predictions")
 
 # ============================================================
 # 6. WRITE OUTPUT
@@ -309,11 +319,21 @@ os.makedirs('data', exist_ok=True)
 with open('data/predictions.json', 'w') as f:
     json.dump(result, f, indent=2)
 
-total_signals = sum(1 for p in output.values() if p['signal'] != 'HOLD')
-print(f"   {len(output)} players, {total_signals} actionable signals")
 signal_counts = {}
 for p in output.values():
     s = p['signal']
     signal_counts[s] = signal_counts.get(s, 0) + 1
+print(f"   {len(output)} players")
 print(f"   Signals: {signal_counts}")
-print("\n✅ Done! data/predictions.json updated.")
+
+# Print a few examples for verification
+print("\n📋 Sample outputs for verification:")
+for name_key in ['josh allen', 'saquon barkley', 'jamarr chase', 'bijan robinson', 'sam laporte']:
+    if name_key in fc_map:
+        sid = fc_map[name_key]['sleeper_id']
+        if sid in output:
+            p = output[sid]
+            print(f"   {p['name']:25s}  {p['pos']}  Age {p['age']:4.1f}  Val {p['value']:>6,}  "
+                  f"Trend {p['trend']:>+5}  ({p['trendPct']:>+5.1f}%)  → {p['signal']}")
+
+print("\n✅ Done!")
