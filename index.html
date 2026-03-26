@@ -1711,6 +1711,12 @@ function analyzeRebuild() {
   document.getElementById('rebSub').textContent = userName(my.owner_id) + ' — roster analysis';
 }
 
+function metricCard(label, value, color) {
+  return '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;text-align:center">'
+    + '<div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">'+label+'</div>'
+    + '<div style="font-size:16px;font-weight:800;color:'+color+'">'+value+'</div></div>';
+}
+
 function buyTargetRow(bt) {
   var tagHtml = '';
   if (bt.tag) {
