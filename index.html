@@ -1979,16 +1979,47 @@ async function loadTradeHistory() {
   var leagueId = S.league.league_id;
   var season = parseInt(S.season);
   var leaguesProcessed = 0;
-  var maxSeasons = 5; // go back up to 5 seasons
+  var maxSeasons = 5;
+
+  // draftResults: "season_round_pick_slot" → {player_id, player_name}
+  S.draftResults = S.draftResults || {};
 
   while (leagueId && leaguesProcessed < maxSeasons) {
-    // Fetch league info to get season and previous_league_id
     var leagueInfo;
     try {
       leagueInfo = await fetchJSON('https://api.sleeper.app/v1/league/' + leagueId);
     } catch(e) { break; }
 
     var leagueSeason = parseInt(leagueInfo.season) || season;
+
+    // Fetch drafts for this league and load picks
+    try {
+      var drafts = await fetchJSON('https://api.sleeper.app/v1/league/' + leagueId + '/drafts');
+      if (drafts && drafts.length) {
+        for (var di = 0; di < drafts.length; di++) {
+          var draft = drafts[di];
+          if (draft.status !== 'complete') continue;
+          try {
+            var draftPicks = await fetchJSON('https://api.sleeper.app/v1/draft/' + draft.draft_id + '/picks');
+            if (draftPicks && draftPicks.length) {
+              for (var dpi = 0; dpi < draftPicks.length; dpi++) {
+                var dpk = draftPicks[dpi];
+                // Key by season + round + original roster (who the pick belonged to before trades)
+                var dKey = leagueSeason + '_' + dpk.round + '_' + dpk.roster_id;
+                var pName = dpk.metadata ? (dpk.metadata.first_name + ' ' + dpk.metadata.last_name) : '';
+                S.draftResults[dKey] = {
+                  player_id: dpk.player_id,
+                  player_name: pName || dpk.player_id,
+                  pick_no: dpk.pick_no,
+                  round: dpk.round,
+                  slot: dpk.draft_slot
+                };
+              }
+            }
+          } catch(e) { /* skip draft */ }
+        }
+      }
+    } catch(e) { /* skip drafts */ }
 
     // Fetch transactions for weeks 0-18
     for (var week = 0; week <= 18; week++) {
@@ -2015,7 +2046,8 @@ async function loadTradeHistory() {
 
 function renderHistory() {
   var trades = S.tradeHistory || [];
-  document.getElementById('histSub').textContent = trades.length + ' trades found across ' + countSeasons(trades) + ' season(s)';
+  var resolvedCount = S.draftResults ? Object.keys(S.draftResults).length : 0;
+  document.getElementById('histSub').textContent = trades.length + ' trades across ' + countSeasons(trades) + ' season(s)' + (resolvedCount ? ' · ' + resolvedCount + ' draft picks resolved to players' : '');
 
   if (!trades.length) {
     document.getElementById('histBoard').innerHTML = '<div class="card" style="text-align:center;padding:40px"><div style="font-size:32px;margin-bottom:8px">🤷</div><div style="font-weight:600">No trades found in this league\'s history.</div></div>';
@@ -2049,34 +2081,50 @@ function renderHistory() {
       }
     }
 
-    // Draft picks from transaction
+    // Draft picks from transaction — resolve to actual player if draft is complete
     if (tx.draft_picks) {
       for (var j = 0; j < tx.draft_picks.length; j++) {
         var dp = tx.draft_picks[j];
         var toRid = parseInt(dp.owner_id);
         if (!sides[toRid]) continue;
-        var pkLabel = dp.season + ' Rd ' + dp.round + ' (from ' + getOwnerName(dp.roster_id) + ')';
-        // Estimate pick value from our pick data
-        var pkVal = 0;
-        var pkKey = dp.season + '_' + dp.round + '_' + dp.roster_id;
-        if (S.picks[pkKey]) pkVal = S.picks[pkKey].value;
-        else {
-          // Fallback: generic round value
-          var genericVals = {1:3000, 2:1200, 3:500, 4:200, 5:100};
-          pkVal = genericVals[dp.round] || 100;
+
+        // Check if this pick was used in a completed draft
+        var dKey = dp.season + '_' + dp.round + '_' + dp.roster_id;
+        var drafted = S.draftResults ? S.draftResults[dKey] : null;
+
+        if (drafted && drafted.player_id) {
+          // Pick was used — resolve to the actual player drafted
+          var draftedP = S.players[drafted.player_id];
+          var draftedV = gv(drafted.player_id) || 0;
+          var draftedName = draftedP ? draftedP.full_name : drafted.player_name;
+          var draftedPos = draftedP ? draftedP.position : '??';
+          var slotNum = drafted.slot || drafted.pick_no || '?';
+          var pkLabel = dp.season + ' ' + dp.round + '.' + (slotNum < 10 ? '0' : '') + slotNum + ' → ' + draftedName;
+          sides[toRid].picks.push({label:pkLabel, v:draftedV, resolved:true, playerId:drafted.player_id, playerName:draftedName, playerPos:draftedPos});
+          sides[toRid].totalVal += draftedV;
+        } else {
+          // Pick not yet used — use pick value estimate
+          var pkLabel = dp.season + ' Rd ' + dp.round + ' (from ' + getOwnerName(dp.roster_id) + ')';
+          var pkVal = 0;
+          var pkKey = dp.season + '_' + dp.round + '_' + dp.roster_id;
+          if (S.picks[pkKey]) pkVal = S.picks[pkKey].value;
+          else {
+            var genericVals = {1:3000, 2:1200, 3:500, 4:200, 5:100};
+            pkVal = genericVals[dp.round] || 100;
+          }
+          sides[toRid].picks.push({label:pkLabel, v:pkVal, resolved:false});
+          sides[toRid].totalVal += pkVal;
         }
-        sides[toRid].picks.push({label:pkLabel, v:pkVal});
-        sides[toRid].totalVal += pkVal;
       }
     }
 
-    // Determine winner
+    // Determine winner + estimate value gained since trade
     var sideArr = [];
     var sideKeys = Object.keys(sides);
     for (var j = 0; j < sideKeys.length; j++) {
       var rid = parseInt(sideKeys[j]);
       sideArr.push({rid:rid, side:sides[rid]});
-      if (!managerStats[rid]) managerStats[rid] = {wins:0, losses:0, draws:0, surplus:0, trades:0, received:0, sent:0};
+      if (!managerStats[rid]) managerStats[rid] = {wins:0, losses:0, draws:0, surplus:0, trades:0, received:0, sent:0, valueGained:0};
     }
 
     if (sideArr.length >= 2) {
@@ -2084,12 +2132,22 @@ function renderHistory() {
       var diff = sideArr[0].side.totalVal - sideArr[1].side.totalVal;
       var diffPct = sideArr[1].side.totalVal > 0 ? (diff / sideArr[1].side.totalVal * 100) : 0;
 
+      // Estimate trade-time value: assume trade was fair, so each side = midpoint
+      var totalAllSides = 0;
+      for (var j = 0; j < sideArr.length; j++) totalAllSides += sideArr[j].side.totalVal;
+      var estTradeVal = totalAllSides / sideArr.length; // what each side was worth at trade time
+
       // Track stats for each participant
       for (var j = 0; j < sideArr.length; j++) {
         var rid = sideArr[j].rid;
+        var nowVal = sideArr[j].side.totalVal;
+        var gain = nowVal - estTradeVal; // positive = value appreciated since trade
+        sideArr[j].side.estTradeVal = Math.round(estTradeVal);
+        sideArr[j].side.valueGained = Math.round(gain);
+
         managerStats[rid].trades++;
-        managerStats[rid].received += sideArr[j].side.totalVal;
-        // What they sent = total of what others received from them... approximate via total - theirs
+        managerStats[rid].received += nowVal;
+        managerStats[rid].valueGained += gain;
         var othersTotal = 0;
         for (var oj = 0; oj < sideArr.length; oj++) { if (oj !== j) othersTotal += sideArr[oj].side.totalVal; }
         managerStats[rid].sent += othersTotal / Math.max(sideArr.length - 1, 1);
@@ -2098,7 +2156,6 @@ function renderHistory() {
       var winnerRid = sideArr[0].rid;
       var loserRid = sideArr[sideArr.length - 1].rid;
       if (diffPct < 5) {
-        // Close enough = draw
         for (var j = 0; j < sideArr.length; j++) managerStats[sideArr[j].rid].draws++;
       } else {
         managerStats[winnerRid].wins++;
@@ -2112,6 +2169,7 @@ function renderHistory() {
         sides: sideArr,
         diff: diff,
         diffPct: diffPct,
+        estTradeVal: Math.round(estTradeVal),
         winnerRid: diffPct >= 5 ? winnerRid : null,
         season: tx._season,
         week: tx._week,
@@ -2127,17 +2185,18 @@ function renderHistory() {
   var mKeys = Object.keys(managerStats);
   for (var i = 0; i < mKeys.length; i++) {
     var rid = parseInt(mKeys[i]), st = managerStats[rid];
-    boardArr.push({rid:rid, name:getOwnerName(rid), wins:st.wins, losses:st.losses, draws:st.draws, surplus:Math.round(st.surplus), trades:st.trades, received:Math.round(st.received), sent:Math.round(st.sent)});
+    boardArr.push({rid:rid, name:getOwnerName(rid), wins:st.wins, losses:st.losses, draws:st.draws, surplus:Math.round(st.surplus), trades:st.trades, received:Math.round(st.received), sent:Math.round(st.sent), valueGained:Math.round(st.valueGained)});
   }
-  boardArr.sort(function(a,b){return b.surplus - a.surplus;});
+  boardArr.sort(function(a,b){return b.valueGained - a.valueGained;});
 
-  var bHtml = '<div class="card" style="margin-bottom:16px"><div style="font-size:15px;font-weight:800;margin-bottom:12px">🏆 Trade Leaderboard</div>';
-  bHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:10px">Ranked by cumulative trade surplus based on current player values</div>';
+  var bHtml = '<div class="card" style="margin-bottom:16px"><div style="font-size:15px;font-weight:800;margin-bottom:4px">🏆 Trade Leaderboard</div>';
+  bHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:10px"><strong>Surplus</strong> = current value of what you received minus what your partner received. <strong>Value Gained</strong> = how much the assets you received appreciated since the trade (assumes trades were fair when made).</div>';
   for (var i = 0; i < boardArr.length; i++) {
     var m = boardArr[i];
     var isMine = m.rid === S.myRid;
     var surpColor = m.surplus > 0 ? 'var(--grn)' : m.surplus < 0 ? 'var(--red)' : 'var(--t3)';
-    var barWidth = Math.min(Math.abs(m.surplus) / (Math.abs(boardArr[0].surplus) || 1) * 100, 100);
+    var gainColor = m.valueGained > 0 ? 'var(--grn)' : m.valueGained < 0 ? 'var(--red)' : 'var(--t3)';
+    var barWidth = Math.min(Math.abs(m.valueGained) / (Math.max(Math.abs(boardArr[0].valueGained), Math.abs(boardArr[boardArr.length-1].valueGained)) || 1) * 100, 100);
     var rank = i + 1;
 
     bHtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:8px;margin-bottom:2px;'+(isMine?'background:rgba(0,230,118,0.06);border:1px solid var(--grn3)':'border:1px solid var(--bdr)')+'">';
@@ -2150,11 +2209,13 @@ function renderHistory() {
     bHtml += '<span style="color:var(--red)">'+m.losses+'L</span>';
     bHtml += '<span>'+m.draws+'D</span>';
     bHtml += '</div>';
-    // Mini bar
-    bHtml += '<div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:4px;width:100%"><div style="height:100%;width:'+barWidth+'%;background:'+surpColor+';border-radius:2px"></div></div>';
+    bHtml += '<div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:4px;width:100%"><div style="height:100%;width:'+barWidth+'%;background:'+gainColor+';border-radius:2px"></div></div>';
     bHtml += '</div>';
-    bHtml += '<div style="text-align:right;min-width:80px"><div style="font-family:\'DM Mono\',monospace;font-size:14px;font-weight:700;color:'+surpColor+'">'+(m.surplus>=0?'+':'')+m.surplus.toLocaleString()+'</div>';
-    bHtml += '<div style="font-size:9px;color:var(--t3)">net surplus</div></div>';
+    bHtml += '<div style="text-align:right;min-width:100px">';
+    bHtml += '<div style="font-family:\'DM Mono\',monospace;font-size:14px;font-weight:700;color:'+gainColor+'">'+(m.valueGained>=0?'+':'')+m.valueGained.toLocaleString()+'</div>';
+    bHtml += '<div style="font-size:9px;color:var(--t3)">value gained</div>';
+    bHtml += '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:'+surpColor+';margin-top:2px">'+(m.surplus>=0?'+':'')+m.surplus.toLocaleString()+' surplus</div>';
+    bHtml += '</div>';
     bHtml += '</div>';
   }
   bHtml += '</div>';
@@ -2167,12 +2228,12 @@ function renderHistory() {
 
   var hHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">';
 
-  hHtml += '<div class="card"><div style="font-size:14px;font-weight:800;color:var(--grn);margin-bottom:10px">🏅 Biggest Trade Wins</div>';
+  hHtml += '<div class="card"><div style="font-size:14px;font-weight:800;color:var(--grn);margin-bottom:10px">🏅 Most Value Gained</div>';
   if (!bigWins.length) hHtml += '<div style="font-size:12px;color:var(--t3)">No lopsided trades found.</div>';
   for (var i = 0; i < bigWins.length; i++) hHtml += tradeCard(bigWins[i], true);
   hHtml += '</div>';
 
-  hHtml += '<div class="card"><div style="font-size:14px;font-weight:800;color:var(--red);margin-bottom:10px">💀 Biggest Trade Losses</div>';
+  hHtml += '<div class="card"><div style="font-size:14px;font-weight:800;color:var(--red);margin-bottom:10px">💀 Most Value Lost</div>';
   if (!bigLosses.length) hHtml += '<div style="font-size:12px;color:var(--t3)">No lopsided trades found.</div>';
   for (var i = 0; i < bigLosses.length; i++) hHtml += tradeCard(bigLosses[i], false);
   hHtml += '</div>';
@@ -2182,7 +2243,7 @@ function renderHistory() {
 
   // ── TIMELINE ──
   var tHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:12px">📜 Trade Timeline</div>';
-  tHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:10px">All '+analyzed.length+' trades — most recent first. Values are current FantasyCalc dynasty values.</div>';
+  tHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:10px">All '+analyzed.length+' trades — most recent first. Values are current FantasyCalc prices. Traded picks show the actual player drafted <span style="color:var(--pur)">(via pick)</span> with their current value when the draft is complete.</div>';
 
   var lastSeason = null;
   for (var i = 0; i < analyzed.length; i++) {
@@ -2216,11 +2277,24 @@ function tradeCard(t, showWinner) {
     html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+sp.pos+'" style="font-size:7px;padding:1px 3px">'+sp.pos+'</span> '+esc(sp.name)+' <span class="v '+vcn(sp.v)+'" style="font-size:9px">'+sp.v.toLocaleString()+'</span></div>';
   }
   for (var j = 0; j < display.side.picks.length; j++) {
-    html += '<div style="font-size:11px;padding:1px 0;color:var(--pur)">🎯 '+display.side.picks[j].label+' <span style="font-size:9px">'+display.side.picks[j].v.toLocaleString()+'</span></div>';
+    var pk = display.side.picks[j];
+    if (pk.resolved) {
+      html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+pk.playerPos+'" style="font-size:7px;padding:1px 3px">'+pk.playerPos+'</span> '+esc(pk.playerName)+' <span style="font-size:9px;color:var(--pur)">(via pick)</span> <span class="v '+vcn(pk.v)+'" style="font-size:9px">'+pk.v.toLocaleString()+'</span></div>';
+    } else {
+      html += '<div style="font-size:11px;padding:1px 0;color:var(--pur)">🎯 '+pk.label+' <span style="font-size:9px">'+pk.v.toLocaleString()+'</span></div>';
+    }
   }
 
   var diffVal = showWinner ? t.diff : -t.diff;
-  html += '<div style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+(diffVal>=0?'var(--grn)':'var(--red)')+';margin-top:4px">'+(diffVal>=0?'+':'')+diffVal.toLocaleString()+' surplus</div>';
+  var gainVal = display.side.valueGained || 0;
+  var gainColor = gainVal >= 0 ? 'var(--grn)' : 'var(--red)';
+  html += '<div style="margin-top:6px;border-top:1px solid var(--bdr);padding-top:4px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+  html += '<div><div style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+gainColor+'">'+(gainVal>=0?'+':'')+gainVal.toLocaleString()+' gained</div>';
+  html += '<div style="font-size:9px;color:var(--t3)">since trade</div></div>';
+  html += '<div style="text-align:right"><div style="font-family:\'DM Mono\',monospace;font-size:10px;color:'+(diffVal>=0?'var(--grn)':'var(--red)')+'">'+(diffVal>=0?'+':'')+diffVal.toLocaleString()+'</div>';
+  html += '<div style="font-size:9px;color:var(--t3)">surplus</div></div>';
+  html += '</div></div>';
   html += '</div>';
   return html;
 }
@@ -2249,9 +2323,23 @@ function timelineRow(t) {
       html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+sp.pos+'" style="font-size:7px;padding:1px 3px">'+sp.pos+'</span> '+esc(sp.name)+' <span class="v '+vcn(sp.v)+'" style="font-size:9px">'+sp.v.toLocaleString()+'</span></div>';
     }
     for (var j = 0; j < s.side.picks.length; j++) {
-      html += '<div style="font-size:11px;padding:1px 0;color:var(--pur)">🎯 '+s.side.picks[j].label+'</div>';
+      var pk = s.side.picks[j];
+      if (pk.resolved) {
+        html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+pk.playerPos+'" style="font-size:7px;padding:1px 3px">'+pk.playerPos+'</span> '+esc(pk.playerName)+' <span style="font-size:9px;color:var(--pur)">(via pick)</span> <span class="v '+vcn(pk.v)+'" style="font-size:9px">'+pk.v.toLocaleString()+'</span></div>';
+      } else {
+        html += '<div style="font-size:11px;padding:1px 0;color:var(--pur)">🎯 '+pk.label+' <span style="font-size:9px">'+pk.v.toLocaleString()+'</span></div>';
+      }
     }
-    html += '<div style="font-family:\'DM Mono\',monospace;font-size:11px;font-weight:600;color:'+(isWinner?'var(--grn)':'var(--t3)')+';margin-top:4px;border-top:1px solid var(--bdr);padding-top:3px">'+s.side.totalVal.toLocaleString()+'</div>';
+    var gainColor = (s.side.valueGained||0) > 0 ? 'var(--grn)' : (s.side.valueGained||0) < 0 ? 'var(--red)' : 'var(--t3)';
+    html += '<div style="margin-top:4px;border-top:1px solid var(--bdr);padding-top:3px">';
+    html += '<div style="display:flex;justify-content:space-between;font-size:10px">';
+    html += '<span style="color:var(--t3)">Now: <strong style="color:var(--t2)">'+s.side.totalVal.toLocaleString()+'</strong></span>';
+    if (s.side.estTradeVal) html += '<span style="color:var(--t3)">Est. at trade: '+s.side.estTradeVal.toLocaleString()+'</span>';
+    html += '</div>';
+    if (s.side.valueGained !== undefined) {
+      html += '<div style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+gainColor+';margin-top:2px">'+(s.side.valueGained>=0?'+':'')+s.side.valueGained.toLocaleString()+' since trade</div>';
+    }
+    html += '</div>';
     html += '</div>';
   }
   html += '</div></div>';
@@ -2306,7 +2394,7 @@ function go(k){
     var nav2=document.getElementById('navBar');if(nav2)nav2.style.display='block';
   }
 }
-function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
+function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
 </script>
 </body>
 </html>
