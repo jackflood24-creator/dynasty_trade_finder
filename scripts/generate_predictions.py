@@ -336,4 +336,87 @@ for name_key in ['josh allen', 'saquon barkley', 'jamarr chase', 'bijan robinson
             print(f"   {p['name']:25s}  {p['pos']}  Age {p['age']:4.1f}  Val {p['value']:>6,}  "
                   f"Trend {p['trend']:>+5}  ({p['trendPct']:>+5.1f}%)  → {p['signal']}")
 
-print("\n✅ Done!")
+print("\n✅ Predictions done!")
+
+# ============================================================
+# 7. CAREER STATS — cumulative fantasy production per player
+# ============================================================
+print("\n📊 Generating career stats (for trade history grading)...")
+
+try:
+    # Load all available seasons (go back further for career data)
+    career_seasons = []
+    for yr in range(2024, 2017, -1):
+        try:
+            test = nfl.import_weekly_data([yr])
+            if len(test) > 0:
+                career_seasons.append(yr)
+                print(f"   ✓ {yr}")
+        except Exception:
+            print(f"   ✗ {yr}")
+
+    if career_seasons:
+        career_weekly = nfl.import_weekly_data(career_seasons)
+        career_weekly = career_weekly[career_weekly['position'].isin(['QB', 'RB', 'WR', 'TE'])].copy()
+        career_weekly['fantasy_points_ppr'] = career_weekly['fantasy_points_ppr'].fillna(0)
+
+        # Aggregate: total PPR points per player across all seasons
+        career = career_weekly.groupby(['player_id', 'player_display_name', 'position']).agg(
+            total_ppr=('fantasy_points_ppr', 'sum'),
+            games=('week', 'nunique'),
+            seasons=('season', 'nunique'),
+            first_season=('season', 'min'),
+            last_season=('season', 'max'),
+            best_season_pts=('fantasy_points_ppr', lambda x: career_weekly.loc[x.index].groupby('season')['fantasy_points_ppr'].sum().max() if len(x) > 0 else 0)
+        ).reset_index()
+
+        career['ppg'] = (career['total_ppr'] / career['games'].clip(lower=1)).round(1)
+
+        # Try to match to sleeper IDs via name
+        def norm(n):
+            return n.lower().strip().replace('.', '').replace('-', '').replace("'", '').replace(' jr', '').replace(' iii', '').replace(' ii', '').replace(' iv', '')
+
+        # Build sleeper name map from S.players equivalent
+        # We have fc_map keyed by normalized name with sleeper_id
+        career['norm_name'] = career['player_display_name'].apply(norm)
+
+        career_output = {}
+        matched = 0
+        for _, row in career.iterrows():
+            nn = row['norm_name']
+            sid = None
+            if nn in fc_map:
+                sid = fc_map[nn]['sleeper_id']
+            if not sid:
+                # Try player_id directly as sleeper_id (sometimes matches)
+                sid = row['player_id']
+
+            career_output[sid or row['player_id']] = {
+                'name': row['player_display_name'],
+                'pos': row['position'],
+                'total_ppr': round(float(row['total_ppr']), 1),
+                'games': int(row['games']),
+                'seasons': int(row['seasons']),
+                'first_season': int(row['first_season']),
+                'last_season': int(row['last_season']),
+                'ppg': float(row['ppg']),
+                'best_season': round(float(row['best_season_pts']), 1)
+            }
+            if nn in fc_map:
+                matched += 1
+
+        print(f"   {len(career_output)} players with career stats, {matched} matched to FantasyCalc IDs")
+
+        with open('data/career_stats.json', 'w') as f:
+            json.dump({
+                'updated': datetime.now(timezone.utc).isoformat(),
+                'seasons_covered': sorted(career_seasons),
+                'players': career_output
+            }, f, indent=2)
+        print(f"   Saved data/career_stats.json")
+    else:
+        print("   No career data available")
+except Exception as e:
+    print(f"   Career stats failed: {e}")
+
+print("\n✅ All done!")
