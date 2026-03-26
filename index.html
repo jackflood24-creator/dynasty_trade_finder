@@ -80,6 +80,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <button class="navtab" id="nav-ros" onclick="go('ros')">🤝 Rosters</button>
       <button class="navtab" id="nav-mom" onclick="openMomentum()">📈 Momentum</button>
       <button class="navtab" id="nav-reb" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
+      <button class="navtab" id="nav-hist" onclick="openHistory()">📊 History</button>
       <button class="navtab" id="nav-pck" onclick="go('pck')">📝 Picks</button>
     </div>
   </div>
@@ -210,6 +211,21 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <strong>2027+</strong> = Early / Mid / Late estimates.
     </div>
     <div id="pickEditorPage" style="max-height:600px;overflow-y:auto"></div>
+  </div>
+
+  <!-- TRADE HISTORY -->
+  <div id="s-hist" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📊 Trade History</div>
+      <div style="font-size:13px;color:var(--t2)" id="histSub">Loading trades...</div>
+    </div>
+    <div id="histLoading" class="hidden" style="text-align:center;padding:40px"><div class="spin" style="margin:0 auto 12px"></div><div style="font-size:13px;color:var(--t3)">Fetching trade history from Sleeper...</div></div>
+    <!-- LEADERBOARD -->
+    <div id="histBoard" style="margin-bottom:20px"></div>
+    <!-- BIGGEST WINS/LOSSES -->
+    <div id="histHighlights" style="margin-bottom:20px"></div>
+    <!-- ALL TRADES TIMELINE -->
+    <div id="histTimeline" style="margin-bottom:20px"></div>
   </div>
 
   <!-- REBUILD ANALYZER -->
@@ -1935,6 +1951,319 @@ function renderRebuildTrades(title, trades, isSell) {
   document.getElementById('rebTrades').scrollIntoView({behavior:'smooth'});
 }
 
+// ==========================================
+// TRADE HISTORY
+// ==========================================
+function openHistory() {
+  if (!S.valsLoaded || !S.myRid) { alert('Load a league and identify your team first.'); return; }
+  go('hist');
+  if (S.tradeHistory) {
+    try { renderHistory(); } catch(e) { console.error('renderHistory error:', e); }
+  } else {
+    document.getElementById('histLoading').classList.remove('hidden');
+    loadTradeHistory().then(function() {
+      document.getElementById('histLoading').classList.add('hidden');
+      try { renderHistory(); } catch(e) {
+        console.error('renderHistory error:', e);
+        document.getElementById('histBoard').innerHTML = '<div class="card" style="color:var(--red)">Error: '+e.message+'</div>';
+      }
+    }).catch(function(e) {
+      document.getElementById('histLoading').classList.add('hidden');
+      document.getElementById('histBoard').innerHTML = '<div class="card" style="color:var(--red)">Failed to load trades: '+e.message+'</div>';
+    });
+  }
+}
+
+async function loadTradeHistory() {
+  var trades = [];
+  var leagueId = S.league.league_id;
+  var season = parseInt(S.season);
+  var leaguesProcessed = 0;
+  var maxSeasons = 5; // go back up to 5 seasons
+
+  while (leagueId && leaguesProcessed < maxSeasons) {
+    // Fetch league info to get season and previous_league_id
+    var leagueInfo;
+    try {
+      leagueInfo = await fetchJSON('https://api.sleeper.app/v1/league/' + leagueId);
+    } catch(e) { break; }
+
+    var leagueSeason = parseInt(leagueInfo.season) || season;
+
+    // Fetch transactions for weeks 0-18
+    for (var week = 0; week <= 18; week++) {
+      try {
+        var txns = await fetchJSON('https://api.sleeper.app/v1/league/' + leagueId + '/transactions/' + week);
+        if (!txns || !txns.length) continue;
+        for (var i = 0; i < txns.length; i++) {
+          var tx = txns[i];
+          if (tx.type !== 'trade' || tx.status !== 'complete') continue;
+          tx._season = leagueSeason;
+          tx._week = week;
+          trades.push(tx);
+        }
+      } catch(e) { /* skip week */ }
+    }
+
+    leaguesProcessed++;
+    leagueId = leagueInfo.previous_league_id || null;
+  }
+
+  S.tradeHistory = trades;
+  return trades;
+}
+
+function renderHistory() {
+  var trades = S.tradeHistory || [];
+  document.getElementById('histSub').textContent = trades.length + ' trades found across ' + countSeasons(trades) + ' season(s)';
+
+  if (!trades.length) {
+    document.getElementById('histBoard').innerHTML = '<div class="card" style="text-align:center;padding:40px"><div style="font-size:32px;margin-bottom:8px">🤷</div><div style="font-weight:600">No trades found in this league\'s history.</div></div>';
+    return;
+  }
+
+  // Analyze each trade
+  var analyzed = [];
+  var managerStats = {}; // roster_id → {wins, losses, draws, surplus, trades, name}
+
+  for (var i = 0; i < trades.length; i++) {
+    var tx = trades[i];
+    var rosterIds = tx.roster_ids || [];
+    if (rosterIds.length < 2) continue;
+
+    // Build sides: what each roster received
+    var sides = {};
+    for (var ri = 0; ri < rosterIds.length; ri++) sides[rosterIds[ri]] = {players:[], picks:[], totalVal:0};
+
+    // Adds from transaction
+    if (tx.adds) {
+      var addKeys = Object.keys(tx.adds);
+      for (var j = 0; j < addKeys.length; j++) {
+        var pid = addKeys[j], toRid = parseInt(tx.adds[pid]);
+        if (!sides[toRid]) continue;
+        var p = S.players[pid], v = gv(pid) || 0;
+        var name = p ? p.full_name : pid;
+        var pos = p ? p.position : '??';
+        sides[toRid].players.push({id:pid, name:name, pos:pos, v:v});
+        sides[toRid].totalVal += v;
+      }
+    }
+
+    // Draft picks from transaction
+    if (tx.draft_picks) {
+      for (var j = 0; j < tx.draft_picks.length; j++) {
+        var dp = tx.draft_picks[j];
+        var toRid = parseInt(dp.owner_id);
+        if (!sides[toRid]) continue;
+        var pkLabel = dp.season + ' Rd ' + dp.round + ' (from ' + getOwnerName(dp.roster_id) + ')';
+        // Estimate pick value from our pick data
+        var pkVal = 0;
+        var pkKey = dp.season + '_' + dp.round + '_' + dp.roster_id;
+        if (S.picks[pkKey]) pkVal = S.picks[pkKey].value;
+        else {
+          // Fallback: generic round value
+          var genericVals = {1:3000, 2:1200, 3:500, 4:200, 5:100};
+          pkVal = genericVals[dp.round] || 100;
+        }
+        sides[toRid].picks.push({label:pkLabel, v:pkVal});
+        sides[toRid].totalVal += pkVal;
+      }
+    }
+
+    // Determine winner
+    var sideArr = [];
+    var sideKeys = Object.keys(sides);
+    for (var j = 0; j < sideKeys.length; j++) {
+      var rid = parseInt(sideKeys[j]);
+      sideArr.push({rid:rid, side:sides[rid]});
+      if (!managerStats[rid]) managerStats[rid] = {wins:0, losses:0, draws:0, surplus:0, trades:0, received:0, sent:0};
+    }
+
+    if (sideArr.length >= 2) {
+      sideArr.sort(function(a,b){return b.side.totalVal - a.side.totalVal;});
+      var diff = sideArr[0].side.totalVal - sideArr[1].side.totalVal;
+      var diffPct = sideArr[1].side.totalVal > 0 ? (diff / sideArr[1].side.totalVal * 100) : 0;
+
+      // Track stats for each participant
+      for (var j = 0; j < sideArr.length; j++) {
+        var rid = sideArr[j].rid;
+        managerStats[rid].trades++;
+        managerStats[rid].received += sideArr[j].side.totalVal;
+        // What they sent = total of what others received from them... approximate via total - theirs
+        var othersTotal = 0;
+        for (var oj = 0; oj < sideArr.length; oj++) { if (oj !== j) othersTotal += sideArr[oj].side.totalVal; }
+        managerStats[rid].sent += othersTotal / Math.max(sideArr.length - 1, 1);
+      }
+
+      var winnerRid = sideArr[0].rid;
+      var loserRid = sideArr[sideArr.length - 1].rid;
+      if (diffPct < 5) {
+        // Close enough = draw
+        for (var j = 0; j < sideArr.length; j++) managerStats[sideArr[j].rid].draws++;
+      } else {
+        managerStats[winnerRid].wins++;
+        managerStats[winnerRid].surplus += diff;
+        managerStats[loserRid].losses++;
+        managerStats[loserRid].surplus -= diff;
+      }
+
+      analyzed.push({
+        tx: tx,
+        sides: sideArr,
+        diff: diff,
+        diffPct: diffPct,
+        winnerRid: diffPct >= 5 ? winnerRid : null,
+        season: tx._season,
+        week: tx._week,
+        timestamp: tx.status_updated || tx.created || 0
+      });
+    }
+  }
+
+  analyzed.sort(function(a,b){ return b.timestamp - a.timestamp; });
+
+  // ── LEADERBOARD ──
+  var boardArr = [];
+  var mKeys = Object.keys(managerStats);
+  for (var i = 0; i < mKeys.length; i++) {
+    var rid = parseInt(mKeys[i]), st = managerStats[rid];
+    boardArr.push({rid:rid, name:getOwnerName(rid), wins:st.wins, losses:st.losses, draws:st.draws, surplus:Math.round(st.surplus), trades:st.trades, received:Math.round(st.received), sent:Math.round(st.sent)});
+  }
+  boardArr.sort(function(a,b){return b.surplus - a.surplus;});
+
+  var bHtml = '<div class="card" style="margin-bottom:16px"><div style="font-size:15px;font-weight:800;margin-bottom:12px">🏆 Trade Leaderboard</div>';
+  bHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:10px">Ranked by cumulative trade surplus based on current player values</div>';
+  for (var i = 0; i < boardArr.length; i++) {
+    var m = boardArr[i];
+    var isMine = m.rid === S.myRid;
+    var surpColor = m.surplus > 0 ? 'var(--grn)' : m.surplus < 0 ? 'var(--red)' : 'var(--t3)';
+    var barWidth = Math.min(Math.abs(m.surplus) / (Math.abs(boardArr[0].surplus) || 1) * 100, 100);
+    var rank = i + 1;
+
+    bHtml += '<div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:8px;margin-bottom:2px;'+(isMine?'background:rgba(0,230,118,0.06);border:1px solid var(--grn3)':'border:1px solid var(--bdr)')+'">';
+    bHtml += '<div style="font-size:16px;font-weight:800;color:'+(rank===1?'var(--amb)':rank===2?'var(--t2)':rank===3?'#cd7f32':'var(--t3)')+';min-width:28px;text-align:center">'+rank+'</div>';
+    bHtml += '<div style="flex:1">';
+    bHtml += '<div style="font-size:13px;font-weight:700;'+(isMine?'color:var(--grn)':'')+'">'+esc(m.name)+(isMine?' (YOU)':'')+'</div>';
+    bHtml += '<div style="display:flex;gap:12px;font-size:10px;color:var(--t3);margin-top:2px">';
+    bHtml += '<span>'+m.trades+' trades</span>';
+    bHtml += '<span style="color:var(--grn)">'+m.wins+'W</span>';
+    bHtml += '<span style="color:var(--red)">'+m.losses+'L</span>';
+    bHtml += '<span>'+m.draws+'D</span>';
+    bHtml += '</div>';
+    // Mini bar
+    bHtml += '<div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:4px;width:100%"><div style="height:100%;width:'+barWidth+'%;background:'+surpColor+';border-radius:2px"></div></div>';
+    bHtml += '</div>';
+    bHtml += '<div style="text-align:right;min-width:80px"><div style="font-family:\'DM Mono\',monospace;font-size:14px;font-weight:700;color:'+surpColor+'">'+(m.surplus>=0?'+':'')+m.surplus.toLocaleString()+'</div>';
+    bHtml += '<div style="font-size:9px;color:var(--t3)">net surplus</div></div>';
+    bHtml += '</div>';
+  }
+  bHtml += '</div>';
+  document.getElementById('histBoard').innerHTML = bHtml;
+
+  // ── BIGGEST WINS / LOSSES ──
+  var sortedByDiff = analyzed.filter(function(a){return a.diffPct>=5;}).sort(function(a,b){return b.diff-a.diff;});
+  var bigWins = sortedByDiff.slice(0, 3);
+  var bigLosses = sortedByDiff.slice(-3).reverse();
+
+  var hHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">';
+
+  hHtml += '<div class="card"><div style="font-size:14px;font-weight:800;color:var(--grn);margin-bottom:10px">🏅 Biggest Trade Wins</div>';
+  if (!bigWins.length) hHtml += '<div style="font-size:12px;color:var(--t3)">No lopsided trades found.</div>';
+  for (var i = 0; i < bigWins.length; i++) hHtml += tradeCard(bigWins[i], true);
+  hHtml += '</div>';
+
+  hHtml += '<div class="card"><div style="font-size:14px;font-weight:800;color:var(--red);margin-bottom:10px">💀 Biggest Trade Losses</div>';
+  if (!bigLosses.length) hHtml += '<div style="font-size:12px;color:var(--t3)">No lopsided trades found.</div>';
+  for (var i = 0; i < bigLosses.length; i++) hHtml += tradeCard(bigLosses[i], false);
+  hHtml += '</div>';
+
+  hHtml += '</div>';
+  document.getElementById('histHighlights').innerHTML = hHtml;
+
+  // ── TIMELINE ──
+  var tHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:12px">📜 Trade Timeline</div>';
+  tHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:10px">All '+analyzed.length+' trades — most recent first. Values are current FantasyCalc dynasty values.</div>';
+
+  var lastSeason = null;
+  for (var i = 0; i < analyzed.length; i++) {
+    var t = analyzed[i];
+    // Season header
+    if (t.season !== lastSeason) {
+      lastSeason = t.season;
+      tHtml += '<div style="font-size:12px;font-weight:800;color:var(--amb);padding:10px 0 4px;border-top:2px solid var(--bdr);margin-top:8px">'+t.season+' Season</div>';
+    }
+    tHtml += timelineRow(t);
+  }
+  tHtml += '</div>';
+  document.getElementById('histTimeline').innerHTML = tHtml;
+}
+
+function tradeCard(t, showWinner) {
+  var winSide = t.sides[0], loseSide = t.sides[t.sides.length - 1];
+  var display = showWinner ? winSide : loseSide;
+  var other = showWinner ? loseSide : winSide;
+  var managerName = getOwnerName(display.rid);
+  var date = t.timestamp ? new Date(t.timestamp).toLocaleDateString() : 'Unknown';
+
+  var html = '<div style="padding:10px 0;border-top:1px solid var(--bdr)">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+  html += '<span style="font-size:12px;font-weight:700;'+(display.rid===S.myRid?'color:var(--grn)':'')+'">'+esc(managerName)+'</span>';
+  html += '<span style="font-size:10px;color:var(--t3)">'+date+' · Wk '+t.week+'</span></div>';
+
+  html += '<div style="font-size:11px;color:var(--t2);margin-bottom:2px">Received ('+(showWinner?'winner':'loser')+'):</div>';
+  for (var j = 0; j < display.side.players.length; j++) {
+    var sp = display.side.players[j];
+    html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+sp.pos+'" style="font-size:7px;padding:1px 3px">'+sp.pos+'</span> '+esc(sp.name)+' <span class="v '+vcn(sp.v)+'" style="font-size:9px">'+sp.v.toLocaleString()+'</span></div>';
+  }
+  for (var j = 0; j < display.side.picks.length; j++) {
+    html += '<div style="font-size:11px;padding:1px 0;color:var(--pur)">🎯 '+display.side.picks[j].label+' <span style="font-size:9px">'+display.side.picks[j].v.toLocaleString()+'</span></div>';
+  }
+
+  var diffVal = showWinner ? t.diff : -t.diff;
+  html += '<div style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+(diffVal>=0?'var(--grn)':'var(--red)')+';margin-top:4px">'+(diffVal>=0?'+':'')+diffVal.toLocaleString()+' surplus</div>';
+  html += '</div>';
+  return html;
+}
+
+function timelineRow(t) {
+  var date = t.timestamp ? new Date(t.timestamp).toLocaleDateString() : '';
+  var isDraw = !t.winnerRid;
+
+  var html = '<div style="padding:10px 0;border-top:1px solid var(--bdr)">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+  html += '<span style="font-size:10px;color:var(--t3)">'+date+(t.week?' · Week '+t.week:'')+' · '+t.season+'</span>';
+  if (!isDraw) html += '<span style="font-size:10px;font-weight:700;color:var(--grn)">Winner: '+getOwnerName(t.winnerRid)+'</span>';
+  else html += '<span style="font-size:10px;color:var(--amb)">Fair trade</span>';
+  html += '</div>';
+
+  html += '<div style="display:flex;gap:10px">';
+  for (var si = 0; si < t.sides.length; si++) {
+    var s = t.sides[si];
+    var isWinner = s.rid === t.winnerRid;
+    var isMine = s.rid === S.myRid;
+    html += '<div style="flex:1;padding:8px;border-radius:6px;border:1px solid '+(isWinner?'var(--grn3)':isMine?'rgba(68,138,255,0.3)':'var(--bdr)')+';background:'+(isWinner?'rgba(0,230,118,0.04)':'')+'">';
+    html += '<div style="font-size:11px;font-weight:700;margin-bottom:4px;'+(isMine?'color:var(--grn)':'')+'">'+getOwnerName(s.rid)+(isMine?' (YOU)':'')+'</div>';
+    html += '<div style="font-size:10px;color:var(--t3);margin-bottom:3px">Received:</div>';
+    for (var j = 0; j < s.side.players.length; j++) {
+      var sp = s.side.players[j];
+      html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+sp.pos+'" style="font-size:7px;padding:1px 3px">'+sp.pos+'</span> '+esc(sp.name)+' <span class="v '+vcn(sp.v)+'" style="font-size:9px">'+sp.v.toLocaleString()+'</span></div>';
+    }
+    for (var j = 0; j < s.side.picks.length; j++) {
+      html += '<div style="font-size:11px;padding:1px 0;color:var(--pur)">🎯 '+s.side.picks[j].label+'</div>';
+    }
+    html += '<div style="font-family:\'DM Mono\',monospace;font-size:11px;font-weight:600;color:'+(isWinner?'var(--grn)':'var(--t3)')+';margin-top:4px;border-top:1px solid var(--bdr);padding-top:3px">'+s.side.totalVal.toLocaleString()+'</div>';
+    html += '</div>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function countSeasons(trades) {
+  var s = {};
+  for (var i = 0; i < trades.length; i++) s[trades[i]._season] = true;
+  return Object.keys(s).length;
+}
+
 // INTERACTIONS
 function closeTgtPanel(){S.tgtRid=null;S.tgtPids=[];renderRosters();}
 function clickR(rid){
@@ -1950,8 +2279,8 @@ function genTrades(){if(!S.valsLoaded)return;var my=null;for(var i=0;i<S.rosters
 function setS(v,el){S.season=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 function setQB(v,el){S.numQbs=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 
-var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',mom:'s-mom',pck:'s-pck',reb:'s-reb'};
-var STEP_IDX={con:0,lea:1,ros:2,mom:3,pck:4,reb:5};
+var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',mom:'s-mom',hist:'s-hist',pck:'s-pck',reb:'s-reb'};
+var STEP_IDX={con:0,lea:1,ros:2,mom:3,hist:4,pck:5,reb:6};
 function go(k){
   try{
     var ks=Object.keys(STEPS);
@@ -1961,8 +2290,8 @@ function go(k){
     }
     var nav=document.getElementById('navBar');
     if(nav) nav.style.display=(k!=='con'&&k!=='lea')?'block':'none';
-    var tabs=['nav-ros','nav-mom','nav-reb','nav-pck'];
-    var tabMap={ros:'nav-ros',mom:'nav-mom',reb:'nav-reb',pck:'nav-pck'};
+    var tabs=['nav-ros','nav-mom','nav-reb','nav-hist','nav-pck'];
+    var tabMap={ros:'nav-ros',mom:'nav-mom',reb:'nav-reb',hist:'nav-hist',pck:'nav-pck'};
     for(var i=0;i<tabs.length;i++){
       var btn=document.getElementById(tabs[i]);
       if(btn) btn.className='navtab'+(tabs[i]===(tabMap[k]||'')?' on':'');
@@ -1977,7 +2306,7 @@ function go(k){
     var nav2=document.getElementById('navBar');if(nav2)nav2.style.display='block';
   }
 }
-function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
+function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
 </script>
 </body>
 </html>
