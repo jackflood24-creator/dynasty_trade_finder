@@ -216,13 +216,16 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <!-- COMPETITIVE OUTLOOK -->
     <div id="rebOutlook" class="card" style="margin-bottom:16px"></div>
 
+    <!-- POSITION STRENGTH VISUAL -->
+    <div id="rebPositions" class="card" style="margin-bottom:16px"></div>
+
     <!-- STRATEGY RECOMMENDATION -->
     <div id="rebStrategy" class="card" style="margin-bottom:16px"></div>
 
     <!-- SELL CANDIDATES -->
     <div id="rebSell" style="margin-bottom:16px"></div>
 
-    <!-- BUY TARGETS -->
+    <!-- BUY TARGETS (position-aware) -->
     <div id="rebBuy" style="margin-bottom:16px"></div>
 
     <!-- SUGGESTED TRADES -->
@@ -1209,187 +1212,287 @@ function analyzeRebuild() {
   var my = null;
   for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].roster_id === S.myRid) { my = S.rosters[i]; break; }
   if (!my) return;
-
   var N = S.rosters.length;
 
-  // 1. Rank all rosters by total value (players + picks)
+  // 1. Build per-roster data with position breakdowns
   var rankings = [];
   for (var i = 0; i < S.rosters.length; i++) {
-    var r = S.rosters[i], pv = 0, pkv = 0, ages = [], playerData = [];
+    var r = S.rosters[i], posVal = {QB:0,RB:0,WR:0,TE:0}, posAge = {QB:[],RB:[],WR:[],TE:[]};
+    var playerData = [], totalPV = 0;
     if (r.players) {
       for (var j = 0; j < r.players.length; j++) {
         var id = r.players[j], p = S.players[id], v = gv(id);
         if (!p || !REL_POS.has(p.position)) continue;
-        if (v) pv += v;
-        var age = p.age || 0;
-        if (age > 0 && v) { ages.push(age); playerData.push({id:id,p:p,v:v,age:age}); }
+        var age = (S.fcMeta[id] && S.fcMeta[id].age) || p.age || 0;
+        if (v) { posVal[p.position] += v; totalPV += v; }
+        if (age > 0) posAge[p.position].push(age);
+        if (v) playerData.push({id:id,p:p,v:v,age:age});
       }
     }
-    var pks = getPicksForRoster(r.roster_id);
+    var pks = getPicksForRoster(r.roster_id), pkv = 0;
     for (var j = 0; j < pks.length; j++) pkv += pks[j].value;
-    var avgAge = ages.length ? ages.reduce(function(a,b){return a+b;},0)/ages.length : 0;
-    rankings.push({r:r, pv:pv, pkv:pkv, total:pv+pkv, avgAge:avgAge, players:playerData, picks:pks, isMine:r.roster_id===S.myRid});
+
+    var allAges = [].concat(posAge.QB, posAge.RB, posAge.WR, posAge.TE);
+    var avgAge = allAges.length ? allAges.reduce(function(a,b){return a+b;},0)/allAges.length : 0;
+    var posAvgAge = {};
+    for (var pos in posAge) { var a=posAge[pos]; posAvgAge[pos]=a.length?a.reduce(function(x,y){return x+y;},0)/a.length:0; }
+
+    rankings.push({r:r, pv:totalPV, pkv:pkv, total:totalPV+pkv, avgAge:avgAge, posVal:posVal, posAvgAge:posAvgAge, players:playerData, picks:pks, isMine:r.roster_id===S.myRid});
   }
-  rankings.sort(function(a,b){return b.pv-a.pv;}); // Sort by PLAYER value (competitiveness)
+  rankings.sort(function(a,b){return b.pv-a.pv;});
+
+  // Position rankings per team
+  var posRanks = {QB:[],RB:[],WR:[],TE:[]};
+  for (var pos in posRanks) {
+    var sorted = rankings.slice().sort(function(a,b){return b.posVal[pos]-a.posVal[pos];});
+    for (var i = 0; i < sorted.length; i++) sorted[i]['rank_'+pos] = i+1;
+    posRanks[pos] = sorted;
+  }
 
   var myRank = -1, myData = null;
   for (var i = 0; i < rankings.length; i++) { if (rankings[i].isMine) { myRank = i + 1; myData = rankings[i]; break; } }
+  var myPosRanks = {};
+  for (var pos in posRanks) { for (var i = 0; i < posRanks[pos].length; i++) { if (posRanks[pos][i].isMine) { myPosRanks[pos] = i+1; break; } } }
 
-  // 2. Categorize my players
-  var stars = [], aging = [], young = [], mid = [];
-  for (var i = 0; i < myData.players.length; i++) {
-    var pd = myData.players[i];
-    var isYoung = pd.age <= 25;
-    var isOld = pd.age >= 28;
-    var isPrime = pd.age > 25 && pd.age < 28;
-    var isHighVal = pd.v >= 5000;
-    var isMidVal = pd.v >= 2000 && pd.v < 5000;
-
-    if (isHighVal && isOld) aging.push(pd);
-    else if (isHighVal) stars.push(pd);
-    else if (isYoung && pd.v >= 1000) young.push(pd);
-    else if (isMidVal) mid.push(pd);
-  }
-  stars.sort(function(a,b){return b.v-a.v;});
-  aging.sort(function(a,b){return b.v-a.v;});
-  young.sort(function(a,b){return b.v-a.v;});
-  mid.sort(function(a,b){return b.v-a.v;});
-
-  // 3. Determine strategy recommendation
-  var isContender = myRank <= Math.ceil(N * 0.4); // top 40%
-  var isMiddle = myRank > Math.ceil(N * 0.4) && myRank <= Math.ceil(N * 0.7);
-  var isBottom = myRank > Math.ceil(N * 0.7);
-  var hasYouth = myData.avgAge < 26;
-  var hasPickCapital = myData.pkv > myData.pv * 0.15;
-
-  // 4. RENDER OUTLOOK
-  var outlookHtml = '<div style="font-size:15px;font-weight:800;margin-bottom:12px">📊 Competitive Outlook</div>';
-  outlookHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px">';
-  outlookHtml += metricCard('League Rank', '#' + myRank + ' / ' + N, myRank <= 3 ? 'var(--grn)' : myRank >= N-2 ? 'var(--red)' : 'var(--amb)');
-  outlookHtml += metricCard('Roster Value', myData.pv.toLocaleString(), 'var(--blu)');
-  outlookHtml += metricCard('Pick Value', myData.pkv.toLocaleString(), 'var(--pur)');
-  outlookHtml += metricCard('Avg Age', myData.avgAge.toFixed(1) + ' yrs', myData.avgAge < 26 ? 'var(--grn)' : myData.avgAge > 28 ? 'var(--red)' : 'var(--amb)');
-  outlookHtml += metricCard('Stars (5k+)', stars.length + ' players', stars.length >= 3 ? 'var(--grn)' : 'var(--amb)');
-  outlookHtml += metricCard('Aging (28+, 5k+)', aging.length + ' players', aging.length === 0 ? 'var(--grn)' : 'var(--red)');
-  outlookHtml += '</div>';
+  // 2. RENDER OUTLOOK
+  var oh = '<div style="font-size:15px;font-weight:800;margin-bottom:12px">📊 Competitive Outlook</div>';
+  oh += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px">';
+  oh += metricCard('Overall', '#'+myRank+' / '+N, myRank<=Math.ceil(N*0.3)?'var(--grn)':myRank>Math.ceil(N*0.7)?'var(--red)':'var(--amb)');
+  oh += metricCard('Roster Val', myData.pv.toLocaleString(), 'var(--blu)');
+  oh += metricCard('Pick Val', myData.pkv.toLocaleString(), 'var(--pur)');
+  oh += metricCard('Avg Age', myData.avgAge.toFixed(1), myData.avgAge<26?'var(--grn)':myData.avgAge>28?'var(--red)':'var(--amb)');
+  oh += '</div>';
 
   // Power ranking bar
-  outlookHtml += '<div style="margin-bottom:8px;font-size:11px;color:var(--t3)">League Power Ranking</div>';
-  outlookHtml += '<div style="display:flex;gap:4px;height:32px;align-items:flex-end;margin-bottom:4px">';
+  oh += '<div style="font-size:10px;color:var(--t3);margin-bottom:4px">League Power Ranking</div>';
+  oh += '<div style="display:flex;gap:3px;height:40px;align-items:flex-end;margin-bottom:4px">';
   for (var i = 0; i < rankings.length; i++) {
     var pct = rankings[i].pv / (rankings[0].pv || 1) * 100;
     var isMe = rankings[i].isMine;
-    outlookHtml += '<div style="flex:1;height:' + Math.max(pct, 8) + '%;background:' + (isMe ? 'var(--grn)' : 'rgba(255,255,255,0.08)') + ';border-radius:3px 3px 0 0;position:relative" title="' + esc(userName(rankings[i].r.owner_id)) + ': ' + rankings[i].pv.toLocaleString() + '">';
-    if (isMe) outlookHtml += '<div style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--grn);white-space:nowrap">YOU</div>';
-    outlookHtml += '</div>';
+    oh += '<div style="flex:1;height:'+Math.max(pct,10)+'%;background:'+(isMe?'var(--grn)':'rgba(255,255,255,0.08)')+';border-radius:3px 3px 0 0;position:relative" title="'+esc(userName(rankings[i].r.owner_id))+': '+rankings[i].pv.toLocaleString()+'">';
+    if(isMe) oh += '<div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--grn);font-weight:700">YOU</div>';
+    oh += '</div>';
   }
-  outlookHtml += '</div>';
-  outlookHtml += '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3)"><span>Strongest</span><span>Weakest</span></div>';
-  document.getElementById('rebOutlook').innerHTML = outlookHtml;
+  oh += '</div>';
+  document.getElementById('rebOutlook').innerHTML = oh;
 
-  // 5. RENDER STRATEGY
-  var stratHtml = '<div style="font-size:15px;font-weight:800;margin-bottom:12px">🎯 Strategy Recommendation</div>';
+  // 3. POSITION STRENGTH VISUAL
+  var ph = '<div style="font-size:15px;font-weight:800;margin-bottom:12px">💪 Position Strength</div>';
+  ph += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">';
+  var posColors = {QB:'#ff5252',RB:'#448aff',WR:'#00e676',TE:'#ffd740'};
+  var posNames = ['QB','RB','WR','TE'];
+  for (var pi = 0; pi < posNames.length; pi++) {
+    var pos = posNames[pi];
+    var rank = myPosRanks[pos] || N;
+    var val = myData.posVal[pos];
+    var age = myData.posAvgAge[pos];
+    var isWeak = rank > Math.ceil(N * 0.6);
+    var isStrong = rank <= Math.ceil(N * 0.3);
+    var barPct = Math.round((1 - (rank - 1) / (N - 1 || 1)) * 100);
+
+    ph += '<div style="background:var(--bg3);border-radius:8px;padding:12px;border:1px solid '+(isWeak?'rgba(255,82,82,0.3)':isStrong?'rgba(0,230,118,0.3)':'var(--bdr)')+'">';
+    ph += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    ph += '<span style="font-size:14px;font-weight:800;color:'+posColors[pos]+'">'+pos+'</span>';
+    ph += '<span style="font-size:11px;font-weight:700;color:'+(isWeak?'var(--red)':isStrong?'var(--grn)':'var(--amb)')+'">Rank #'+rank+' / '+N+'</span>';
+    ph += '</div>';
+    ph += '<div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;margin-bottom:6px"><div style="height:100%;width:'+barPct+'%;background:'+posColors[pos]+';border-radius:3px;opacity:0.7"></div></div>';
+    ph += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t3)">';
+    ph += '<span>Value: '+val.toLocaleString()+'</span>';
+    ph += '<span>Avg Age: '+(age?age.toFixed(1):'—')+'</span>';
+    ph += '</div>';
+    if (isWeak) ph += '<div style="font-size:9px;color:var(--red);margin-top:4px;font-weight:600">⚠ Weak — target '+pos+' in trades</div>';
+    ph += '</div>';
+  }
+  ph += '</div>';
+
+  // Pick capital summary
+  ph += '<div style="display:flex;gap:12px;flex-wrap:wrap">';
+  var picksByYear = {};
+  for (var i = 0; i < myData.picks.length; i++) {
+    var pk = myData.picks[i], y = pk.year;
+    if (!picksByYear[y]) picksByYear[y] = {count:0,val:0};
+    picksByYear[y].count++;
+    picksByYear[y].val += pk.value;
+  }
+  var pyKeys = Object.keys(picksByYear).sort();
+  for (var i = 0; i < pyKeys.length; i++) {
+    var y = pyKeys[i], d = picksByYear[y];
+    ph += '<div style="background:var(--bg3);border-radius:6px;padding:8px 12px;border:1px solid var(--bdr);flex:1;min-width:100px;text-align:center">';
+    ph += '<div style="font-size:10px;color:var(--t3)">'+y+' Picks</div>';
+    ph += '<div style="font-size:16px;font-weight:800;color:var(--pur)">'+d.count+'</div>';
+    ph += '<div style="font-size:10px;color:var(--t3)">'+d.val.toLocaleString()+' val</div>';
+    ph += '</div>';
+  }
+  ph += '</div>';
+  document.getElementById('rebPositions').innerHTML = ph;
+
+  // 4. STRATEGY
+  var isContender = myRank <= Math.ceil(N * 0.4);
+  var isMiddle = myRank > Math.ceil(N * 0.4) && myRank <= Math.ceil(N * 0.7);
+  var isBottom = myRank > Math.ceil(N * 0.7);
+  var hasYouth = myData.avgAge < 26;
+
+  // Find weak positions
+  var weakPositions = [], strongPositions = [];
+  for (var pi = 0; pi < posNames.length; pi++) {
+    var pos = posNames[pi], rank = myPosRanks[pos] || N;
+    if (rank > Math.ceil(N * 0.6)) weakPositions.push(pos);
+    if (rank <= Math.ceil(N * 0.3)) strongPositions.push(pos);
+  }
+
   var strat, stratColor, stratDesc;
-  if (isContender && aging.length === 0) {
-    strat = 'COMPETE — You\'re a contender'; stratColor = 'var(--grn)';
-    stratDesc = 'Your roster is strong and young. Push for a championship. Consider trading future picks for proven producers.';
-  } else if (isContender && aging.length > 0) {
-    strat = 'COMPETE + SELL HIGH — Win-now window'; stratColor = 'var(--amb)';
-    stratDesc = 'You can compete this year, but aging assets are losing value. Sell older players at peak value and target younger replacements to extend your window.';
+  if (isContender && weakPositions.length === 0) {
+    strat = 'COMPETE — Push for the championship'; stratColor = 'var(--grn)';
+    stratDesc = 'Your roster is strong across all positions. Trade future picks for proven producers to maximize your window.';
+  } else if (isContender && weakPositions.length > 0) {
+    strat = 'COMPETE + FILL GAPS — Address '+weakPositions.join(', '); stratColor = 'var(--amb)';
+    stratDesc = 'You\'re a contender but weak at '+weakPositions.join(' and ')+'. Target proven '+weakPositions.join('/')+' to round out your roster for a title push.';
   } else if (isMiddle && hasYouth) {
-    strat = 'SOFT REBUILD — Youth is on your side'; stratColor = 'var(--blu)';
-    stratDesc = 'You\'re not a top contender but your young core has upside. Trade aging vets for picks and younger players. You could be competing in 1-2 seasons.';
+    strat = 'SOFT REBUILD — Young core, fill weak spots'; stratColor = 'var(--blu)';
+    stratDesc = 'Not a contender yet but your youth gives you upside. Sell aging players, target young talent at your weak positions ('+weakPositions.join(', ')+'), and you could compete in 1-2 years.';
   } else if (isMiddle && !hasYouth) {
-    strat = 'REBUILD — Retool needed'; stratColor = 'var(--red)';
-    stratDesc = 'Stuck in the middle with an older roster is the worst spot in dynasty. Sell veterans for picks and young talent now before their value drops further.';
-  } else if (isBottom && hasPickCapital) {
-    strat = 'FULL REBUILD — Stockpile and wait'; stratColor = 'var(--pur)';
-    stratDesc = 'You\'re in rebuild mode with good pick capital. Sell any remaining veterans for maximum pick/young player return. Your high picks will restock the roster.';
+    strat = 'WIN NOW or REBUILD — Choose a direction'; stratColor = 'var(--amb)';
+    stratDesc = 'Middle of the pack with an aging roster. Either go all-in this year by trading picks for proven vets, or sell your older players for youth and picks. The worst move is staying put.';
+  } else if (isBottom) {
+    strat = 'FULL REBUILD — Sell for youth and picks'; stratColor = 'var(--red)';
+    stratDesc = 'Trade veterans for draft picks and young players, especially at your weakest positions. Focus on accumulating '+weakPositions.join(', ')+' youth.';
   } else {
-    strat = 'FULL REBUILD — Sell everything'; stratColor = 'var(--red)';
-    stratDesc = 'Your roster needs a complete overhaul. Trade every player with value for draft picks and young lottery tickets. Accumulate as many 1st round picks as possible.';
+    strat = 'EVALUATE — Build around strengths'; stratColor = 'var(--t2)';
+    stratDesc = 'Assess each position and make targeted moves.';
   }
-  stratHtml += '<div style="padding:14px;border-radius:8px;background:rgba(255,255,255,0.03);border-left:3px solid ' + stratColor + '">';
-  stratHtml += '<div style="font-size:14px;font-weight:800;color:' + stratColor + ';margin-bottom:6px">' + strat + '</div>';
-  stratHtml += '<div style="font-size:12px;color:var(--t2);line-height:1.6">' + stratDesc + '</div>';
-  stratHtml += '</div>';
-  document.getElementById('rebStrategy').innerHTML = stratHtml;
+  var sh = '<div style="font-size:15px;font-weight:800;margin-bottom:12px">🎯 Strategy</div>';
+  sh += '<div style="padding:14px;border-radius:8px;background:rgba(255,255,255,0.03);border-left:3px solid '+stratColor+'">';
+  sh += '<div style="font-size:14px;font-weight:800;color:'+stratColor+';margin-bottom:6px">'+strat+'</div>';
+  sh += '<div style="font-size:12px;color:var(--t2);line-height:1.6">'+stratDesc+'</div></div>';
+  document.getElementById('rebStrategy').innerHTML = sh;
 
-  // 6. RENDER SELL CANDIDATES
+  // 5. SELL CANDIDATES — based on position strength + age
   var sellHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px;color:var(--red)">📤 Sell Candidates</div>';
-  sellHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Players to trade away for future value — aging or at peak value</div>';
-  var sellList = aging.concat(isBottom || isMiddle ? stars.filter(function(p){return p.age>=26;}) : []);
-  if (isBottom) sellList = sellList.concat(mid.filter(function(p){return p.age>=27;}));
-  // Deduplicate
-  var sellIds = {}; var sellFinal = [];
-  for (var i = 0; i < sellList.length; i++) { if (!sellIds[sellList[i].id]) { sellIds[sellList[i].id]=true; sellFinal.push(sellList[i]); } }
-  sellFinal.sort(function(a,b){return b.v-a.v;});
+  sellHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Trade away for future value — aging or at strong positions you can afford to thin</div>';
+  var sellList = [];
+  for (var i = 0; i < myData.players.length; i++) {
+    var pd = myData.players[i], pos = pd.p.position;
+    var posRank = myPosRanks[pos] || N;
+    var isOldForPos = pd.age >= ({QB:31,RB:27,WR:29,TE:29}[pos]||28);
+    var posIsStrong = posRank <= Math.ceil(N * 0.4);
 
-  if (sellFinal.length === 0) {
-    sellHtml += '<div style="color:var(--t3);font-size:12px;padding:10px 0">No obvious sell candidates — your roster is well-positioned.</div>';
-  } else {
-    for (var i = 0; i < sellFinal.length; i++) {
-      var pd = sellFinal[i];
-      var reason = pd.age >= 30 ? 'Declining — sell before value drops further' : pd.age >= 28 ? 'Approaching cliff — sell at peak' : pd.v >= 6000 ? 'High value — can get premium return' : 'Solid return available';
-      sellHtml += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--bdr)">';
-      sellHtml += '<span class="pos pos-' + pd.p.position + '">' + pd.p.position + '</span>';
-      sellHtml += '<div style="flex:1"><div style="font-size:13px;font-weight:600">' + esc(pd.p.full_name) + ' <span style="font-size:11px;color:var(--t3)">Age ' + pd.age.toFixed(0) + '</span></div>';
-      sellHtml += '<div style="font-size:10px;color:var(--t3)">' + reason + '</div></div>';
-      sellHtml += '<span class="v ' + vcn(pd.v) + '">' + pd.v.toLocaleString() + '</span>';
-      sellHtml += '<button class="btn btn-o btn-s" style="font-size:10px;padding:4px 8px" onclick="findSellTrades(\'' + pd.id + '\')">Find Trades</button>';
-      sellHtml += '</div>';
+    if (isOldForPos && pd.v >= 2000) {
+      sellList.push({pd:pd, reason:'Age '+pd.age.toFixed(0)+' — approaching decline'});
+    } else if (posIsStrong && pd.v >= 3000 && pd.age >= 27 && !isBottom) {
+      sellList.push({pd:pd, reason:pos+' is strong (#'+posRank+') — can afford to sell'});
+    } else if (isBottom && pd.v >= 2000 && pd.age >= 26) {
+      sellList.push({pd:pd, reason:'Rebuilding — sell for picks/youth'});
     }
+  }
+  sellList.sort(function(a,b){return b.pd.v-a.pd.v;});
+  if (!sellList.length) sellHtml += '<div style="color:var(--t3);font-size:12px;padding:10px 0">No obvious sell candidates.</div>';
+  for (var i = 0; i < sellList.length; i++) {
+    var s = sellList[i], pd = s.pd;
+    sellHtml += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--bdr)">';
+    sellHtml += '<span class="pos pos-'+pd.p.position+'">'+pd.p.position+'</span>';
+    sellHtml += '<div style="flex:1"><div style="font-size:13px;font-weight:600">'+esc(pd.p.full_name)+getSignalBadge(pd.id)+' <span style="font-size:11px;color:var(--t3)">Age '+pd.age.toFixed(0)+'</span></div>';
+    sellHtml += '<div style="font-size:10px;color:var(--t3)">'+s.reason+'</div></div>';
+    sellHtml += '<span class="v '+vcn(pd.v)+'">'+pd.v.toLocaleString()+'</span>';
+    sellHtml += '<button class="btn btn-o btn-s" style="font-size:10px;padding:4px 8px" onclick="findSellTrades(\''+pd.id+'\')">Find Trades</button>';
+    sellHtml += '</div>';
   }
   sellHtml += '</div>';
   document.getElementById('rebSell').innerHTML = sellHtml;
 
-  // 7. RENDER BUY TARGETS
+  // 6. BUY TARGETS — position-aware
   var buyHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px;color:var(--grn)">📥 Buy Targets</div>';
-  buyHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Young players on other rosters worth acquiring for your rebuild/future</div>';
+  buyHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">';
+  if (isMiddle && !hasYouth) {
+    buyHtml += 'Win-now targets — proven producers to push for a championship this year';
+  } else if (isContender && weakPositions.length > 0) {
+    buyHtml += 'Fill your gaps — target '+weakPositions.join(', ')+' to complete your roster';
+  } else {
+    buyHtml += 'Young players on other rosters — prioritizing your weak positions';
+  }
+  buyHtml += '</div>';
 
-  // Find young, high-value players on other teams
+  // Separate buy targets by position need
   var buyTargets = [];
   for (var i = 0; i < S.rosters.length; i++) {
     var r = S.rosters[i];
-    if (r.roster_id === S.myRid) continue;
-    if (!r.players) continue;
+    if (r.roster_id === S.myRid || !r.players) continue;
     for (var j = 0; j < r.players.length; j++) {
       var id = r.players[j], p = S.players[id], v = gv(id);
       if (!p || !v || !REL_POS.has(p.position)) continue;
-      var age = p.age || 99;
-      if (age <= 25 && v >= 2000) {
-        buyTargets.push({id:id, p:p, v:v, age:age, ownerRid:r.roster_id});
+      var age = (S.fcMeta[id] && S.fcMeta[id].age) || p.age || 0;
+      var isWeakPos = weakPositions.indexOf(p.position) >= 0;
+      var priority = 0;
+
+      if (isMiddle && !hasYouth) {
+        // WIN NOW: target proven producers at weak positions, any age
+        if (v >= 4000 && isWeakPos) priority = 3;
+        else if (v >= 5000) priority = 2;
+        else if (v >= 3000 && isWeakPos) priority = 1;
+      } else if (isContender) {
+        // COMPETING: fill gaps with proven talent
+        if (v >= 4000 && isWeakPos) priority = 3;
+        else if (v >= 5000 && isWeakPos) priority = 2;
+      } else {
+        // REBUILDING: target young talent, especially at weak positions
+        if (age <= 25 && v >= 2000 && isWeakPos) priority = 3;
+        else if (age <= 25 && v >= 3000) priority = 2;
+        else if (age <= 24 && v >= 1500) priority = 1;
+      }
+
+      if (priority > 0) {
+        buyTargets.push({id:id, p:p, v:v, age:age, ownerRid:r.roster_id, priority:priority, isWeakPos:isWeakPos});
       }
     }
   }
-  buyTargets.sort(function(a,b){return b.v-a.v;});
+  buyTargets.sort(function(a,b){ return b.priority - a.priority || b.v - a.v; });
 
-  if (buyTargets.length === 0) {
-    buyHtml += '<div style="color:var(--t3);font-size:12px;padding:10px 0">No standout buy targets found.</div>';
+  if (!buyTargets.length) {
+    buyHtml += '<div style="color:var(--t3);font-size:12px;padding:10px 0">No standout buy targets.</div>';
   } else {
-    for (var i = 0; i < Math.min(buyTargets.length, 15); i++) {
-      var bt = buyTargets[i];
-      buyHtml += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--bdr)">';
-      buyHtml += '<span class="pos pos-' + bt.p.position + '">' + bt.p.position + '</span>';
-      buyHtml += '<div style="flex:1"><div style="font-size:13px;font-weight:600">' + esc(bt.p.full_name) + ' <span style="font-size:11px;color:var(--t3)">Age ' + bt.age.toFixed(0) + '</span></div>';
-      buyHtml += '<div style="font-size:10px;color:var(--t3)">On: ' + getOwnerName(bt.ownerRid) + '</div></div>';
-      buyHtml += '<span class="v ' + vcn(bt.v) + '">' + bt.v.toLocaleString() + '</span>';
-      buyHtml += '<button class="btn btn-o btn-s" style="font-size:10px;padding:4px 8px" onclick="findBuyTrades(\'' + bt.id + '\',' + bt.ownerRid + ')">Find Trades</button>';
-      buyHtml += '</div>';
+    // Group by position for weak positions first
+    var shown = 0;
+    if (weakPositions.length > 0) {
+      for (var wi = 0; wi < weakPositions.length; wi++) {
+        var wp = weakPositions[wi];
+        var wpTargets = buyTargets.filter(function(t){return t.p.position===wp;}).slice(0,5);
+        if (!wpTargets.length) continue;
+        buyHtml += '<div style="font-size:11px;font-weight:700;color:'+posColors[wp]+';margin:10px 0 4px;padding-top:6px;border-top:1px solid var(--bdr)">'+wp+' — NEED (Rank #'+myPosRanks[wp]+'/'+N+')</div>';
+        for (var i = 0; i < wpTargets.length; i++) {
+          buyHtml += buyTargetRow(wpTargets[i]);
+          shown++;
+        }
+      }
+    }
+    // Other targets
+    var others = buyTargets.filter(function(t){return weakPositions.indexOf(t.p.position)<0;}).slice(0,10);
+    if (others.length) {
+      buyHtml += '<div style="font-size:11px;font-weight:700;color:var(--t2);margin:10px 0 4px;padding-top:6px;border-top:1px solid var(--bdr)">OTHER TARGETS</div>';
+      for (var i = 0; i < others.length; i++) buyHtml += buyTargetRow(others[i]);
     }
   }
   buyHtml += '</div>';
   document.getElementById('rebBuy').innerHTML = buyHtml;
-
-  // 8. Clear suggested trades area
   document.getElementById('rebTrades').innerHTML = '';
-  document.getElementById('rebSub').textContent = userName(my.owner_id) + '\'s roster analysis';
+  document.getElementById('rebSub').textContent = userName(my.owner_id) + ' — roster analysis';
+}
+
+function buyTargetRow(bt) {
+  var winNow = bt.age >= 26 && bt.v >= 4000;
+  var tag = bt.isWeakPos ? '<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:var(--red2);color:var(--red);margin-left:4px">NEED</span>' : '';
+  if (winNow) tag += '<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:var(--amb2);color:var(--amb);margin-left:4px">WIN NOW</span>';
+  return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--bdr)">'
+    + '<span class="pos pos-'+bt.p.position+'">'+bt.p.position+'</span>'
+    + '<div style="flex:1"><div style="font-size:13px;font-weight:600">'+esc(bt.p.full_name)+getSignalBadge(bt.id)+tag+' <span style="font-size:11px;color:var(--t3)">Age '+(bt.age?bt.age.toFixed(0):'?')+'</span></div>'
+    + '<div style="font-size:10px;color:var(--t3)">On: '+getOwnerName(bt.ownerRid)+'</div></div>'
+    + '<span class="v '+vcn(bt.v)+'">'+bt.v.toLocaleString()+'</span>'
+    + '<button class="btn btn-o btn-s" style="font-size:10px;padding:4px 8px" onclick="findBuyTrades(\''+bt.id+'\','+bt.ownerRid+')">Find Trades</button>'
+    + '</div>';
 }
 
 function metricCard(label, value, color) {
   return '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;text-align:center">'
-    + '<div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">' + label + '</div>'
-    + '<div style="font-size:16px;font-weight:800;color:' + color + '">' + value + '</div></div>';
+    + '<div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">'+label+'</div>'
+    + '<div style="font-size:16px;font-weight:800;color:'+color+'">'+value+'</div></div>';
 }
 
 function findSellTrades(playerId) {
