@@ -409,9 +409,37 @@ async function doSelectLeague(leagueId) {
         S.drafts.push(dr);
         var slots = dr.slot_to_roster_id ? Object.keys(dr.slot_to_roster_id).length : 0;
         var hasOrder = dr.draft_order ? Object.keys(dr.draft_order).length : 0;
-        addLog(log, '  Draft ' + dr.season + ' (' + dr.status + '): ' + slots + ' slot assignments' + (hasOrder ? ', ' + hasOrder + ' draft_order entries' : ''), slots > 0 ? 'ok' : 'in');
+        addLog(log, '  Draft ' + dr.season + ' (' + dr.status + '): ' + slots + ' slot_to_roster_id, ' + hasOrder + ' draft_order', slots > 0 || hasOrder > 0 ? 'ok' : 'in');
+
+        // DIAGNOSTIC: Show exact slot mappings for non-complete drafts
+        if (dr.status !== 'complete') {
+          if (dr.slot_to_roster_id && slots > 0) {
+            var slotEntries = Object.entries(dr.slot_to_roster_id).sort(function(a,b){return parseInt(a[0])-parseInt(b[0]);});
+            for (var si = 0; si < slotEntries.length; si++) {
+              var slot = slotEntries[si][0], rid = slotEntries[si][1];
+              var ownerName = '?';
+              for (var ui = 0; ui < S.users.length; ui++) {
+                for (var ri2 = 0; ri2 < S.rosters.length; ri2++) {
+                  if (S.rosters[ri2].roster_id == rid) { ownerName = userName(S.rosters[ri2].owner_id); break; }
+                }
+              }
+              addLog(log, '    slot ' + slot + ' → roster ' + rid + ' (' + ownerName + ')', 'in');
+            }
+          } else if (dr.draft_order && hasOrder > 0) {
+            addLog(log, '    draft_order (user_id → slot):', 'in');
+            var doEntries = Object.entries(dr.draft_order);
+            for (var di2 = 0; di2 < doEntries.length; di2++) {
+              var uid = doEntries[di2][0], dslot = doEntries[di2][1];
+              var uname = '?';
+              for (var ui2 = 0; ui2 < S.users.length; ui2++) { if (S.users[ui2].user_id === uid) { uname = S.users[ui2].display_name || S.users[ui2].username; break; } }
+              addLog(log, '    user ' + uname + ' → slot ' + dslot, 'in');
+            }
+          } else {
+            addLog(log, '    ⚠ No slot data found for ' + dr.season + ' draft!', 'er');
+          }
+        }
       }
-    } catch(e) {}
+    } catch(e) { addLog(log, '  ⚠ Failed to load drafts: ' + e.message, 'er'); }
     document.getElementById('fBar').style.width = '50%';
 
     // Load values
@@ -612,22 +640,64 @@ function buildPickAssets(log) {
 
   // 6. Apply traded picks
   var applied = 0, missed = 0;
+  if (log) addLog(log, '🔄 Applying ' + S.tradedPicks.length + ' traded pick records...', 'in');
   for (var i = 0; i < S.tradedPicks.length; i++) {
     var tp = S.tradedPicks[i];
-    var k1 = String(tp.season)+'_'+String(tp.round)+'_'+String(tp.roster_id);
-    var k2 = parseInt(tp.season)+'_'+parseInt(tp.round)+'_'+parseInt(tp.roster_id);
-    var found = S.picks[k1] || S.picks[k2];
+    var tpSeason = parseInt(tp.season), tpRound = parseInt(tp.round);
+    var tpOrigRid = parseInt(tp.roster_id), tpNewOwner = parseInt(tp.owner_id);
+
+    // Try direct key match first
+    var k1 = tpSeason+'_'+tpRound+'_'+tpOrigRid;
+    var found = S.picks[k1];
+
+    // If not found by key, search ALL picks for year+round where origRid matches
+    // This handles the case where the projected slot map assigned a different origRid
+    if (!found) {
+      var allKeys = Object.keys(S.picks);
+      for (var fi = 0; fi < allKeys.length; fi++) {
+        var candidate = S.picks[allKeys[fi]];
+        if (candidate.year === tpSeason && candidate.round === tpRound && candidate.origRid === tpOrigRid) {
+          found = candidate; break;
+        }
+      }
+    }
+
     if (found) {
-      found.ownerRid = parseInt(tp.owner_id);
+      found.ownerRid = tpNewOwner;
       if (found.pickType === 'slot') {
-        found.label = found.year+' Pick '+found.slotLabel+' (from '+getOwnerName(parseInt(tp.roster_id))+')';
+        found.label = found.year+' Pick '+found.slotLabel+' (from '+getOwnerName(tpOrigRid)+')';
       } else {
-        found.label = found.year+' '+found.tier+' '+(found.round===1?'1st':found.round===2?'2nd':found.round===3?'3rd':found.round+'th')+' (from '+getOwnerName(parseInt(tp.roster_id))+')';
+        found.label = found.year+' '+(found.tier||'')+(found.tier?' ':'')+(found.round===1?'1st':found.round===2?'2nd':found.round===3?'3rd':found.round+'th')+' (from '+getOwnerName(tpOrigRid)+')';
       }
       applied++;
-    } else { missed++; }
+      if (tpSeason === 2026 && tpRound === 1 && log) {
+        addLog(log, '  2026 R1: orig=' + getOwnerName(tpOrigRid) + ' → now=' + getOwnerName(tpNewOwner) + ' (key=' + found.key + ', slot=' + (found.pickNum||'?') + ', val=' + found.value + ')', 'in');
+      }
+    } else {
+      missed++;
+      if (tpSeason === 2026 && log) {
+        addLog(log, '  ⚠ MISSED: 2026 R' + tpRound + ' roster_id=' + tpOrigRid + ' (' + getOwnerName(tpOrigRid) + ') → owner_id=' + tpNewOwner + ' (' + getOwnerName(tpNewOwner) + ')', 'er');
+      }
+    }
   }
   if (log) addLog(log, '✓ '+applied+' ownership transfers'+( missed?' ('+missed+' unmatched)':''), applied>0?'ok':'in');
+
+  // Log ALL 2026 Round 1 picks for debugging
+  if (log) {
+    addLog(log, '── 2026 Round 1 Final State ──', 'in');
+    var r1Picks = [];
+    var allKeys = Object.keys(S.picks);
+    for (var pi = 0; pi < allKeys.length; pi++) {
+      var pk = S.picks[allKeys[pi]];
+      if (pk.year === 2026 && pk.round === 1) r1Picks.push(pk);
+    }
+    r1Picks.sort(function(a,b){ return (a.pickNum||0)-(b.pickNum||0); });
+    for (var pi = 0; pi < r1Picks.length; pi++) {
+      var pk = r1Picks[pi];
+      var isYours = pk.ownerRid === S.myRid;
+      addLog(log, '  1.' + (pk.pickNum<10?'0':'') + pk.pickNum + ': orig=' + getOwnerName(pk.origRid) + ', owner=' + getOwnerName(pk.ownerRid) + (isYours ? ' ★YOU★' : '') + ', val=' + pk.value, isYours ? 'ok' : '');
+    }
+  }
 
   // Log my picks
   if (S.myRid && log) {
