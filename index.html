@@ -1456,117 +1456,195 @@ function analyzeRebuild() {
   sellHtml += '</div>';
   document.getElementById('rebSell').innerHTML = sellHtml;
 
-  // 6. BUY TARGETS — position-aware
-  var buyHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px;color:var(--grn)">📥 Buy Targets</div>';
-  buyHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">';
-  if (isMiddle && !hasYouth) {
-    buyHtml += 'Win-now targets — proven producers to push for a championship this year';
-  } else if (isContender && weakPositions.length > 0) {
-    buyHtml += 'Fill your gaps — target '+weakPositions.join(', ')+' to complete your roster';
-  } else {
-    buyHtml += 'Young players on other rosters — prioritizing your weak positions';
-  }
-  buyHtml += '</div>';
 
-  // Separate buy targets by position need
+  // 6. BUY TARGETS + TRADE MATCHMAKER — tier-aware logic
+  // Classify all other teams by tier
+  S.teamTiers = {};
+  for (var ri = 0; ri < rankings.length; ri++) {
+    var rank = ri + 1;
+    var tier = rank <= Math.ceil(N*0.3) ? 'contender' : rank > Math.ceil(N*0.7) ? 'rebuilder' : 'middle';
+    S.teamTiers[rankings[ri].r.roster_id] = tier;
+  }
+  var myTier = isContender ? 'contender' : isBottom ? 'rebuilder' : 'middle';
+
+  var buyHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px;color:var(--grn)">📥 Acquisition Targets</div>';
+
+  if (myTier === 'rebuilder') {
+    buyHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">You\'re rebuilding — target <strong>cheap young players with upside</strong> (value 1,000-3,500) who can appreciate. Avoid expensive stars you can\'t afford.</div>';
+  } else if (myTier === 'contender') {
+    buyHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">You\'re competing — target <strong>proven stars</strong> from rebuilding teams who are selling. Overpay in picks/youth if needed to win now.</div>';
+  } else {
+    buyHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Middle of the pack — target <strong>mid-value players at weak positions</strong> to move the needle without breaking the bank.</div>';
+  }
+
+  // Collect buy targets based on team tier
   var buyTargets = [];
   for (var i = 0; i < S.rosters.length; i++) {
     var r = S.rosters[i];
     if (r.roster_id === S.myRid || !r.players) continue;
+    var partnerTier = S.teamTiers[r.roster_id] || 'middle';
+
     for (var j = 0; j < r.players.length; j++) {
       var id = r.players[j], p = S.players[id], v = gv(id);
       if (!p || !v || !REL_POS.has(p.position)) continue;
       var age = (S.fcMeta[id] && S.fcMeta[id].age) || p.age || 0;
+      var sig = getPlayerSignal(id);
       var isWeakPos = weakPositions.indexOf(p.position) >= 0;
       var priority = 0;
+      var tag = '';
 
-      if (isMiddle && !hasYouth) {
-        // WIN NOW: target proven producers at weak positions, any age
-        if (v >= 4000 && isWeakPos) priority = 3;
-        else if (v >= 5000) priority = 2;
-        else if (v >= 3000 && isWeakPos) priority = 1;
-      } else if (isContender) {
-        // COMPETING: fill gaps with proven talent
-        if (v >= 4000 && isWeakPos) priority = 3;
-        else if (v >= 5000 && isWeakPos) priority = 2;
+      if (myTier === 'rebuilder') {
+        // REBUILDING: cheap young risers only
+        if (v > 4000) continue; // can't afford expensive players
+        if (age <= 25 && sig === 'BUY' && v >= 1000) { priority = 5; tag = 'BUY THE DIP'; }
+        else if (age <= 24 && v >= 1000 && v <= 3000 && isWeakPos) { priority = 4; tag = 'CHEAP + NEED'; }
+        else if (age <= 25 && v >= 1500 && v <= 3500 && isWeakPos) { priority = 3; tag = 'YOUNG + NEED'; }
+        else if (age <= 24 && sig === 'HOLD+' && v <= 3500) { priority = 2; tag = 'RISING'; }
+        else if (age <= 25 && v >= 1000 && v <= 3000) { priority = 1; tag = 'AFFORDABLE YOUTH'; }
+
+      } else if (myTier === 'contender') {
+        // CONTENDING: proven stars, especially from rebuilding teams
+        if (v < 3000) continue; // too low-value to move the needle
+        if (partnerTier === 'rebuilder' && v >= 5000 && isWeakPos) { priority = 5; tag = 'SELLER + NEED'; }
+        else if (partnerTier === 'rebuilder' && v >= 4000) { priority = 4; tag = 'TEAM IS SELLING'; }
+        else if (v >= 5000 && isWeakPos) { priority = 3; tag = 'FILLS GAP'; }
+        else if (v >= 6000 && partnerTier !== 'contender') { priority = 2; tag = 'STAR'; }
+        else if (v >= 4000 && isWeakPos) { priority = 1; tag = 'NEED'; }
+
       } else {
-        // REBUILDING: target young talent, especially at weak positions
-        if (age <= 25 && v >= 2000 && isWeakPos) priority = 3;
-        else if (age <= 25 && v >= 3000) priority = 2;
-        else if (age <= 24 && v >= 1500) priority = 1;
+        // MIDDLE: balanced approach, mid-value at weak positions
+        if (age <= 26 && v >= 2000 && v <= 5000 && isWeakPos) { priority = 4; tag = 'NEED + UPSIDE'; }
+        else if (sig === 'BUY' && v >= 1500 && age <= 26) { priority = 3; tag = 'BUY THE DIP'; }
+        else if (v >= 3000 && v <= 6000 && isWeakPos) { priority = 2; tag = 'FILLS GAP'; }
+        else if (age <= 25 && v >= 2000 && v <= 4500) { priority = 1; tag = 'YOUNG VALUE'; }
       }
 
       if (priority > 0) {
-        buyTargets.push({id:id, p:p, v:v, age:age, ownerRid:r.roster_id, priority:priority, isWeakPos:isWeakPos});
+        buyTargets.push({id:id, p:p, v:v, age:age, ownerRid:r.roster_id, priority:priority, isWeakPos:isWeakPos, tag:tag, partnerTier:partnerTier, sig:sig});
       }
     }
   }
   buyTargets.sort(function(a,b){ return b.priority - a.priority || b.v - a.v; });
 
   if (!buyTargets.length) {
-    buyHtml += '<div style="color:var(--t3);font-size:12px;padding:10px 0">No standout buy targets.</div>';
+    buyHtml += '<div style="color:var(--t3);font-size:12px;padding:10px 0">No targets match your current situation.</div>';
   } else {
-    // Group by position for weak positions first
-    var shown = 0;
+    // Group by weak positions first, then others
+    var shown = {};
     if (weakPositions.length > 0) {
       for (var wi = 0; wi < weakPositions.length; wi++) {
         var wp = weakPositions[wi];
-        var wpTargets = buyTargets.filter(function(t){return t.p.position===wp;}).slice(0,5);
+        var wpTargets = buyTargets.filter(function(t){return t.p.position===wp;}).slice(0,6);
         if (!wpTargets.length) continue;
-        buyHtml += '<div style="font-size:11px;font-weight:700;color:'+posColors[wp]+';margin:10px 0 4px;padding-top:6px;border-top:1px solid var(--bdr)">'+wp+' — NEED (Rank #'+myPosRanks[wp]+'/'+N+')</div>';
-        for (var i = 0; i < wpTargets.length; i++) {
-          buyHtml += buyTargetRow(wpTargets[i]);
-          shown++;
-        }
+        buyHtml += '<div style="font-size:11px;font-weight:700;color:'+posColors[wp]+';margin:10px 0 4px;padding-top:6px;border-top:1px solid var(--bdr)">'+wp+' — NEED (Rank #'+(myPosRanks[wp]||'?')+'/'+N+')</div>';
+        for (var i = 0; i < wpTargets.length; i++) { buyHtml += buyTargetRow(wpTargets[i]); shown[wpTargets[i].id]=true; }
       }
     }
-    // Other targets
-    var others = buyTargets.filter(function(t){return weakPositions.indexOf(t.p.position)<0;}).slice(0,10);
+    var others = buyTargets.filter(function(t){return !shown[t.id];}).slice(0,8);
     if (others.length) {
-      buyHtml += '<div style="font-size:11px;font-weight:700;color:var(--t2);margin:10px 0 4px;padding-top:6px;border-top:1px solid var(--bdr)">OTHER TARGETS</div>';
+      buyHtml += '<div style="font-size:11px;font-weight:700;color:var(--t2);margin:10px 0 4px;padding-top:6px;border-top:1px solid var(--bdr)">OTHER OPPORTUNITIES</div>';
       for (var i = 0; i < others.length; i++) buyHtml += buyTargetRow(others[i]);
     }
   }
   buyHtml += '</div>';
   document.getElementById('rebBuy').innerHTML = buyHtml;
 
-  // 7. TRADE MATCHMAKER — find teams with surplus where you're weak
+  // 7. TRADE MATCHMAKER — tier-aware partner matching
   var mHtml = '';
   if (weakPositions.length > 0) {
     mHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px">🤝 Trade Partners</div>';
-    mHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:14px">Teams with a surplus at positions where you\'re weak — natural trade fits</div>';
+
+    if (myTier === 'rebuilder') {
+      mHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:14px">Contending teams with young depth they\'d trade for your veterans — they overpay for win-now players</div>';
+    } else if (myTier === 'contender') {
+      mHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:14px">Rebuilding teams selling stars at your weak positions — they want your picks and young assets</div>';
+    } else {
+      mHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:14px">Teams whose roster situation creates a natural trade fit with yours</div>';
+    }
 
     for (var wi = 0; wi < weakPositions.length; wi++) {
       var wp = weakPositions[wi];
-      var myPosVal = myData.posVal[wp];
-
-      // Find teams with surplus at this position (top half of league)
       var matches = [];
+
       for (var ri = 0; ri < rankings.length; ri++) {
         var team = rankings[ri];
         if (team.isMine) continue;
+        var partnerTier = S.teamTiers[team.r.roster_id] || 'middle';
         var theirPosVal = team.posVal[wp];
         var theirRank = 0;
-        // Get their rank at this position
         for (var pi = 0; pi < posRanks[wp].length; pi++) {
           if (posRanks[wp][pi].r.roster_id === team.r.roster_id) { theirRank = pi + 1; break; }
         }
-        if (theirRank > Math.ceil(N * 0.5)) continue; // only top half
 
-        // Find their best tradeable players at this position
+        // Filter partners based on MY tier
+        var isGoodPartner = false;
+        var partnerReason = '';
+
+        if (myTier === 'rebuilder') {
+          // Rebuilders want to trade with contenders/middle who have cheap young depth
+          if (theirRank <= Math.ceil(N * 0.5)) {
+            // Check if they have affordable young pieces at this position
+            var cheapYoung = 0;
+            if (team.r.players) {
+              for (var j = 0; j < team.r.players.length; j++) {
+                var tid = team.r.players[j], tp = S.players[tid], tv = gv(tid);
+                if (!tp || tp.position !== wp || !tv) continue;
+                var tage = (S.fcMeta[tid] && S.fcMeta[tid].age) || tp.age || 0;
+                if (tage <= 25 && tv >= 1000 && tv <= 3500) cheapYoung++;
+              }
+            }
+            if (cheapYoung > 0) {
+              isGoodPartner = true;
+              partnerReason = partnerTier === 'contender' ? 'Contender — will overpay for your vets' : 'Has young '+wp+' depth';
+            }
+          }
+        } else if (myTier === 'contender') {
+          // Contenders want rebuilding teams selling stars
+          if (partnerTier === 'rebuilder' && theirRank <= Math.ceil(N * 0.5)) {
+            isGoodPartner = true;
+            partnerReason = 'Rebuilding — likely selling '+wp+' for picks';
+          } else if (theirRank <= Math.ceil(N * 0.3) && theirPosVal > theirPosVal * 0.3) {
+            // Top teams with deep position
+            var hasExpendable = false;
+            if (team.r.players) {
+              for (var j = 0; j < team.r.players.length; j++) {
+                var tid = team.r.players[j], tp = S.players[tid], tv = gv(tid);
+                if (tp && tp.position === wp && tv >= 4000) hasExpendable = true;
+              }
+            }
+            if (hasExpendable) { isGoodPartner = true; partnerReason = 'Deep at '+wp+' — has pieces to spare'; }
+          }
+        } else {
+          // Middle teams — flexible matching
+          if (theirRank <= Math.ceil(N * 0.5)) {
+            isGoodPartner = true;
+            partnerReason = partnerTier === 'rebuilder' ? 'Rebuilding — may sell '+wp : 'Strong at '+wp+' (Rank #'+theirRank+')';
+          }
+        }
+
+        if (!isGoodPartner) continue;
+
+        // Collect their players at this position, filtered by my affordability
         var surplus = [];
         if (team.r.players) {
           for (var j = 0; j < team.r.players.length; j++) {
-            var id = team.r.players[j], p = S.players[id], v = gv(id);
-            if (!p || p.position !== wp || !v || v < 1000) continue;
-            var age = (S.fcMeta[id] && S.fcMeta[id].age) || p.age || 0;
-            surplus.push({id:id, p:p, v:v, age:age});
+            var tid = team.r.players[j], tp = S.players[tid], tv = gv(tid);
+            if (!tp || tp.position !== wp || !tv || tv < 800) continue;
+            var tage = (S.fcMeta[tid] && S.fcMeta[tid].age) || tp.age || 0;
+
+            // Filter by what makes sense for my tier
+            var show = false;
+            if (myTier === 'rebuilder' && tage <= 26 && tv <= 4000) show = true;
+            else if (myTier === 'contender' && tv >= 3000) show = true;
+            else if (myTier === 'middle' && tv >= 1500 && tv <= 7000) show = true;
+
+            if (show) surplus.push({id:tid, p:tp, v:tv, age:tage});
           }
         }
-        if (surplus.length < 2) continue; // need at least 2 so they can afford to trade one
+        if (surplus.length === 0) continue;
         surplus.sort(function(a,b){return b.v-a.v;});
 
-        // Find what they might need (their weak positions where we're strong)
+        // What do THEY need that I could offer?
         var theyNeed = [];
         for (var pi2 = 0; pi2 < posNames.length; pi2++) {
           var p2 = posNames[pi2];
@@ -1576,43 +1654,42 @@ function analyzeRebuild() {
             if (posRanks[p2][x].r.roster_id === team.r.roster_id) { theirP2Rank = x + 1; break; }
           }
           var myP2Rank = myPosRanks[p2] || N;
-          if (theirP2Rank > Math.ceil(N * 0.5) && myP2Rank <= Math.ceil(N * 0.5)) {
-            theyNeed.push(p2);
-          }
+          if (theirP2Rank > Math.ceil(N * 0.5) && myP2Rank <= Math.ceil(N * 0.6)) theyNeed.push(p2);
         }
+        // Rebuilding teams always want picks
+        if (partnerTier === 'rebuilder') theyNeed.push('Picks');
 
-        matches.push({
-          team: team,
-          rank: theirRank,
-          surplus: surplus,
-          theyNeed: theyNeed,
-          surplusVal: theirPosVal
-        });
+        matches.push({team:team, rank:theirRank, surplus:surplus, theyNeed:theyNeed, reason:partnerReason, partnerTier:partnerTier});
       }
-      matches.sort(function(a,b){return a.rank - b.rank;});
+      matches.sort(function(a,b){
+        // Prioritize: best fit first
+        var aTierScore = a.partnerTier==='rebuilder' && myTier==='contender' ? 0 : a.partnerTier==='contender' && myTier==='rebuilder' ? 0 : 1;
+        var bTierScore = b.partnerTier==='rebuilder' && myTier==='contender' ? 0 : b.partnerTier==='contender' && myTier==='rebuilder' ? 0 : 1;
+        return aTierScore - bTierScore || a.rank - b.rank;
+      });
 
       if (matches.length === 0) continue;
 
       mHtml += '<div style="margin-bottom:16px;padding-top:10px;border-top:1px solid var(--bdr)">';
-      mHtml += '<div style="font-size:13px;font-weight:700;color:'+posColors[wp]+';margin-bottom:8px">You need '+wp+' (Rank #'+myPosRanks[wp]+'/'+N+') — these teams have surplus:</div>';
+      mHtml += '<div style="font-size:13px;font-weight:700;color:'+posColors[wp]+';margin-bottom:8px">You need '+wp+' (Rank #'+(myPosRanks[wp]||'?')+'/'+N+')</div>';
 
-      for (var mi = 0; mi < Math.min(matches.length, 4); mi++) {
+      for (var mi = 0; mi < Math.min(matches.length, 3); mi++) {
         var m = matches[mi];
         var teamName = userName(m.team.r.owner_id);
-        var needStr = m.theyNeed.length ? m.theyNeed.join(', ') : 'picks';
+        var needStr = m.theyNeed.length ? m.theyNeed.join(', ') : '—';
 
         mHtml += '<div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:8px">';
-        mHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+        mHtml += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:4px">';
         mHtml += '<div><span style="font-size:14px;font-weight:700;color:var(--t1)">'+esc(teamName)+'</span>';
-        mHtml += ' <span style="font-size:10px;color:'+posColors[wp]+'">'+wp+' Rank #'+m.rank+'</span></div>';
-        if (m.theyNeed.length) {
-          mHtml += '<span style="font-size:10px;color:var(--t3)">They need: <strong style="color:var(--amb)">'+needStr+'</strong></span>';
-        }
+        mHtml += ' <span style="font-size:10px;color:'+posColors[wp]+'">'+wp+' #'+m.rank+'</span></div>';
+        mHtml += '<span style="font-size:10px;padding:2px 8px;border-radius:4px;background:'+(m.partnerTier==='rebuilder'?'var(--red2)':m.partnerTier==='contender'?'var(--grn2)':'var(--amb2)')+';color:'+(m.partnerTier==='rebuilder'?'var(--red)':m.partnerTier==='contender'?'var(--grn)':'var(--amb)')+'">'+m.partnerTier.toUpperCase()+'</span>';
+        mHtml += '</div>';
+        mHtml += '<div style="font-size:10px;color:var(--amb);margin-bottom:6px">'+m.reason;
+        if (m.theyNeed.length) mHtml += ' · They need: <strong>'+needStr+'</strong>';
         mHtml += '</div>';
 
-        // Show their surplus players at this position
-        mHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:4px">Their '+wp+' assets:</div>';
-        for (var si = 0; si < Math.min(m.surplus.length, 4); si++) {
+        mHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:4px">Their '+wp+' you could target:</div>';
+        for (var si = 0; si < Math.min(m.surplus.length, 3); si++) {
           var sp = m.surplus[si];
           mHtml += '<div style="display:flex;align-items:center;gap:6px;padding:3px 0">';
           mHtml += '<span style="font-size:12px;font-weight:500;flex:1">'+esc(sp.p.full_name)+getSignalBadge(sp.id);
@@ -1635,22 +1712,23 @@ function analyzeRebuild() {
 }
 
 function buyTargetRow(bt) {
-  var winNow = bt.age >= 26 && bt.v >= 4000;
-  var tag = bt.isWeakPos ? '<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:var(--red2);color:var(--red);margin-left:4px">NEED</span>' : '';
-  if (winNow) tag += '<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:var(--amb2);color:var(--amb);margin-left:4px">WIN NOW</span>';
+  var tagHtml = '';
+  if (bt.tag) {
+    var tagColor = bt.tag.indexOf('DIP')>=0||bt.tag.indexOf('RISING')>=0 ? 'var(--grn)' : bt.tag.indexOf('SELLER')>=0||bt.tag.indexOf('SELLING')>=0 ? 'var(--red)' : bt.tag.indexOf('STAR')>=0 ? 'var(--amb)' : 'var(--blu)';
+    var tagBg = bt.tag.indexOf('DIP')>=0||bt.tag.indexOf('RISING')>=0 ? 'var(--grn2)' : bt.tag.indexOf('SELLER')>=0||bt.tag.indexOf('SELLING')>=0 ? 'var(--red2)' : bt.tag.indexOf('STAR')>=0 ? 'var(--amb2)' : 'var(--blu2)';
+    tagHtml = '<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:'+tagBg+';color:'+tagColor+';margin-left:4px">'+bt.tag+'</span>';
+  }
+  var partnerBadge = '';
+  if (bt.partnerTier === 'rebuilder') partnerBadge = ' <span style="font-size:8px;color:var(--red)">selling</span>';
+  else if (bt.partnerTier === 'contender') partnerBadge = ' <span style="font-size:8px;color:var(--grn)">contender</span>';
+
   return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--bdr)">'
     + '<span class="pos pos-'+bt.p.position+'">'+bt.p.position+'</span>'
-    + '<div style="flex:1"><div style="font-size:13px;font-weight:600">'+esc(bt.p.full_name)+getSignalBadge(bt.id)+tag+' <span style="font-size:11px;color:var(--t3)">Age '+(bt.age?bt.age.toFixed(0):'?')+'</span></div>'
-    + '<div style="font-size:10px;color:var(--t3)">On: '+getOwnerName(bt.ownerRid)+'</div></div>'
+    + '<div style="flex:1"><div style="font-size:13px;font-weight:600">'+esc(bt.p.full_name)+getSignalBadge(bt.id)+tagHtml+' <span style="font-size:11px;color:var(--t3)">Age '+(bt.age?bt.age.toFixed(0):'?')+'</span></div>'
+    + '<div style="font-size:10px;color:var(--t3)">'+getOwnerName(bt.ownerRid)+partnerBadge+'</div></div>'
     + '<span class="v '+vcn(bt.v)+'">'+bt.v.toLocaleString()+'</span>'
-    + '<button class="btn btn-o btn-s" style="font-size:10px;padding:4px 8px" onclick="findBuyTrades(\''+bt.id+'\','+bt.ownerRid+')">Find Trades</button>'
+    + '<button class="btn btn-o btn-s" style="font-size:10px;padding:4px 8px" onclick="findBuyTrades(\''+bt.id+'\','+bt.ownerRid+')">Trade</button>'
     + '</div>';
-}
-
-function metricCard(label, value, color) {
-  return '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;text-align:center">'
-    + '<div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">'+label+'</div>'
-    + '<div style="font-size:16px;font-weight:800;color:'+color+'">'+value+'</div></div>';
 }
 
 function showMatchTrades(partnerRid, needPos) {
@@ -1660,77 +1738,64 @@ function showMatchTrades(partnerRid, needPos) {
     if (S.rosters[i].roster_id === partnerRid) them = S.rosters[i];
   }
   if (!my || !them) return;
+  var myTier = S.teamTiers ? (S.teamTiers[S.myRid]||'middle') : 'middle';
+  var partnerTier = S.teamTiers ? (S.teamTiers[partnerRid]||'middle') : 'middle';
 
-  // Their assets at the position I need
-  var theirAssets = [];
+  // Their players at the position I need, filtered by affordability
+  var theirTargets = [];
   if (them.players) {
     for (var i = 0; i < them.players.length; i++) {
       var id = them.players[i], p = S.players[id], v = gv(id);
       if (!p || !v || p.position !== needPos) continue;
-      theirAssets.push({id:id, v:v, name:p.full_name, type:'player'});
+      var age = (S.fcMeta[id] && S.fcMeta[id].age) || p.age || 0;
+      var affordable = true;
+      if (myTier === 'rebuilder' && v > 4000) affordable = false;
+      if (affordable) theirTargets.push({id:id, v:v, name:p.full_name, type:'player', age:age});
     }
   }
-  // Also include their picks
-  var theirPks = getPicksForRoster(partnerRid);
-  for (var i = 0; i < theirPks.length; i++) theirAssets.push({id:theirPks[i].key, v:theirPks[i].value, name:theirPks[i].label, type:'pick'});
-  theirAssets.sort(function(a,b){return b.v-a.v;});
+  theirTargets.sort(function(a,b){return b.v-a.v;});
+  theirTargets = theirTargets.slice(0, 5);
 
-  // My assets to offer (everything except the position I need)
+  // My assets to offer — prioritize what the partner wants
   var myAssets = [];
   var myPks = getPicksForRoster(S.myRid);
-  for (var i = 0; i < myPks.length; i++) myAssets.push({id:myPks[i].key, v:myPks[i].value, name:myPks[i].label, type:'pick'});
+  for (var i = 0; i < myPks.length; i++) myAssets.push({id:myPks[i].key, v:myPks[i].value, name:myPks[i].label, type:'pick', sortOrder:1});
   if (my.players) {
     for (var i = 0; i < my.players.length; i++) {
       var id = my.players[i], p = S.players[id], v = gv(id);
       if (!p || !v || !REL_POS.has(p.position)) continue;
-      // Prefer offering players NOT at the position I need
-      myAssets.push({id:id, v:v, name:p.full_name, type:'player', isNeedPos: p.position === needPos});
+      // Don't offer players at the position I need (unless I have surplus)
+      var isNeedPos = p.position === needPos;
+      var order = isNeedPos ? 3 : (partnerTier === 'rebuilder' && p.age >= 27) ? 0 : 2;
+      myAssets.push({id:id, v:v, name:p.full_name, type:'player', sortOrder:order});
     }
   }
-  // Sort: picks and non-need-position players first
-  myAssets.sort(function(a,b){
-    if (a.isNeedPos && !b.isNeedPos) return 1;
-    if (!a.isNeedPos && b.isNeedPos) return -1;
-    return b.v - a.v;
-  });
+  myAssets.sort(function(a,b){ return a.sortOrder - b.sortOrder || b.v - a.v; });
   myAssets = myAssets.slice(0, 30);
 
-  // For each of their top players at this position, find my combos that match
   var allTrades = [];
-  var targetPlayers = theirAssets.filter(function(a){return a.type==='player';}).slice(0, 5);
-
-  for (var ti = 0; ti < targetPlayers.length; ti++) {
-    var target = targetPlayers[ti];
-    var targetVal = target.v;
+  for (var ti = 0; ti < theirTargets.length; ti++) {
+    var target = theirTargets[ti], targetVal = target.v;
     var seen = {};
-
     function search(curr, idx) {
       if (allTrades.length >= 40) return;
       var cv = 0; for (var i = 0; i < curr.length; i++) cv += curr[i].v;
       if (curr.length > 0 && curr.length <= 3 && Math.abs(cv - targetVal) / targetVal <= TOL) {
         var key = curr.map(function(a){return a.id;}).sort().join(',');
         if (!seen[key]) { seen[key] = true;
-          allTrades.push({
-            give: curr.slice(),
-            receive: [{id:target.id, v:target.v, name:target.name, type:'player'}],
-            gv: cv, rv: targetVal,
-            diff: cv - targetVal,
-            pct: ((cv - targetVal) / targetVal * 100).toFixed(1),
-            partner: getOwnerName(partnerRid),
-            targetName: target.name
-          });
+          allTrades.push({give:curr.slice(), receive:[{id:target.id,v:target.v,name:target.name,type:'player'}], gv:cv, rv:targetVal, diff:cv-targetVal, pct:((cv-targetVal)/targetVal*100).toFixed(1), partner:getOwnerName(partnerRid)});
         }
       }
-      if (curr.length >= 3 || cv > targetVal * (1 + TOL + 0.05)) return;
-      for (var i = idx; i < myAssets.length; i++) { curr.push(myAssets[i]); search(curr, i + 1); curr.pop(); }
+      if (curr.length >= 3 || cv > targetVal * (1+TOL+0.05)) return;
+      for (var i = idx; i < myAssets.length; i++) { curr.push(myAssets[i]); search(curr, i+1); curr.pop(); }
     }
     search([], 0);
   }
-  allTrades.sort(function(a,b){return Math.abs(a.diff) - Math.abs(b.diff);});
+  allTrades.sort(function(a,b){return Math.abs(a.diff)-Math.abs(b.diff);});
   allTrades = allTrades.slice(0, 15);
-
-  renderRebuildTrades('Get ' + needPos + ' from ' + getOwnerName(partnerRid), allTrades, false);
+  renderRebuildTrades('Get '+needPos+' from '+getOwnerName(partnerRid), allTrades, false);
 }
+
 
 function findSellTrades(playerId) {
   // For a sell: I give this player, I want picks/young players from any team
