@@ -234,6 +234,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <!-- BUY TARGETS (position-aware) -->
     <div id="rebBuy" style="margin-bottom:16px"></div>
 
+    <!-- TRADE MATCHMAKER -->
+    <div id="rebMatches" style="margin-bottom:16px"></div>
+
     <!-- SUGGESTED TRADES -->
     <div id="rebTrades" style="margin-bottom:16px"></div>
   </div>
@@ -1526,6 +1529,107 @@ function analyzeRebuild() {
   }
   buyHtml += '</div>';
   document.getElementById('rebBuy').innerHTML = buyHtml;
+
+  // 7. TRADE MATCHMAKER — find teams with surplus where you're weak
+  var mHtml = '';
+  if (weakPositions.length > 0) {
+    mHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px">🤝 Trade Partners</div>';
+    mHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:14px">Teams with a surplus at positions where you\'re weak — natural trade fits</div>';
+
+    for (var wi = 0; wi < weakPositions.length; wi++) {
+      var wp = weakPositions[wi];
+      var myPosVal = myData.posVal[wp];
+
+      // Find teams with surplus at this position (top half of league)
+      var matches = [];
+      for (var ri = 0; ri < rankings.length; ri++) {
+        var team = rankings[ri];
+        if (team.isMine) continue;
+        var theirPosVal = team.posVal[wp];
+        var theirRank = 0;
+        // Get their rank at this position
+        for (var pi = 0; pi < posRanks[wp].length; pi++) {
+          if (posRanks[wp][pi].r.roster_id === team.r.roster_id) { theirRank = pi + 1; break; }
+        }
+        if (theirRank > Math.ceil(N * 0.5)) continue; // only top half
+
+        // Find their best tradeable players at this position
+        var surplus = [];
+        if (team.r.players) {
+          for (var j = 0; j < team.r.players.length; j++) {
+            var id = team.r.players[j], p = S.players[id], v = gv(id);
+            if (!p || p.position !== wp || !v || v < 1000) continue;
+            var age = (S.fcMeta[id] && S.fcMeta[id].age) || p.age || 0;
+            surplus.push({id:id, p:p, v:v, age:age});
+          }
+        }
+        if (surplus.length < 2) continue; // need at least 2 so they can afford to trade one
+        surplus.sort(function(a,b){return b.v-a.v;});
+
+        // Find what they might need (their weak positions where we're strong)
+        var theyNeed = [];
+        for (var pi2 = 0; pi2 < posNames.length; pi2++) {
+          var p2 = posNames[pi2];
+          if (p2 === wp) continue;
+          var theirP2Rank = 0;
+          for (var x = 0; x < posRanks[p2].length; x++) {
+            if (posRanks[p2][x].r.roster_id === team.r.roster_id) { theirP2Rank = x + 1; break; }
+          }
+          var myP2Rank = myPosRanks[p2] || N;
+          if (theirP2Rank > Math.ceil(N * 0.5) && myP2Rank <= Math.ceil(N * 0.5)) {
+            theyNeed.push(p2);
+          }
+        }
+
+        matches.push({
+          team: team,
+          rank: theirRank,
+          surplus: surplus,
+          theyNeed: theyNeed,
+          surplusVal: theirPosVal
+        });
+      }
+      matches.sort(function(a,b){return a.rank - b.rank;});
+
+      if (matches.length === 0) continue;
+
+      mHtml += '<div style="margin-bottom:16px;padding-top:10px;border-top:1px solid var(--bdr)">';
+      mHtml += '<div style="font-size:13px;font-weight:700;color:'+posColors[wp]+';margin-bottom:8px">You need '+wp+' (Rank #'+myPosRanks[wp]+'/'+N+') — these teams have surplus:</div>';
+
+      for (var mi = 0; mi < Math.min(matches.length, 4); mi++) {
+        var m = matches[mi];
+        var teamName = userName(m.team.r.owner_id);
+        var needStr = m.theyNeed.length ? m.theyNeed.join(', ') : 'picks';
+
+        mHtml += '<div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:8px">';
+        mHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+        mHtml += '<div><span style="font-size:14px;font-weight:700;color:var(--t1)">'+esc(teamName)+'</span>';
+        mHtml += ' <span style="font-size:10px;color:'+posColors[wp]+'">'+wp+' Rank #'+m.rank+'</span></div>';
+        if (m.theyNeed.length) {
+          mHtml += '<span style="font-size:10px;color:var(--t3)">They need: <strong style="color:var(--amb)">'+needStr+'</strong></span>';
+        }
+        mHtml += '</div>';
+
+        // Show their surplus players at this position
+        mHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:4px">Their '+wp+' assets:</div>';
+        for (var si = 0; si < Math.min(m.surplus.length, 4); si++) {
+          var sp = m.surplus[si];
+          mHtml += '<div style="display:flex;align-items:center;gap:6px;padding:3px 0">';
+          mHtml += '<span style="font-size:12px;font-weight:500;flex:1">'+esc(sp.p.full_name)+getSignalBadge(sp.id);
+          mHtml += ' <span style="font-size:10px;color:var(--t3)">Age '+(sp.age?sp.age.toFixed(0):'?')+'</span></span>';
+          mHtml += '<span class="v '+vcn(sp.v)+'">'+sp.v.toLocaleString()+'</span>';
+          mHtml += '</div>';
+        }
+
+        mHtml += '<button class="btn btn-o btn-s" style="width:100%;margin-top:8px;border-color:'+posColors[wp]+';color:'+posColors[wp]+'" onclick="showMatchTrades('+m.team.r.roster_id+',\''+wp+'\')">Find '+wp+' Trades with '+esc(teamName)+' →</button>';
+        mHtml += '</div>';
+      }
+      mHtml += '</div>';
+    }
+    mHtml += '</div>';
+  }
+  document.getElementById('rebMatches').innerHTML = mHtml;
+
   document.getElementById('rebTrades').innerHTML = '';
   document.getElementById('rebSub').textContent = userName(my.owner_id) + ' — roster analysis';
 }
@@ -1547,6 +1651,85 @@ function metricCard(label, value, color) {
   return '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;text-align:center">'
     + '<div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">'+label+'</div>'
     + '<div style="font-size:16px;font-weight:800;color:'+color+'">'+value+'</div></div>';
+}
+
+function showMatchTrades(partnerRid, needPos) {
+  var my = null, them = null;
+  for (var i = 0; i < S.rosters.length; i++) {
+    if (S.rosters[i].roster_id === S.myRid) my = S.rosters[i];
+    if (S.rosters[i].roster_id === partnerRid) them = S.rosters[i];
+  }
+  if (!my || !them) return;
+
+  // Their assets at the position I need
+  var theirAssets = [];
+  if (them.players) {
+    for (var i = 0; i < them.players.length; i++) {
+      var id = them.players[i], p = S.players[id], v = gv(id);
+      if (!p || !v || p.position !== needPos) continue;
+      theirAssets.push({id:id, v:v, name:p.full_name, type:'player'});
+    }
+  }
+  // Also include their picks
+  var theirPks = getPicksForRoster(partnerRid);
+  for (var i = 0; i < theirPks.length; i++) theirAssets.push({id:theirPks[i].key, v:theirPks[i].value, name:theirPks[i].label, type:'pick'});
+  theirAssets.sort(function(a,b){return b.v-a.v;});
+
+  // My assets to offer (everything except the position I need)
+  var myAssets = [];
+  var myPks = getPicksForRoster(S.myRid);
+  for (var i = 0; i < myPks.length; i++) myAssets.push({id:myPks[i].key, v:myPks[i].value, name:myPks[i].label, type:'pick'});
+  if (my.players) {
+    for (var i = 0; i < my.players.length; i++) {
+      var id = my.players[i], p = S.players[id], v = gv(id);
+      if (!p || !v || !REL_POS.has(p.position)) continue;
+      // Prefer offering players NOT at the position I need
+      myAssets.push({id:id, v:v, name:p.full_name, type:'player', isNeedPos: p.position === needPos});
+    }
+  }
+  // Sort: picks and non-need-position players first
+  myAssets.sort(function(a,b){
+    if (a.isNeedPos && !b.isNeedPos) return 1;
+    if (!a.isNeedPos && b.isNeedPos) return -1;
+    return b.v - a.v;
+  });
+  myAssets = myAssets.slice(0, 30);
+
+  // For each of their top players at this position, find my combos that match
+  var allTrades = [];
+  var targetPlayers = theirAssets.filter(function(a){return a.type==='player';}).slice(0, 5);
+
+  for (var ti = 0; ti < targetPlayers.length; ti++) {
+    var target = targetPlayers[ti];
+    var targetVal = target.v;
+    var seen = {};
+
+    function search(curr, idx) {
+      if (allTrades.length >= 40) return;
+      var cv = 0; for (var i = 0; i < curr.length; i++) cv += curr[i].v;
+      if (curr.length > 0 && curr.length <= 3 && Math.abs(cv - targetVal) / targetVal <= TOL) {
+        var key = curr.map(function(a){return a.id;}).sort().join(',');
+        if (!seen[key]) { seen[key] = true;
+          allTrades.push({
+            give: curr.slice(),
+            receive: [{id:target.id, v:target.v, name:target.name, type:'player'}],
+            gv: cv, rv: targetVal,
+            diff: cv - targetVal,
+            pct: ((cv - targetVal) / targetVal * 100).toFixed(1),
+            partner: getOwnerName(partnerRid),
+            targetName: target.name
+          });
+        }
+      }
+      if (curr.length >= 3 || cv > targetVal * (1 + TOL + 0.05)) return;
+      for (var i = idx; i < myAssets.length; i++) { curr.push(myAssets[i]); search(curr, i + 1); curr.pop(); }
+    }
+    search([], 0);
+  }
+  allTrades.sort(function(a,b){return Math.abs(a.diff) - Math.abs(b.diff);});
+  allTrades = allTrades.slice(0, 15);
+
+  renderRebuildTrades('Get ' + needPos + ' from ' + getOwnerName(partnerRid), allTrades, false);
 }
 
 function findSellTrades(playerId) {
