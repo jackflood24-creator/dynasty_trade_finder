@@ -32,7 +32,6 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .hdr{padding:16px 0;border-bottom:1px solid var(--bdr);margin-bottom:24px;display:flex;align-items:center;gap:14px}
 .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--grn),#00c853);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;font-size:20px;color:#000;box-shadow:0 0 20px rgba(0,230,118,.2)}
 .hdr-r{margin-left:auto;display:flex;gap:8px;align-items:center}
-.dots{display:flex;gap:6px}.dot{width:8px;height:8px;border-radius:50%;background:var(--t3);transition:.2s}.dot.on{background:var(--grn);box-shadow:0 0 8px rgba(0,230,118,.4)}.dot.done{background:var(--grn);opacity:.4}
 .btn{padding:9px 18px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
 .btn-g{background:linear-gradient(135deg,var(--grn),#00c853);color:#000}.btn-g:disabled{opacity:.4;cursor:default}
 .btn-o{background:rgba(255,255,255,.04);color:var(--t2);border:1px solid var(--bdr)}.btn-o:hover{border-color:var(--bdr2)}
@@ -59,6 +58,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .fl div{padding:2px 0}.fl .ok{color:var(--grn)}.fl .er{color:var(--red)}.fl .in{color:var(--blu)}
 .stog{display:flex;gap:4px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:8px;padding:3px}
 .sbtn{padding:4px 12px;border-radius:6px;border:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;color:var(--t3);background:0 0}.sbtn.on{background:var(--grn2);color:var(--grn)}
+.navtab{flex:1;padding:8px 4px;border-radius:8px;border:2px solid transparent;background:var(--bg2);color:var(--t3);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:border-color .15s,color .15s;white-space:nowrap}
+.navtab:hover{color:var(--t2);border-color:var(--bdr2)}
+.navtab.on{color:var(--grn);border-color:var(--grn3);background:var(--grn2)}
 .hidden{display:none!important}
 </style>
 </head>
@@ -72,13 +74,15 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     </div>
   </div>
 
-  <!-- PERSISTENT NAV BAR — uses display:none directly, NOT the .hidden class -->
-  <div id="navBar" style="display:none;gap:6px;flex-wrap:wrap;padding:10px 0;margin-bottom:16px;border-bottom:1px solid var(--bdr)">
-    <button class="btn btn-o btn-s" id="nav-ros" onclick="go('ros')" style="display:flex;align-items:center;gap:4px">🤝 <span>Rosters</span></button>
-    <button class="btn btn-o btn-s" id="nav-mom" onclick="openMomentum()" style="display:flex;align-items:center;gap:4px">📈 <span>Momentum</span></button>
-    <button class="btn btn-o btn-s" id="nav-reb" onclick="openRebuildAnalyzer()" style="display:flex;align-items:center;gap:4px">🔄 <span>Rebuild</span></button>
-    <button class="btn btn-o btn-s" id="nav-pck" onclick="openPickEditor();go('ros')" style="display:flex;align-items:center;gap:4px">📝 <span>Edit Picks</span></button>
-    <button class="btn btn-o btn-s" id="nav-lea" onclick="go('lea')" style="display:flex;align-items:center;gap:4px">← <span>Leagues</span></button>
+  <!-- PERSISTENT NAV — fixed size, never changes -->
+  <div id="navBar" style="display:none">
+    <div style="display:flex;gap:2px;padding:8px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:20px">
+      <button class="navtab" id="nav-ros" onclick="go('ros')">🤝 Rosters</button>
+      <button class="navtab" id="nav-trd" onclick="go('trd')">💱 Trades</button>
+      <button class="navtab" id="nav-mom" onclick="openMomentum()">📈 Momentum</button>
+      <button class="navtab" id="nav-reb" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
+      <button class="navtab" id="nav-pck" onclick="go('pck')">📝 Picks</button>
+    </div>
   </div>
 
   <div id="s-con" class="sec">
@@ -127,67 +131,21 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <div class="fl" id="fLog"></div>
     </div>
 
-    <!-- TOOLS DASHBOARD -->
-    <div id="toolsDash" class="hidden" style="margin-bottom:20px">
-      <div style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--t1)">🧰 Tools</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
-        <div class="card" style="cursor:pointer;padding:16px;border-color:var(--grn3);transition:.2s" onclick="openMomentum()" onmouseover="this.style.background='rgba(0,230,118,0.06)'" onmouseout="this.style.background=''">
-          <div style="font-size:22px;margin-bottom:6px">📈</div>
-          <div style="font-size:14px;font-weight:700;color:var(--grn);margin-bottom:4px">Momentum</div>
-          <div style="font-size:11px;color:var(--t3);line-height:1.5">See 30-day value trends. Find who's rising, falling, and where to buy low or sell high across your league.</div>
-        </div>
-        <div class="card" style="cursor:pointer;padding:16px;border-color:rgba(255,152,0,0.3);transition:.2s" onclick="openRebuildAnalyzer()" onmouseover="this.style.background='rgba(255,152,0,0.06)'" onmouseout="this.style.background=''">
-          <div style="font-size:22px;margin-bottom:6px">🔄</div>
-          <div style="font-size:14px;font-weight:700;color:#ff9800;margin-bottom:4px">Rebuild Analyzer</div>
-          <div style="font-size:11px;color:var(--t3);line-height:1.5">Should you compete or rebuild? Get strategy advice, sell candidates, buy targets, and trade suggestions.</div>
-        </div>
-        <div class="card" style="cursor:pointer;padding:16px;border-color:var(--pur2);transition:.2s" onclick="openPickEditor()" onmouseover="this.style.background='rgba(179,136,255,0.06)'" onmouseout="this.style.background=''">
-          <div style="font-size:22px;margin-bottom:6px">📝</div>
-          <div style="font-size:14px;font-weight:700;color:var(--pur);margin-bottom:4px">Edit Picks</div>
-          <div style="font-size:11px;color:var(--t3);line-height:1.5">Correct future draft pick ownership. 2026 picks have per-slot values, 2027+ are Early/Mid/Late tiers.</div>
-        </div>
-        <div class="card" style="cursor:pointer;padding:16px;border-color:var(--blu3);transition:.2s" onclick="scrollToRosters()" onmouseover="this.style.background='rgba(68,138,255,0.06)'" onmouseout="this.style.background=''">
-          <div style="font-size:22px;margin-bottom:6px">🤝</div>
-          <div style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:4px">Find Trades</div>
-          <div style="font-size:11px;color:var(--t3);line-height:1.5">Select a trade partner below, pick players/picks you want, and get balanced trade proposals.</div>
-        </div>
-      </div>
-    </div>
-
     <!-- BUY LOW TICKER -->
     <div id="buyLowBar" class="hidden" style="margin-bottom:16px;padding:12px 16px;border-radius:10px;background:rgba(0,230,118,0.04);border:1px solid var(--grn3)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-size:13px;font-weight:700;color:var(--grn)">💰 Buy Low Targets</div>
-        <span style="font-size:10px;color:var(--t3)">Young players dropping in value — potential steals</span>
+        <span style="font-size:10px;color:var(--t3)">Young players dropping in value — click to trade</span>
       </div>
       <div id="buyLowList" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px"></div>
-    </div>
-        <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)" id="fPct">0%</span>
-      </div>
-      <div class="pb"><div class="pf" id="fBar" style="width:0%"></div></div>
-      <div class="fl" id="fLog"></div>
     </div>
 
     <!-- PICK DISCLAIMER -->
     <div id="pickDisclaimer" class="hidden" style="background:rgba(179,136,255,0.08);border:1px solid rgba(179,136,255,0.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--t2);line-height:1.6">
       <strong style="color:var(--pur)">📋 About Draft Pick Values:</strong>
-      <strong>2025 picks</strong> use confirmed slot assignments from your Sleeper draft.
-      <strong>2026 picks</strong> use FantasyCalc's per-slot values (1.01, 1.02, etc.) — slot order is projected from roster strength but can be corrected using <span style="color:var(--pur);cursor:pointer;text-decoration:underline" onclick="openPickEditor()">📝 Edit Picks</span>.
-      <strong>2027+ picks</strong> are estimated as <strong>Early / Mid / Late</strong> tiers based on roster strength since exact positions are unknown.
-    </div>
-
-    <!-- PICK EDITOR (above rosters so it's visible immediately) -->
-    <div id="pickEditor" class="hidden" style="margin-bottom:20px">
-      <div class="card" style="border-color:var(--pur2)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div>
-            <div style="font-size:15px;font-weight:800;color:var(--pur)">📝 Edit Pick Positions</div>
-            <div style="font-size:11px;color:var(--t3)">Assign which team's pick is in each slot. A team can appear in multiple slots if they've acquired extra picks.</div>
-          </div>
-          <button class="btn btn-o btn-s" onclick="document.getElementById('pickEditor').classList.add('hidden')">Close</button>
-        </div>
-        <div id="pickEditorContent" style="max-height:500px;overflow-y:auto"></div>
-      </div>
+      <strong>2025 picks</strong> use confirmed Sleeper draft slots.
+      <strong>2026 picks</strong> use FantasyCalc per-slot values — editable in 📝 Picks tab.
+      <strong>2027+ picks</strong> are Early / Mid / Late estimates.
     </div>
 
     <div id="rosGrid" class="rg"></div>
@@ -231,6 +189,21 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div id="momFallers" style="margin-bottom:20px"></div>
     <!-- BUY LOW / SELL HIGH SIGNALS -->
     <div id="momSignals" style="margin-bottom:20px"></div>
+  </div>
+
+  <!-- PICK EDITOR PAGE -->
+  <div id="s-pck" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📝 Edit Draft Picks</div>
+      <div style="font-size:13px;color:var(--t2)">Assign who owns each pick. Changes update trade values instantly.</div>
+    </div>
+    <div style="background:rgba(179,136,255,0.08);border:1px solid rgba(179,136,255,0.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--t2);line-height:1.6">
+      <strong style="color:var(--pur)">📋 How it works:</strong>
+      <strong>2025</strong> = confirmed Sleeper draft.
+      <strong>2026</strong> = FantasyCalc per-slot values (editable).
+      <strong>2027+</strong> = Early / Mid / Late estimates.
+    </div>
+    <div id="pickEditorPage" style="max-height:600px;overflow-y:auto"></div>
   </div>
 
   <!-- REBUILD ANALYZER -->
@@ -625,12 +598,23 @@ function getPicksForRoster(rid) {
 // PICK EDITOR — per-year slot assignment tables
 // ==========================================
 function openPickEditor() {
-  document.getElementById('pickEditor').classList.remove('hidden');
-  renderPickEditor();
-  document.getElementById('pickEditor').scrollIntoView({behavior:'smooth', block:'start'});
+  if (!S.valsLoaded) { alert('Load a league first.'); return; }
+  go('pck');
+}
+
+function renderPickEditorPage() {
+  var el = document.getElementById('pickEditorPage');
+  if (!el) return;
+  renderPickEditorInto(el);
 }
 
 function renderPickEditor() {
+  // Legacy: renders into inline editor on roster page (if still open)
+  var el = document.getElementById('pickEditorContent');
+  if (el) renderPickEditorInto(el);
+}
+
+function renderPickEditorInto(container) {
   var N = S.league ? S.league.total_rosters : S.rosters.length;
   var html = '';
   var allKeys = Object.keys(S.picks);
@@ -725,7 +709,7 @@ function renderPickEditor() {
     html += '</div>';
   }
 
-  document.getElementById('pickEditorContent').innerHTML = html;
+  container.innerHTML = html;
 }
 
 function updatePickOwner(pickKey, newOwnerRid) {
@@ -742,6 +726,7 @@ function updatePickOwner(pickKey, newOwnerRid) {
   }
 
   renderPickEditor();
+  renderPickEditorPage();
   renderRosters();
 }
 
@@ -827,11 +812,6 @@ function renderLeagues() {
   document.getElementById('leaList').innerHTML=html;
 }
 
-function scrollToRosters() {
-  var grid = document.getElementById('rosGrid');
-  if (grid) grid.scrollIntoView({behavior:'smooth', block:'start'});
-}
-
 function renderBuyLowBar() {
   var bar = document.getElementById('buyLowBar');
   var list = document.getElementById('buyLowList');
@@ -906,10 +886,6 @@ function renderRosters() {
     :'Loading values...';
   var disc = document.getElementById('pickDisclaimer');
   if (disc) disc.classList.toggle('hidden', !S.valsLoaded);
-
-  // Show tools dashboard
-  var dash = document.getElementById('toolsDash');
-  if (dash) dash.classList.toggle('hidden', !S.valsLoaded);
 
   // Populate buy-low bar
   renderBuyLowBar();
@@ -1563,54 +1539,37 @@ function genTrades(){if(!S.valsLoaded)return;var my=null;for(var i=0;i<S.rosters
 function setS(v,el){S.season=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 function setQB(v,el){S.numQbs=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 
-var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',trd:'s-trd',mom:'s-mom',reb:'s-reb'};
-var STEP_IDX={con:0,lea:1,ros:2,trd:3,mom:4,reb:5};
+var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',trd:'s-trd',mom:'s-mom',pck:'s-pck',reb:'s-reb'};
+var STEP_IDX={con:0,lea:1,ros:2,trd:3,mom:4,pck:5,reb:6};
 function go(k){
-  try {
-    // Hide all step pages
+  try{
+    // Hide all pages
     var ks=Object.keys(STEPS);
     for(var i=0;i<ks.length;i++){
       var el=document.getElementById(STEPS[ks[i]]);
       if(el) el.classList.toggle('hidden',ks[i]!==k);
     }
-
-    // Show/hide nav bar using style.display (NOT .hidden class — avoids !important conflict)
+    // Show/hide nav bar (inline style, not .hidden class)
     var nav=document.getElementById('navBar');
-    if(nav) nav.style.display = (k!=='con' && k!=='lea') ? 'flex' : 'none';
-
-    // Highlight active nav button
-    var navMap = {ros:'nav-ros',mom:'nav-mom',reb:'nav-reb',trd:'nav-ros'};
-    var allNavBtns = ['nav-ros','nav-mom','nav-reb','nav-pck','nav-lea'];
-    for(var i=0;i<allNavBtns.length;i++){
-      var btn=document.getElementById(allNavBtns[i]);
-      if(btn){
-        var isActive = allNavBtns[i]===(navMap[k]||'');
-        btn.style.borderColor = isActive ? 'var(--grn3)' : '';
-        btn.style.color = isActive ? 'var(--grn)' : '';
-        btn.style.background = isActive ? 'var(--grn2)' : '';
-      }
+    if(nav) nav.style.display=(k!=='con'&&k!=='lea')?'block':'none';
+    // Highlight active tab
+    var tabs=['nav-ros','nav-trd','nav-mom','nav-reb','nav-pck'];
+    var tabMap={ros:'nav-ros',trd:'nav-trd',mom:'nav-mom',reb:'nav-reb',pck:'nav-pck'};
+    for(var i=0;i<tabs.length;i++){
+      var btn=document.getElementById(tabs[i]);
+      if(btn) btn.className='navtab'+(tabs[i]===(tabMap[k]||'')?' on':'');
     }
-
-    // Show/hide reset
+    // Show reset button
     var rst=document.getElementById('brst');
     if(rst) rst.classList.toggle('hidden',k==='con');
-
-    // Clean up when leaving rosters
-    if(k!=='ros'){
-      var pe=document.getElementById('pickEditor');if(pe)pe.classList.add('hidden');
-    }
-
     // Re-render rosters when returning
-    if(k==='ros' && S.valsLoaded){
-      try{renderRosters();}catch(e){console.error('renderRosters error:',e);}
-    }
-
+    if(k==='ros'&&S.valsLoaded){try{renderRosters();}catch(e){console.error(e);}}
+    // Render picks page
+    if(k==='pck'&&S.valsLoaded){try{renderPickEditorPage();}catch(e){console.error(e);}}
     window.scrollTo(0,0);
-  } catch(e) {
-    console.error('go() error:', e);
-    // Emergency: make sure nav stays visible
-    var nav2=document.getElementById('navBar');
-    if(nav2) nav2.style.display='flex';
+  }catch(e){
+    console.error('go() error:',e);
+    var nav2=document.getElementById('navBar');if(nav2)nav2.style.display='block';
   }
 }
 function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
