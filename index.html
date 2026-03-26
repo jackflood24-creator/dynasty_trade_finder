@@ -394,18 +394,22 @@ async function doSelectLeague(leagueId) {
     addLog(log, '✓ ' + S.rosters.length + ' rosters, ' + S.tradedPicks.length + ' traded picks, your roster_id=' + S.myRid, 'ok');
     document.getElementById('fBar').style.width = '25%';
 
-    // Load drafts
+    // Load drafts — always fetch full detail to get slot_to_roster_id
     S.drafts = [];
     try {
       var drafts = await fetchJSON('https://api.sleeper.app/v1/league/' + leagueId + '/drafts');
       for (var i = 0; i < drafts.length; i++) {
         var dr = drafts[i];
-        if (!dr.slot_to_roster_id || Object.keys(dr.slot_to_roster_id).length === 0) {
-          try { var full = await fetchJSON('https://api.sleeper.app/v1/draft/' + dr.draft_id); dr.slot_to_roster_id = full.slot_to_roster_id; } catch(e2){}
-        }
+        // Always fetch full draft detail — list endpoint often has empty slot data
+        try {
+          var full = await fetchJSON('https://api.sleeper.app/v1/draft/' + dr.draft_id);
+          if (full.slot_to_roster_id) dr.slot_to_roster_id = full.slot_to_roster_id;
+          if (full.draft_order) dr.draft_order = full.draft_order;
+        } catch(e2){}
         S.drafts.push(dr);
         var slots = dr.slot_to_roster_id ? Object.keys(dr.slot_to_roster_id).length : 0;
-        addLog(log, '  Draft ' + dr.season + ' (' + dr.status + '): ' + slots + ' slots', slots > 0 ? 'ok' : 'in');
+        var hasOrder = dr.draft_order ? Object.keys(dr.draft_order).length : 0;
+        addLog(log, '  Draft ' + dr.season + ' (' + dr.status + '): ' + slots + ' slot assignments' + (hasOrder ? ', ' + hasOrder + ' draft_order entries' : ''), slots > 0 ? 'ok' : 'in');
       }
     } catch(e) {}
     document.getElementById('fBar').style.width = '50%';
@@ -475,13 +479,35 @@ function buildPickAssets(log) {
 
   // 3. Get slot maps from Sleeper drafts
   var slotMapByYear = {};
+  var draftStatusByYear = {};
   for (var i = 0; i < S.drafts.length; i++) {
     var dr = S.drafts[i], yr = parseInt(dr.season);
+    draftStatusByYear[yr] = dr.status;
+
+    // Try slot_to_roster_id first
     if (dr.slot_to_roster_id && Object.keys(dr.slot_to_roster_id).length > 0) {
       var m = {};
       var ent = Object.entries(dr.slot_to_roster_id);
       for (var j = 0; j < ent.length; j++) m[parseInt(ent[j][0])] = parseInt(ent[j][1]);
       slotMapByYear[yr] = m;
+      if (log) addLog(log, '📋 ' + yr + ': using slot_to_roster_id (' + ent.length + ' slots)', 'ok');
+    }
+    // Fallback: draft_order maps user_id → draft_slot
+    else if (dr.draft_order && Object.keys(dr.draft_order).length > 0) {
+      var m = {};
+      var dOrder = Object.entries(dr.draft_order);
+      // Convert user_id → slot to slot → roster_id
+      for (var j = 0; j < dOrder.length; j++) {
+        var userId = dOrder[j][0], slot = parseInt(dOrder[j][1]);
+        // Find roster_id for this user_id
+        for (var ri = 0; ri < S.rosters.length; ri++) {
+          if (S.rosters[ri].owner_id === userId) { m[slot] = S.rosters[ri].roster_id; break; }
+        }
+      }
+      if (Object.keys(m).length > 0) {
+        slotMapByYear[yr] = m;
+        if (log) addLog(log, '📋 ' + yr + ': using draft_order (' + Object.keys(m).length + ' slots)', 'ok');
+      }
     }
   }
 
@@ -505,15 +531,19 @@ function buildPickAssets(log) {
   var slotYearList = Object.keys(slotYears).map(Number).sort();
   for (var yi = 0; yi < slotYearList.length; yi++) {
     var year = slotYearList[yi];
-    // Use: Sleeper draft > manual overrides > projected
-    var slotMap = slotMapByYear[year] || S.slotOverrides[year] || projectedMap;
-    var src = slotMapByYear[year] ? 'confirmed' : S.slotOverrides[year] ? 'manual' : 'projected';
+    // Use: Sleeper draft ALWAYS wins > manual overrides > projected
+    var hasSleeperData = !!slotMapByYear[year];
+    var slotMap = hasSleeperData ? slotMapByYear[year] : (S.slotOverrides[year] || projectedMap);
+    var src = hasSleeperData ? 'sleeper' : S.slotOverrides[year] ? 'manual' : 'projected';
 
-    // Store the active slot map for the editor
-    if (!S.slotOverrides[year] && !slotMapByYear[year]) S.slotOverrides[year] = JSON.parse(JSON.stringify(projectedMap));
-    if (!S.slotOverrides[year] && slotMapByYear[year]) S.slotOverrides[year] = JSON.parse(JSON.stringify(slotMapByYear[year]));
+    // Always sync overrides with Sleeper data when available
+    if (hasSleeperData) {
+      S.slotOverrides[year] = JSON.parse(JSON.stringify(slotMapByYear[year]));
+    } else if (!S.slotOverrides[year]) {
+      S.slotOverrides[year] = JSON.parse(JSON.stringify(projectedMap));
+    }
 
-    if (log) addLog(log, '📋 '+year+': per-slot values ('+src+')', src==='confirmed'?'ok':'in');
+    if (log) addLog(log, '📋 '+year+': per-slot values ('+src + (hasSleeperData ? ' — from Sleeper draft' : '') + ')', src==='sleeper'?'ok':'in');
 
     for (var round = 1; round <= 5; round++) {
       var hasData = false;
@@ -678,17 +708,28 @@ function renderPickEditorInto(container) {
     var roundNums = Object.keys(rounds).sort(function(a,b){return a-b;});
     var pType = rounds[roundNums[0]][0].pickType;
 
-    // Check if confirmed from Sleeper
+    // Check if confirmed from Sleeper (has real slot data from Sleeper draft object)
     var isConfirmed = false;
+    var draftStatus = '';
     for (var i = 0; i < S.drafts.length; i++) {
-      if (parseInt(S.drafts[i].season)===year && S.drafts[i].status==='complete') { isConfirmed = true; break; }
+      if (parseInt(S.drafts[i].season)===year) {
+        draftStatus = S.drafts[i].status || '';
+        if (S.drafts[i].slot_to_roster_id && Object.keys(S.drafts[i].slot_to_roster_id).length > 0) { isConfirmed = true; break; }
+        if (S.drafts[i].draft_order && Object.keys(S.drafts[i].draft_order).length > 0) { isConfirmed = true; break; }
+      }
     }
 
     html += '<div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--bdr)">';
     html += '<div style="font-weight:700;font-size:14px;margin-bottom:4px;color:var(--t1)">' + year + ' ';
-    if (isConfirmed) html += '<span style="color:var(--grn);font-size:10px;font-weight:600;background:var(--grn2);padding:2px 6px;border-radius:4px">DRAFTED</span>';
-    else if (pType === 'slot') html += '<span style="color:var(--amb);font-size:10px;font-weight:600;background:var(--amb2);padding:2px 6px;border-radius:4px">EDITABLE</span>';
-    else html += '<span style="color:var(--pur);font-size:10px;font-weight:600;background:var(--pur2);padding:2px 6px;border-radius:4px">EARLY / MID / LATE</span>';
+    if (isConfirmed && draftStatus === 'complete') {
+      html += '<span style="color:var(--grn);font-size:10px;font-weight:600;background:var(--grn2);padding:2px 6px;border-radius:4px">DRAFTED</span>';
+    } else if (isConfirmed) {
+      html += '<span style="color:var(--grn);font-size:10px;font-weight:600;background:var(--grn2);padding:2px 6px;border-radius:4px">FROM SLEEPER</span>';
+    } else if (pType === 'slot') {
+      html += '<span style="color:var(--amb);font-size:10px;font-weight:600;background:var(--amb2);padding:2px 6px;border-radius:4px">EDITABLE</span>';
+    } else {
+      html += '<span style="color:var(--pur);font-size:10px;font-weight:600;background:var(--pur2);padding:2px 6px;border-radius:4px">EARLY / MID / LATE</span>';
+    }
     html += '</div>';
     if (!isConfirmed) html += '<div style="font-size:10px;color:var(--t3);margin-bottom:10px">Use dropdowns to assign who owns each pick.</div>';
 
