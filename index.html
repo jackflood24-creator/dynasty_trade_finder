@@ -78,7 +78,6 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   <div id="navBar" style="display:none">
     <div style="display:flex;gap:2px;padding:8px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:20px">
       <button class="navtab" id="nav-ros" onclick="go('ros')">🤝 Rosters</button>
-      <button class="navtab" id="nav-trd" onclick="go('trd')">💱 Trades</button>
       <button class="navtab" id="nav-mom" onclick="openMomentum()">📈 Momentum</button>
       <button class="navtab" id="nav-reb" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
       <button class="navtab" id="nav-pck" onclick="go('pck')">📝 Picks</button>
@@ -148,6 +147,12 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <strong>2027+ picks</strong> are Early / Mid / Late estimates.
     </div>
 
+    <!-- PLAYER SEARCH -->
+    <div id="searchBox" class="hidden" style="margin-bottom:16px">
+      <input class="inp" type="text" id="playerSearch" placeholder="🔍 Search players across all rosters..." oninput="filterSearch(this.value)" style="max-width:400px">
+      <div id="searchResults" style="margin-top:8px"></div>
+    </div>
+
     <div id="rosGrid" class="rg"></div>
 
     <div id="tgtP" class="hidden">
@@ -163,14 +168,15 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
         <button class="btn btn-g" style="width:100%;margin-top:14px" id="bTrade" onclick="genTrades()" disabled>Find Balanced Trades →</button>
       </div>
     </div>
-  </div>
 
-  <div id="s-trd" class="sec hidden">
-    <div style="margin-bottom:20px">
-      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">🤝 Trade Proposals</div>
-      <div style="font-size:13px;color:var(--t2)" id="trdSub"></div>
+    <!-- TRADE RESULTS (inline) -->
+    <div id="trdResults" class="hidden" style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div><div style="font-size:17px;font-weight:800">💱 Trade Proposals</div><div style="font-size:12px;color:var(--t2)" id="trdSub"></div></div>
+        <button class="btn btn-o btn-s" onclick="document.getElementById('trdResults').classList.add('hidden')">✕ Close</button>
+      </div>
+      <div id="trdList"></div>
     </div>
-    <div id="trdList"></div>
   </div>
 
   <!-- MOMENTUM TRACKER -->
@@ -858,18 +864,18 @@ function renderBuyLowBar() {
   list.innerHTML = html;
 }
 
+// Single source of truth for player signals — used by momentum, rebuild, badges
+function getPlayerSignal(id) {
+  var p = S.players[id], v = gv(id), meta = S.fcMeta[id];
+  if (!p || !v || !meta) return 'NEUTRAL';
+  var trend = meta.trend || 0;
+  var trendPct = v > 0 ? (trend / v * 100) : 0;
+  var age = meta.age || p.age || 0;
+  return computeSignal(v, trend, trendPct, age, p.position, id);
+}
+
 function getSignalBadge(sleeperId) {
-  // Returns HTML for a small signal badge, or empty string
-  var sig = '';
-  if (S.predictions && S.predictions.players && S.predictions.players[sleeperId]) {
-    sig = S.predictions.players[sleeperId].signal;
-  } else if (S.fcMeta[sleeperId]) {
-    var meta = S.fcMeta[sleeperId];
-    var v = gv(sleeperId) || 0;
-    var trend = meta.trend || 0;
-    var trendPct = v > 0 ? (trend / v * 100) : 0;
-    sig = computeSignal(v, trend, trendPct, meta.age || 0, meta.pos || '', sleeperId);
-  }
+  var sig = getPlayerSignal(sleeperId);
   if (!sig || sig === 'HOLD' || sig === 'NEUTRAL') return '';
   var colors = {
     'BUY': {c:'var(--grn)',b:'var(--grn2)'},
@@ -881,14 +887,54 @@ function getSignalBadge(sleeperId) {
   return '<span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:'+col.b+';color:'+col.c+';margin-left:4px">'+sig+'</span>';
 }
 
+function filterSearch(query) {
+  var el = document.getElementById('searchResults');
+  if (!el) return;
+  if (!query || query.length < 2) { el.innerHTML = ''; return; }
+  var q = query.toLowerCase();
+  var results = [];
+  for (var i = 0; i < S.rosters.length; i++) {
+    var r = S.rosters[i];
+    if (!r.players) continue;
+    for (var j = 0; j < r.players.length; j++) {
+      var id = r.players[j], p = S.players[id], v = gv(id);
+      if (!p || !p.full_name) continue;
+      if (p.full_name.toLowerCase().indexOf(q) < 0) continue;
+      var isMine = r.roster_id === S.myRid;
+      results.push({id:id, p:p, v:v||0, rid:r.roster_id, isMine:isMine});
+    }
+  }
+  results.sort(function(a,b){return b.v-a.v;});
+  if (!results.length) { el.innerHTML = '<div style="font-size:12px;color:var(--t3);padding:8px 0">No players found.</div>'; return; }
+  var html = '';
+  for (var i = 0; i < Math.min(results.length, 15); i++) {
+    var r = results[i], vd = r.v ? vc(r.v) : {t:'—',c:'vN'};
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;margin-bottom:2px;border:1px solid var(--bdr);cursor:pointer'+(r.isMine?';background:rgba(0,230,118,0.04)':'')+'" onclick="clickR('+r.rid+')">';
+    html += '<span class="pos pos-'+r.p.position+'">'+r.p.position+'</span>';
+    html += '<div style="flex:1"><span style="font-size:12px;font-weight:600">'+esc(r.p.full_name)+getSignalBadge(r.id)+'</span>';
+    html += '<span style="font-size:10px;color:var(--t3);margin-left:8px">'+getOwnerName(r.rid)+(r.isMine?' (YOU)':'')+'</span></div>';
+    html += '<span class="v '+vd.c+'">'+vd.t+'</span>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
 function renderRosters() {
   document.getElementById('rosT').textContent=S.league?S.league.name:'';
   var vc2=Object.keys(S.vals).length;
   document.getElementById('rosSub').textContent=S.valsLoaded
-    ?vc2+' player values loaded. '+(S.myRid?'Pick a tool above or select a trade partner below.':'Click your team to identify yourself.')
+    ?vc2+' player values loaded. '+(S.myRid?'Click a team to start a trade.':'Click your team to identify yourself.')
     :'Loading values...';
   var disc = document.getElementById('pickDisclaimer');
   if (disc) disc.classList.toggle('hidden', !S.valsLoaded);
+
+  // Show search box
+  var sb = document.getElementById('searchBox');
+  if (sb) sb.classList.toggle('hidden', !S.valsLoaded);
+
+  // Hide trade results on re-render
+  var tr = document.getElementById('trdResults');
+  if (tr) tr.classList.add('hidden');
 
   // Populate buy-low bar
   renderBuyLowBar();
@@ -1366,22 +1412,30 @@ function analyzeRebuild() {
   sh += '<div style="font-size:12px;color:var(--t2);line-height:1.6">'+stratDesc+'</div></div>';
   document.getElementById('rebStrategy').innerHTML = sh;
 
-  // 5. SELL CANDIDATES — based on position strength + age
+  // 5. SELL CANDIDATES — respects momentum signals, won't suggest selling HOLD+ players
   var sellHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px;color:var(--red)">📤 Sell Candidates</div>';
-  sellHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Trade away for future value — aging or at strong positions you can afford to thin</div>';
+  sellHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Trade away for future value — only players whose signal supports selling</div>';
   var sellList = [];
   for (var i = 0; i < myData.players.length; i++) {
     var pd = myData.players[i], pos = pd.p.position;
     var posRank = myPosRanks[pos] || N;
+    var sig = getPlayerSignal(pd.id);
     var isOldForPos = pd.age >= ({QB:31,RB:27,WR:29,TE:29}[pos]||28);
     var posIsStrong = posRank <= Math.ceil(N * 0.4);
 
-    if (isOldForPos && pd.v >= 2000) {
-      sellList.push({pd:pd, reason:'Age '+pd.age.toFixed(0)+' — approaching decline'});
-    } else if (posIsStrong && pd.v >= 3000 && pd.age >= 27 && !isBottom) {
-      sellList.push({pd:pd, reason:pos+' is strong (#'+posRank+') — can afford to sell'});
-    } else if (isBottom && pd.v >= 2000 && pd.age >= 26) {
-      sellList.push({pd:pd, reason:'Rebuilding — sell for picks/youth'});
+    // NEVER suggest selling players with BUY or HOLD+ signal
+    if (sig === 'BUY' || sig === 'HOLD+') continue;
+
+    if (sig === 'SELL' && pd.v >= 2000) {
+      sellList.push({pd:pd, reason:'SELL signal — value rising but age curve working against them'});
+    } else if (sig === 'AVOID' && pd.v >= 1500) {
+      sellList.push({pd:pd, reason:'AVOID signal — declining value, get out now'});
+    } else if (isOldForPos && pd.v >= 3000) {
+      sellList.push({pd:pd, reason:'Age '+pd.age.toFixed(0)+' — approaching '+pos+' decline curve'});
+    } else if (posIsStrong && pd.v >= 3000 && isOldForPos && !isBottom) {
+      sellList.push({pd:pd, reason:pos+' is strong (#'+posRank+') — sell from depth'});
+    } else if (isBottom && pd.v >= 2000 && pd.age >= 27 && sig !== 'HOLD+') {
+      sellList.push({pd:pd, reason:'Rebuilding — convert to picks/youth'});
     }
   }
   sellList.sort(function(a,b){return b.pd.v-a.pd.v;});
@@ -1638,36 +1692,30 @@ function clickR(rid){
   if(S.tgtRid){var tp=document.getElementById('tgtP');if(tp)tp.scrollIntoView({behavior:'smooth',block:'start'});}
 }
 function togTgt(id){var i=S.tgtPids.indexOf(id);if(i>=0)S.tgtPids.splice(i,1);else if(S.tgtPids.length<3)S.tgtPids.push(id);renderTgtPanel();}
-function genTrades(){if(!S.valsLoaded)return;var my=null;for(var i=0;i<S.rosters.length;i++)if(S.rosters[i].roster_id===S.myRid){my=S.rosters[i];break;}if(!my||!S.tgtPids.length)return;renderTrades(findTrades(my,S.tgtPids));go('trd');}
+function genTrades(){if(!S.valsLoaded)return;var my=null;for(var i=0;i<S.rosters.length;i++)if(S.rosters[i].roster_id===S.myRid){my=S.rosters[i];break;}if(!my||!S.tgtPids.length)return;renderTrades(findTrades(my,S.tgtPids));var tr=document.getElementById('trdResults');if(tr){tr.classList.remove('hidden');tr.scrollIntoView({behavior:'smooth'});}}
 function setS(v,el){S.season=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 function setQB(v,el){S.numQbs=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 
-var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',trd:'s-trd',mom:'s-mom',pck:'s-pck',reb:'s-reb'};
-var STEP_IDX={con:0,lea:1,ros:2,trd:3,mom:4,pck:5,reb:6};
+var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',mom:'s-mom',pck:'s-pck',reb:'s-reb'};
+var STEP_IDX={con:0,lea:1,ros:2,mom:3,pck:4,reb:5};
 function go(k){
   try{
-    // Hide all pages
     var ks=Object.keys(STEPS);
     for(var i=0;i<ks.length;i++){
       var el=document.getElementById(STEPS[ks[i]]);
       if(el) el.classList.toggle('hidden',ks[i]!==k);
     }
-    // Show/hide nav bar (inline style, not .hidden class)
     var nav=document.getElementById('navBar');
     if(nav) nav.style.display=(k!=='con'&&k!=='lea')?'block':'none';
-    // Highlight active tab
-    var tabs=['nav-ros','nav-trd','nav-mom','nav-reb','nav-pck'];
-    var tabMap={ros:'nav-ros',trd:'nav-trd',mom:'nav-mom',reb:'nav-reb',pck:'nav-pck'};
+    var tabs=['nav-ros','nav-mom','nav-reb','nav-pck'];
+    var tabMap={ros:'nav-ros',mom:'nav-mom',reb:'nav-reb',pck:'nav-pck'};
     for(var i=0;i<tabs.length;i++){
       var btn=document.getElementById(tabs[i]);
       if(btn) btn.className='navtab'+(tabs[i]===(tabMap[k]||'')?' on':'');
     }
-    // Show reset button
     var rst=document.getElementById('brst');
     if(rst) rst.classList.toggle('hidden',k==='con');
-    // Re-render rosters when returning
     if(k==='ros'&&S.valsLoaded){try{renderRosters();}catch(e){console.error(e);}}
-    // Render picks page
     if(k==='pck'&&S.valsLoaded){try{renderPickEditorPage();}catch(e){console.error(e);}}
     window.scrollTo(0,0);
   }catch(e){
