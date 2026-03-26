@@ -2032,20 +2032,40 @@ async function loadTradeHistory() {
         for (var di = 0; di < drafts.length; di++) {
           var draft = drafts[di];
           if (draft.status !== 'complete') continue;
+
+          // Get slot_to_roster_id: maps draft_slot → original roster who owns that slot
+          var slotToRoster = {};
+          // Fetch full draft detail for slot mapping
+          try {
+            var draftDetail = await fetchJSON('https://api.sleeper.app/v1/draft/' + draft.draft_id);
+            if (draftDetail && draftDetail.slot_to_roster_id) {
+              var ent = Object.entries(draftDetail.slot_to_roster_id);
+              for (var ei = 0; ei < ent.length; ei++) slotToRoster[parseInt(ent[ei][0])] = parseInt(ent[ei][1]);
+            }
+          } catch(e) {}
+
           try {
             var draftPicks = await fetchJSON('https://api.sleeper.app/v1/draft/' + draft.draft_id + '/picks');
             if (draftPicks && draftPicks.length) {
               for (var dpi = 0; dpi < draftPicks.length; dpi++) {
                 var dpk = draftPicks[dpi];
-                // Key by season + round + original roster (who the pick belonged to before trades)
-                var dKey = leagueSeason + '_' + dpk.round + '_' + dpk.roster_id;
                 var pName = dpk.metadata ? (dpk.metadata.first_name + ' ' + dpk.metadata.last_name) : '';
+
+                // The ORIGINAL owner of this pick = who the slot belongs to
+                // dpk.roster_id = who MADE the pick (could be different if traded)
+                // dpk.draft_slot = the slot position in each round
+                var originalRid = slotToRoster[dpk.draft_slot] || dpk.roster_id;
+
+                // Key by original owner — this matches transaction.draft_picks.roster_id
+                var dKey = leagueSeason + '_' + dpk.round + '_' + originalRid;
                 S.draftResults[dKey] = {
                   player_id: dpk.player_id,
                   player_name: pName || dpk.player_id,
                   pick_no: dpk.pick_no,
                   round: dpk.round,
-                  slot: dpk.draft_slot
+                  slot: dpk.draft_slot,
+                  picked_by: dpk.roster_id,
+                  original_owner: originalRid
                 };
               }
             }
@@ -2130,12 +2150,13 @@ function renderHistory() {
         if (drafted && drafted.player_id) {
           // Pick was used — resolve to the actual player drafted
           var draftedP = S.players[drafted.player_id];
-          var draftedV = gv(drafted.player_id) || 0;
+          var draftedGrade = getTradeGradeValue(drafted.player_id);
+          var draftedV = draftedGrade.v;
           var draftedName = draftedP ? draftedP.full_name : drafted.player_name;
           var draftedPos = draftedP ? draftedP.position : '??';
           var slotNum = drafted.slot || drafted.pick_no || '?';
           var pkLabel = dp.season + ' ' + dp.round + '.' + (slotNum < 10 ? '0' : '') + slotNum + ' → ' + draftedName;
-          sides[toRid].picks.push({label:pkLabel, v:draftedV, resolved:true, playerId:drafted.player_id, playerName:draftedName, playerPos:draftedPos});
+          sides[toRid].picks.push({label:pkLabel, v:draftedV, resolved:true, playerId:drafted.player_id, playerName:draftedName, playerPos:draftedPos, source:draftedGrade.source, career:draftedGrade});
           sides[toRid].totalVal += draftedV;
         } else {
           // Pick not yet used — use pick value estimate
@@ -2339,16 +2360,30 @@ function tradeCard(t, showWinner) {
     // Picks received
     for (var j = 0; j < s.side.picks.length; j++) {
       var pk = s.side.picks[j];
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0">';
       if (pk.resolved) {
-        var isRetired = pk.v === 0;
-        html += '<span style="font-size:11px;'+(isRetired?'color:var(--t3);text-decoration:line-through':'')+'"><span class="pos pos-'+pk.playerPos+'" style="font-size:7px;padding:1px 3px">'+pk.playerPos+'</span> '+esc(pk.playerName)+' <span style="color:var(--pur);font-size:9px">(pick)</span></span>';
-        html += '<span class="v '+(isRetired?'vN':vcn(pk.v))+'" style="font-size:9px">'+(isRetired?'retired/0':pk.v.toLocaleString())+'</span>';
+        var isCareer = pk.source === 'career';
+        var isUnknown = pk.v === 0 && !isCareer;
+        html += '<div style="padding:2px 0">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+        html += '<span style="font-size:11px;'+(isUnknown?'color:var(--t3);text-decoration:line-through':'')+'"><span class="pos pos-'+pk.playerPos+'" style="font-size:7px;padding:1px 3px">'+pk.playerPos+'</span> '+esc(pk.playerName)+' <span style="color:var(--pur);font-size:9px">(pick)</span></span>';
+        if (isCareer) {
+          html += '<span style="font-size:9px;color:var(--amb)">'+pk.v.toLocaleString()+' <span style="font-size:8px">(career)</span></span>';
+        } else if (isUnknown) {
+          html += '<span style="font-size:9px;color:var(--t3)">0</span>';
+        } else {
+          html += '<span class="v '+vcn(pk.v)+'" style="font-size:9px">'+pk.v.toLocaleString()+'</span>';
+        }
+        html += '</div>';
+        if (isCareer && pk.career) {
+          html += '<div style="font-size:8px;color:var(--t3);padding-left:20px">'+(pk.career.totalPpr||0).toLocaleString()+' career PPR · '+(pk.career.ppg||0)+' ppg · '+(pk.career.seasons||0)+' szn</div>';
+        }
+        html += '</div>';
       } else {
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0">';
         html += '<span style="font-size:11px;color:var(--pur)">🎯 '+pk.label+'</span>';
         html += '<span style="font-size:9px;color:var(--pur)">'+pk.v.toLocaleString()+'</span>';
+        html += '</div>';
       }
-      html += '</div>';
     }
 
     // Value summary
@@ -2392,7 +2427,9 @@ function timelineRow(t) {
     for (var j = 0; j < s.side.picks.length; j++) {
       var pk = s.side.picks[j];
       if (pk.resolved) {
-        html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+pk.playerPos+'" style="font-size:7px;padding:1px 3px">'+pk.playerPos+'</span> '+esc(pk.playerName)+' <span style="font-size:9px;color:var(--pur)">(via pick)</span> <span class="v '+vcn(pk.v)+'" style="font-size:9px">'+pk.v.toLocaleString()+'</span></div>';
+        var pkValLabel = pk.source==='career' ? pk.v.toLocaleString()+' <span style="font-size:8px;color:var(--amb)">(career)</span>' : pk.v===0 ? '0' : pk.v.toLocaleString();
+        var pkValClass = pk.source==='career' ? '' : 'v '+vcn(pk.v);
+        html += '<div style="font-size:11px;padding:1px 0;'+(pk.v===0&&pk.source!=='career'?'color:var(--t3);text-decoration:line-through':'')+'"><span class="pos pos-'+pk.playerPos+'" style="font-size:7px;padding:1px 3px">'+pk.playerPos+'</span> '+esc(pk.playerName)+' <span style="font-size:9px;color:var(--pur)">(pick)</span> <span class="'+pkValClass+'" style="font-size:9px">'+pkValLabel+'</span></div>';
       } else {
         html += '<div style="font-size:11px;padding:1px 0;color:var(--pur)">🎯 '+pk.label+' <span style="font-size:9px">'+pk.v.toLocaleString()+'</span></div>';
       }
