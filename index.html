@@ -1070,6 +1070,38 @@ async function loadPredictions() {
   }
 }
 
+async function loadCareerStats() {
+  if (S.careerStats) return;
+  try {
+    var data = await fetchJSON('data/career_stats.json', true);
+    if (data && data.players && Object.keys(data.players).length > 0) {
+      S.careerStats = data.players;
+      console.log('Career stats loaded: ' + Object.keys(data.players).length + ' players, seasons ' + (data.seasons_covered||[]).join('-'));
+    }
+  } catch(e) {
+    console.log('No career_stats.json available');
+    S.careerStats = null;
+  }
+}
+
+// Get a player's value for trade grading — uses career PPR as fallback for retired/0-value players
+function getTradeGradeValue(playerId) {
+  var fcVal = gv(playerId) || 0;
+  if (fcVal > 0) return {v: fcVal, source: 'current'};
+
+  // Fallback: career production
+  if (S.careerStats) {
+    var cs = S.careerStats[playerId];
+    if (cs && cs.total_ppr > 0) {
+      // Scale career PPR to a dynasty value proxy: ~15 career PPR points ≈ 1 dynasty value
+      // This gives a retired WR1 with 1500 career PPR points a "legacy value" of ~100 per point = roughly fair
+      var legacyVal = Math.round(cs.total_ppr * 3);
+      return {v: legacyVal, source: 'career', ppg: cs.ppg, totalPpr: cs.total_ppr, seasons: cs.seasons, bestSeason: cs.best_season};
+    }
+  }
+  return {v: 0, source: 'unknown'};
+}
+
 function renderMomentum(posFilter) {
   var my = null;
   for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].roster_id === S.myRid) { my = S.rosters[i]; break; }
@@ -1961,7 +1993,8 @@ function openHistory() {
     try { renderHistory(); } catch(e) { console.error('renderHistory error:', e); }
   } else {
     document.getElementById('histLoading').classList.remove('hidden');
-    loadTradeHistory().then(function() {
+    // Load career stats in parallel with trade history
+    Promise.all([loadTradeHistory(), loadCareerStats()]).then(function() {
       document.getElementById('histLoading').classList.add('hidden');
       try { renderHistory(); } catch(e) {
         console.error('renderHistory error:', e);
@@ -1969,7 +2002,7 @@ function openHistory() {
       }
     }).catch(function(e) {
       document.getElementById('histLoading').classList.add('hidden');
-      document.getElementById('histBoard').innerHTML = '<div class="card" style="color:var(--red)">Failed to load trades: '+e.message+'</div>';
+      document.getElementById('histBoard').innerHTML = '<div class="card" style="color:var(--red)">Failed to load: '+e.message+'</div>';
     });
   }
 }
@@ -2073,10 +2106,12 @@ function renderHistory() {
       for (var j = 0; j < addKeys.length; j++) {
         var pid = addKeys[j], toRid = parseInt(tx.adds[pid]);
         if (!sides[toRid]) continue;
-        var p = S.players[pid], v = gv(pid) || 0;
+        var p = S.players[pid];
+        var grade = getTradeGradeValue(pid);
+        var v = grade.v;
         var name = p ? p.full_name : pid;
         var pos = p ? p.position : '??';
-        sides[toRid].players.push({id:pid, name:name, pos:pos, v:v});
+        sides[toRid].players.push({id:pid, name:name, pos:pos, v:v, source:grade.source, career:grade});
         sides[toRid].totalVal += v;
       }
     }
@@ -2260,42 +2295,72 @@ function renderHistory() {
 }
 
 function tradeCard(t, showWinner) {
-  var winSide = t.sides[0], loseSide = t.sides[t.sides.length - 1];
-  var display = showWinner ? winSide : loseSide;
-  var other = showWinner ? loseSide : winSide;
-  var managerName = getOwnerName(display.rid);
   var date = t.timestamp ? new Date(t.timestamp).toLocaleDateString() : 'Unknown';
+  var html = '<div style="padding:12px 0;border-top:1px solid var(--bdr)">';
+  html += '<div style="font-size:10px;color:var(--t3);margin-bottom:8px">'+date+' · '+t.season+' Wk '+t.week+'</div>';
 
-  var html = '<div style="padding:10px 0;border-top:1px solid var(--bdr)">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-  html += '<span style="font-size:12px;font-weight:700;'+(display.rid===S.myRid?'color:var(--grn)':'')+'">'+esc(managerName)+'</span>';
-  html += '<span style="font-size:10px;color:var(--t3)">'+date+' · Wk '+t.week+'</span></div>';
+  // Show both sides
+  html += '<div style="display:flex;gap:8px">';
+  for (var si = 0; si < t.sides.length; si++) {
+    var s = t.sides[si];
+    var isWinner = s.rid === t.winnerRid;
+    var isMine = s.rid === S.myRid;
+    var gainVal = s.side.valueGained || 0;
+    var gainColor = gainVal > 0 ? 'var(--grn)' : gainVal < 0 ? 'var(--red)' : 'var(--t3)';
+    var borderColor = isWinner ? 'var(--grn3)' : isMine ? 'rgba(68,138,255,0.3)' : 'var(--bdr)';
 
-  html += '<div style="font-size:11px;color:var(--t2);margin-bottom:2px">Received ('+(showWinner?'winner':'loser')+'):</div>';
-  for (var j = 0; j < display.side.players.length; j++) {
-    var sp = display.side.players[j];
-    html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+sp.pos+'" style="font-size:7px;padding:1px 3px">'+sp.pos+'</span> '+esc(sp.name)+' <span class="v '+vcn(sp.v)+'" style="font-size:9px">'+sp.v.toLocaleString()+'</span></div>';
-  }
-  for (var j = 0; j < display.side.picks.length; j++) {
-    var pk = display.side.picks[j];
-    if (pk.resolved) {
-      html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+pk.playerPos+'" style="font-size:7px;padding:1px 3px">'+pk.playerPos+'</span> '+esc(pk.playerName)+' <span style="font-size:9px;color:var(--pur)">(via pick)</span> <span class="v '+vcn(pk.v)+'" style="font-size:9px">'+pk.v.toLocaleString()+'</span></div>';
-    } else {
-      html += '<div style="font-size:11px;padding:1px 0;color:var(--pur)">🎯 '+pk.label+' <span style="font-size:9px">'+pk.v.toLocaleString()+'</span></div>';
+    html += '<div style="flex:1;padding:8px;border-radius:6px;border:1px solid '+borderColor+';background:'+(isWinner?'rgba(0,230,118,0.04)':'')+'">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    html += '<span style="font-size:11px;font-weight:700;'+(isMine?'color:var(--grn)':isWinner?'color:var(--grn)':'')+'">'+getOwnerName(s.rid)+(isMine?' (YOU)':'')+'</span>';
+    if (isWinner) html += '<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:var(--grn2);color:var(--grn)">WINNER</span>';
+    html += '</div>';
+
+    // Players received
+    for (var j = 0; j < s.side.players.length; j++) {
+      var sp = s.side.players[j];
+      var isCareer = sp.source === 'career';
+      var isUnknown = sp.v === 0 && !isCareer;
+      html += '<div style="padding:2px 0">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<span style="font-size:11px;'+(isUnknown?'color:var(--t3);text-decoration:line-through':'')+'"><span class="pos pos-'+sp.pos+'" style="font-size:7px;padding:1px 3px">'+sp.pos+'</span> '+esc(sp.name)+'</span>';
+      if (isCareer) {
+        html += '<span style="font-size:9px;color:var(--amb)">'+sp.v.toLocaleString()+' <span style="font-size:8px">(career)</span></span>';
+      } else if (isUnknown) {
+        html += '<span style="font-size:9px;color:var(--t3)">0</span>';
+      } else {
+        html += '<span class="v '+vcn(sp.v)+'" style="font-size:9px">'+sp.v.toLocaleString()+'</span>';
+      }
+      html += '</div>';
+      if (isCareer && sp.career) {
+        html += '<div style="font-size:8px;color:var(--t3);padding-left:20px">'+sp.career.totalPpr.toLocaleString()+' career PPR · '+sp.career.ppg+' ppg · '+sp.career.seasons+' szn</div>';
+      }
+      html += '</div>';
     }
-  }
+    // Picks received
+    for (var j = 0; j < s.side.picks.length; j++) {
+      var pk = s.side.picks[j];
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0">';
+      if (pk.resolved) {
+        var isRetired = pk.v === 0;
+        html += '<span style="font-size:11px;'+(isRetired?'color:var(--t3);text-decoration:line-through':'')+'"><span class="pos pos-'+pk.playerPos+'" style="font-size:7px;padding:1px 3px">'+pk.playerPos+'</span> '+esc(pk.playerName)+' <span style="color:var(--pur);font-size:9px">(pick)</span></span>';
+        html += '<span class="v '+(isRetired?'vN':vcn(pk.v))+'" style="font-size:9px">'+(isRetired?'retired/0':pk.v.toLocaleString())+'</span>';
+      } else {
+        html += '<span style="font-size:11px;color:var(--pur)">🎯 '+pk.label+'</span>';
+        html += '<span style="font-size:9px;color:var(--pur)">'+pk.v.toLocaleString()+'</span>';
+      }
+      html += '</div>';
+    }
 
-  var diffVal = showWinner ? t.diff : -t.diff;
-  var gainVal = display.side.valueGained || 0;
-  var gainColor = gainVal >= 0 ? 'var(--grn)' : 'var(--red)';
-  html += '<div style="margin-top:6px;border-top:1px solid var(--bdr);padding-top:4px">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center">';
-  html += '<div><div style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+gainColor+'">'+(gainVal>=0?'+':'')+gainVal.toLocaleString()+' gained</div>';
-  html += '<div style="font-size:9px;color:var(--t3)">since trade</div></div>';
-  html += '<div style="text-align:right"><div style="font-family:\'DM Mono\',monospace;font-size:10px;color:'+(diffVal>=0?'var(--grn)':'var(--red)')+'">'+(diffVal>=0?'+':'')+diffVal.toLocaleString()+'</div>';
-  html += '<div style="font-size:9px;color:var(--t3)">surplus</div></div>';
+    // Value summary
+    html += '<div style="margin-top:6px;padding-top:4px;border-top:1px solid var(--bdr)">';
+    html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t3)">';
+    html += '<span>Est. at trade</span><span>'+((s.side.estTradeVal||0).toLocaleString())+'</span></div>';
+    html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2)">';
+    html += '<span>Current value</span><span style="font-weight:700">'+s.side.totalVal.toLocaleString()+'</span></div>';
+    html += '<div style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+gainColor+';text-align:right;margin-top:2px">'+(gainVal>=0?'+':'')+gainVal.toLocaleString()+' since trade</div>';
+    html += '</div></div>';
+  }
   html += '</div></div>';
-  html += '</div>';
   return html;
 }
 
@@ -2320,7 +2385,9 @@ function timelineRow(t) {
     html += '<div style="font-size:10px;color:var(--t3);margin-bottom:3px">Received:</div>';
     for (var j = 0; j < s.side.players.length; j++) {
       var sp = s.side.players[j];
-      html += '<div style="font-size:11px;padding:1px 0"><span class="pos pos-'+sp.pos+'" style="font-size:7px;padding:1px 3px">'+sp.pos+'</span> '+esc(sp.name)+' <span class="v '+vcn(sp.v)+'" style="font-size:9px">'+sp.v.toLocaleString()+'</span></div>';
+      var valLabel = sp.source === 'career' ? sp.v.toLocaleString()+' <span style="font-size:8px;color:var(--amb)">(career)</span>' : sp.v === 0 ? '0' : sp.v.toLocaleString();
+      var valClass = sp.source === 'career' ? '' : 'v '+vcn(sp.v);
+      html += '<div style="font-size:11px;padding:1px 0;'+(sp.v===0&&sp.source!=='career'?'color:var(--t3);text-decoration:line-through':'')+'"><span class="pos pos-'+sp.pos+'" style="font-size:7px;padding:1px 3px">'+sp.pos+'</span> '+esc(sp.name)+' <span class="'+valClass+'" style="font-size:9px">'+valLabel+'</span></div>';
     }
     for (var j = 0; j < s.side.picks.length; j++) {
       var pk = s.side.picks[j];
@@ -2394,7 +2461,7 @@ function go(k){
     var nav2=document.getElementById('navBar');if(nav2)nav2.style.display='block';
   }
 }
-function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
+function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
 </script>
 </body>
 </html>
