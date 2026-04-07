@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-31T11:13:32.678574+00:00",
+  "updated": "2026-04-07T11:17:30.279333+00:00",
   "seasons_covered": [
     2018,
     2019,
@@ -791,7 +791,7 @@
       "ppg": 32.3,
       "best_season": 907.8
     },
-    "00-0027973": {
+    "829": {
       "name": "Andy Dalton",
       "pos": "QB",
       "total_ppr": 856.1,
@@ -2804,7 +2804,7 @@
       "ppg": 4.6,
       "best_season": 69.7
     },
-    "2505": {
+    "00-0031610": {
       "name": "Darren Waller",
       "pos": "TE",
       "total_ppr": 861.3,
@@ -3992,7 +3992,7 @@
       "ppg": 8.7,
       "best_season": 138.5
     },
-    "3161": {
+    "00-0032950": {
       "name": "Carson Wentz",
       "pos": "QB",
       "total_ppr": 1069.7,
@@ -4520,7 +4520,7 @@
       "ppg": 2.0,
       "best_season": 17.6
     },
-    "4454": {
+    "00-0033307": {
       "name": "Kendrick Bourne",
       "pos": "WR",
       "total_ppr": 825.0,
@@ -4773,7 +4773,7 @@
       "ppg": 1.8,
       "best_season": 112.2
     },
-    "00-0033526": {
+    "4147": {
       "name": "Samaje Perine",
       "pos": "RB",
       "total_ppr": 543.7,
@@ -7380,7 +7380,7 @@
       "ppg": 7.1,
       "best_season": 34.2
     },
-    "6111": {
+    "00-0035100": {
       "name": "Jake Browning",
       "pos": "QB",
       "total_ppr": 144.2,
@@ -7655,7 +7655,7 @@
       "ppg": 10.3,
       "best_season": 587.9
     },
-    "6130": {
+    "00-0035250": {
       "name": "Devin Singletary",
       "pos": "RB",
       "total_ppr": 1052.7,
@@ -8040,7 +8040,7 @@
       "ppg": 16.2,
       "best_season": 16.2
     },
-    "00-0035500": {
+    "5970": {
       "name": "Greg Dortch",
       "pos": "WR",
       "total_ppr": 276.8,
@@ -8095,7 +8095,7 @@
       "ppg": 39.2,
       "best_season": 1000.3
     },
-    "00-0035537": {
+    "6039": {
       "name": "Ty Johnson",
       "pos": "RB",
       "total_ppr": 439.2,
@@ -8370,7 +8370,7 @@
       "ppg": 76.3,
       "best_season": 1166.5
     },
-    "00-0035644": {
+    "5857": {
       "name": "Noah Fant",
       "pos": "TE",
       "total_ppr": 721.4,
@@ -10922,7 +10922,7 @@
       "ppg": 2.6,
       "best_season": 161.0
     },
-    "00-0037005": {
+    "7694": {
       "name": "Tommy Tremble",
       "pos": "TE",
       "total_ppr": 224.3,
@@ -10955,7 +10955,7 @@
       "ppg": 9.0,
       "best_season": 110.6
     },
-    "7538": {
+    "00-0037013": {
       "name": "Zach Wilson",
       "pos": "QB",
       "total_ppr": 370.7,
@@ -11736,7 +11736,7 @@
       "ppg": 5.1,
       "best_season": 185.8
     },
-    "00-0037563": {
+    "8800": {
       "name": "Malik Davis",
       "pos": "RB",
       "total_ppr": 34.4,
@@ -12715,7 +12715,7 @@
       "ppg": 7.6,
       "best_season": 128.9
     },
-    "10218": {
+    "00-0038618": {
       "name": "Xavier Hutchinson",
       "pos": "WR",
       "total_ppr": 64.1,
@@ -12857,6 +12857,17 @@
       "last_season": 2024,
       "ppg": 13.9,
       "best_season": 13.9
+    },
+    "11370": {
+      "name": "Chris Brooks",
+      "pos": "RB",
+      "total_ppr": 10.6,
+      "games": 3,
+      "seasons": 1,
+      "first_season": 2023,
+      "last_season": 2023,
+      "ppg": 3.5,
+      "best_season": 53.0
     },
     "00-0038685": {
       "name": "Christopher Brooks",
@@ -13177,7 +13188,7 @@
       "ppg": 1.7,
       "best_season": 149.4
     },
-    "10235": {
+    "00-0039021": {
       "name": "Roschon Johnson",
       "pos": "RB",
       "total_ppr": 179.5,
@@ -13210,7 +13221,7 @@
       "ppg": 17.6,
       "best_season": 299.9
     },
-    "10231": {
+    "00-0039041": {
       "name": "Elijah Higgins",
       "pos": "TE",
       "total_ppr": 85.5,
@@ -13540,7 +13551,7 @@
       "ppg": 4.9,
       "best_season": 214.8
     },
-    "11599": {
+    "00-0039359": {
       "name": "Cade Stover",
       "pos": "TE",
       "total_ppr": 41.1,
@@ -13573,7 +13584,7 @@
       "ppg": 7.4,
       "best_season": 225.3
     },
-    "00-0039364": {
+    "11729": {
       "name": "Sione Vaki",
       "pos": "RB",
       "total_ppr": 8.1,
@@ -14024,7 +14035,7 @@
       "ppg": 1.6,
       "best_season": 37.8
     },
-    "11629": {
+    "00-0039792": {
       "name": "Devontez Walker",
       "pos": "WR",
       "total_ppr": 9.1,
@@ -14101,7 +14112,7 @@
       "ppg": 2.8,
       "best_season": 5.4
     },
-    "00-0039814": {
+    "11592": {
       "name": "Erick All",
       "pos": "TE",
       "total_ppr": 35.8,
