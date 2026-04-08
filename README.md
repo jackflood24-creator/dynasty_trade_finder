@@ -2,7 +2,7 @@
 
 Free dynasty fantasy football trade tool — syncs with **Sleeper**, uses live **FantasyCalc** values, generates balanced trade proposals, tracks value momentum, and runs ML predictions via GitHub Actions.
 
-🔗 **[Use it live →](https://YOURUSERNAME.github.io/dynasty-trade-finder/)** *(update URL after deploying)*
+🔗 
 
 ## Features
 
@@ -29,26 +29,7 @@ Free dynasty fantasy football trade tool — syncs with **Sleeper**, uses live *
 - Predictions auto-committed to `data/predictions.json`
 - Web tool loads predictions and shows 🤖 model signals
 
-## Setup
 
-### 1. Deploy the site
-
-1. Create a new GitHub repo called `dynasty-trade-finder`
-2. Upload ALL files from this project (keep the folder structure!)
-3. Go to **Settings → Pages → Source** → `main` branch, `/ (root)` → Save
-4. Site is live at `https://yourusername.github.io/dynasty-trade-finder/`
-
-### 2. Enable ML predictions (optional)
-
-The GitHub Action runs automatically every Tuesday at 3am EST. To trigger it manually:
-
-1. Go to your repo → **Actions** tab
-2. Click **"Update Dynasty Predictions"** workflow
-3. Click **"Run workflow"** → **"Run workflow"**
-4. Wait ~2 minutes — predictions appear in `data/predictions.json`
-5. The site auto-loads them on the Momentum page
-
-**Important:** Go to **Settings → Actions → General** and make sure "Read and write permissions" is enabled under "Workflow permissions". This lets the Action commit the predictions file.
 
 ## File Structure
 
