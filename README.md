@@ -2,7 +2,7 @@
 
 Free dynasty fantasy football trade tool — syncs with **Sleeper**, uses live **FantasyCalc** values, generates balanced trade proposals, tracks value momentum, and runs ML predictions via GitHub Actions.
 
-🔗 
+🔗 https://jackflood24-creator.github.io/dynasty_trade_finder/
 
 ## Features
 
