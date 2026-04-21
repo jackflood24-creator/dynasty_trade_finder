@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-14T11:41:45.720644+00:00",
+  "updated": "2026-04-21T11:44:39.320388+00:00",
   "seasons_covered": [
     2018,
     2019,
@@ -274,7 +274,7 @@
       "ppg": 8.7,
       "best_season": 357.1
     },
-    "745": {
+    "00-0025399": {
       "name": "Marshawn Lynch",
       "pos": "RB",
       "total_ppr": 114.2,
@@ -2441,7 +2441,7 @@
       "ppg": 7.3,
       "best_season": 222.6
     },
-    "1837": {
+    "00-0031345": {
       "name": "Jimmy Garoppolo",
       "pos": "QB",
       "total_ppr": 879.0,
@@ -4850,7 +4850,7 @@
       "ppg": 80.7,
       "best_season": 1133.7
     },
-    "4177": {
+    "00-0033555": {
       "name": "Mack Hollins",
       "pos": "WR",
       "total_ppr": 437.9,
@@ -8084,7 +8084,7 @@
       "ppg": 0.0,
       "best_season": 17.9
     },
-    "00-0035535": {
+    "6149": {
       "name": "Darius Slayton",
       "pos": "WR",
       "total_ppr": 783.5,
@@ -9591,7 +9591,7 @@
       "ppg": 81.0,
       "best_season": 940.8
     },
-    "00-0036357": {
+    "6789": {
       "name": "Henry Ruggs",
       "pos": "WR",
       "total_ppr": 168.6,
@@ -10163,7 +10163,7 @@
       "ppg": 0.2,
       "best_season": 67.8
     },
-    "00-0036626": {
+    "7587": {
       "name": "Dyami Brown",
       "pos": "WR",
       "total_ppr": 204.2,
@@ -10449,7 +10449,7 @@
       "ppg": 4.6,
       "best_season": 132.3
     },
-    "00-0036849": {
+    "7562": {
       "name": "Tutu Atwell",
       "pos": "WR",
       "total_ppr": 288.1,
@@ -10955,7 +10955,7 @@
       "ppg": 9.0,
       "best_season": 110.6
     },
-    "7538": {
+    "00-0037013": {
       "name": "Zach Wilson",
       "pos": "QB",
       "total_ppr": 370.7,
@@ -12121,7 +12121,7 @@
       "ppg": 6.6,
       "best_season": 305.2
     },
-    "8160": {
+    "00-0038102": {
       "name": "Kenny Pickett",
       "pos": "QB",
       "total_ppr": 284.5,
@@ -12341,7 +12341,7 @@
       "ppg": 1.7,
       "best_season": 14.9
     },
-    "00-0038400": {
+    "9230": {
       "name": "Tanner McKee",
       "pos": "QB",
       "total_ppr": 28.8,
@@ -12495,7 +12495,7 @@
       "ppg": 14.9,
       "best_season": 450.5
     },
-    "00-0038547": {
+    "10871": {
       "name": "Luke Schoonmaker",
       "pos": "TE",
       "total_ppr": 85.3,
@@ -12847,17 +12847,6 @@
       "ppg": 13.9,
       "best_season": 13.9
     },
-    "11370": {
-      "name": "Chris Brooks",
-      "pos": "RB",
-      "total_ppr": 10.6,
-      "games": 3,
-      "seasons": 1,
-      "first_season": 2023,
-      "last_season": 2023,
-      "ppg": 3.5,
-      "best_season": 53.0
-    },
     "00-0038685": {
       "name": "Christopher Brooks",
       "pos": "RB",
@@ -13067,7 +13056,7 @@
       "ppg": 7.5,
       "best_season": 221.3
     },
-    "00-0038938": {
+    "9497": {
       "name": "Jalin Hyatt",
       "pos": "WR",
       "total_ppr": 74.5,
@@ -13540,7 +13529,7 @@
       "ppg": 4.9,
       "best_season": 214.8
     },
-    "11599": {
+    "00-0039359": {
       "name": "Cade Stover",
       "pos": "TE",
       "total_ppr": 41.1,
@@ -13573,7 +13562,7 @@
       "ppg": 7.4,
       "best_season": 225.3
     },
-    "00-0039364": {
+    "11729": {
       "name": "Sione Vaki",
       "pos": "RB",
       "total_ppr": 8.1,
@@ -14057,7 +14046,7 @@
       "ppg": 5.0,
       "best_season": 283.6
     },
-    "11570": {
+    "00-0039796": {
       "name": "Rasheen Ali",
       "pos": "RB",
       "total_ppr": 3.1,
@@ -14079,7 +14068,7 @@
       "ppg": 5.1,
       "best_season": 77.8
     },
-    "11640": {
+    "00-0039810": {
       "name": "Jermaine Burton",
       "pos": "WR",
       "total_ppr": 14.7,
@@ -14365,7 +14354,7 @@
       "ppg": 8.5,
       "best_season": 203.9
     },
-    "00-0039920": {
+    "11617": {
       "name": "Malachi Corley",
       "pos": "WR",
       "total_ppr": 7.2,
