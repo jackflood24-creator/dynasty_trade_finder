@@ -48,6 +48,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-bottom:24px}
 .tc{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:20px;margin-bottom:12px}
 .ts{display:grid;grid-template-columns:1fr 40px 1fr;gap:12px;align-items:start}
+@media (max-width: 700px) {
+  #tradeDualPanel { grid-template-columns: 1fr !important; }
+}
 .ta{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--t3);padding-top:28px}
 .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--grn);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 .pb{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:8px}.pf{height:100%;background:var(--grn);border-radius:2px;transition:width .3s}
@@ -77,7 +80,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   <!-- PERSISTENT NAV — fixed size, never changes -->
   <div id="navBar" style="display:none">
     <div style="display:flex;gap:2px;padding:8px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:20px">
-      <button class="navtab" id="nav-ros" onclick="go('ros')">🤝 Rosters</button>
+      <button class="navtab" id="nav-ros" onclick="go('ros')">🤝 Rosters + Trade Finder</button>
       <button class="navtab" id="nav-mom" onclick="openMomentum()">📈 Momentum</button>
       <button class="navtab" id="nav-reb" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
       <button class="navtab" id="nav-hist" onclick="openHistory()">📊 History</button>
@@ -157,16 +160,79 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div id="rosGrid" class="rg"></div>
 
     <div id="tgtP" class="hidden">
-      <div class="card" style="border-color:var(--blu3);margin-bottom:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div><div style="font-size:15px;font-weight:800" id="tgtT"></div><div style="font-size:11px;color:var(--t3)" id="tgtSub">Pick up to 3 players/picks</div></div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="text-align:right"><div class="lbl">Target Value</div><div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--blu)" id="tgtVal">0</div></div>
-            <button class="btn btn-o btn-s" onclick="closeTgtPanel()" style="font-size:16px;padding:4px 8px;color:var(--t3)">✕</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px" id="tradeDualPanel">
+        <!-- LEFT: Send panel (your roster) -->
+        <div class="card" style="border-color:rgba(255,82,82,0.3)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div>
+              <div style="font-size:13px;font-weight:800;color:var(--red)" id="sndT">You'll send (optional)</div>
+              <div style="font-size:10px;color:var(--t3)" id="sndSub">Lock in players you want to include</div>
+            </div>
+            <div style="text-align:right">
+              <div class="lbl">Send Value</div>
+              <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--red)" id="sndVal">0</div>
+            </div>
+          </div>
+          <div id="sndList" style="max-height:300px;overflow-y:auto"></div>
+        </div>
+        <!-- RIGHT: Receive panel (their roster) -->
+        <div class="card" style="border-color:var(--blu3)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div>
+              <div style="font-size:13px;font-weight:800;color:var(--blu)" id="tgtT"></div>
+              <div style="font-size:10px;color:var(--t3)" id="tgtSub">Pick up to 3 players/picks</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="text-align:right">
+                <div class="lbl">Target Value</div>
+                <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--blu)" id="tgtVal">0</div>
+              </div>
+              <button class="btn btn-o btn-s" onclick="closeTgtPanel()" style="font-size:14px;padding:3px 7px;color:var(--t3)">✕</button>
+            </div>
+          </div>
+          <div id="tgtList" style="max-height:300px;overflow-y:auto"></div>
+        </div>
+      </div>
+
+      <!-- Value imbalance bar -->
+      <div id="balBar" class="card" style="padding:10px 14px;margin-bottom:12px;display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:6px">
+          <span style="color:var(--red);font-weight:700">YOU SEND <span id="balS" style="font-family:'DM Mono',monospace">0</span></span>
+          <span id="balDiffTxt" style="font-family:'DM Mono',monospace;font-weight:700">—</span>
+          <span style="color:var(--blu);font-weight:700"><span id="balR" style="font-family:'DM Mono',monospace">0</span> YOU GET</span>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;display:flex">
+          <div id="balBarS" style="background:var(--red);height:100%;transition:.2s"></div>
+          <div id="balBarR" style="background:var(--blu);height:100%;transition:.2s"></div>
+        </div>
+      </div>
+
+      <!-- Trade style controls -->
+      <div class="card" style="margin-bottom:12px;padding:14px 16px">
+        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end">
+          <div>
+            <div class="lbl" style="margin-bottom:6px">Trade Style</div>
+            <div class="stog" id="styleTog">
+              <button class="sbtn on" onclick="setTradeStyle('balanced',this)" title="Tight balance, ±12%">Balanced</button>
+              <button class="sbtn" onclick="setTradeStyle('flexible',this)" title="Looser, ±20%, more variety">Flexible</button>
+              <button class="sbtn" onclick="setTradeStyle('bigswap',this)" title="Both sides give up high-value pieces, ±15%">Big Swap</button>
+            </div>
+          </div>
+          <div>
+            <div class="lbl" style="margin-bottom:6px">Max per side</div>
+            <div class="stog" id="maxTog">
+              <button class="sbtn on" onclick="setTradeMax(3,this)">3</button>
+              <button class="sbtn" onclick="setTradeMax(4,this)">4</button>
+            </div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-o btn-s" onclick="shuffleTrades()" title="Re-roll for different proposals">🎲 Shuffle</button>
+            <button class="btn btn-g" id="bTrade" onclick="genTrades()" disabled>Find Trades →</button>
           </div>
         </div>
-        <div id="tgtList" style="max-height:360px;overflow-y:auto"></div>
-        <button class="btn btn-g" style="width:100%;margin-top:14px" id="bTrade" onclick="genTrades()" disabled>Find Balanced Trades →</button>
+        <div style="font-size:10px;color:var(--t3);margin-top:10px;line-height:1.5" id="styleHelp">
+          <strong style="color:var(--t2)">Balanced:</strong> tight ±12% match. <strong style="color:var(--t2)">Flexible:</strong> ±20%, more options. <strong style="color:var(--t2)">Big Swap:</strong> only proposes trades where every asset is at least 40% of target value — surfaces star-for-star deals.
+        </div>
       </div>
     </div>
 
@@ -270,7 +336,12 @@ var S = {
   myRid:null, tgtRid:null, tgtPids:[],
   vals:{}, picks:{}, pickVals:{}, valsLoaded:false,
   fcMeta:{}, // sleeperId → {trend30Day, age, yoe, rank, posRank, tier, stdDev}
-  tradedPicks:[], drafts:[], slotOverrides:{}
+  tradedPicks:[], drafts:[], slotOverrides:{},
+  // Trade finder controls
+  sendPids:[],          // must-include players/picks from MY side
+  tradeStyle:'balanced',// 'balanced' | 'flexible' | 'bigswap'
+  tradeMax:3,           // max assets per side (3 or 4)
+  tradeShuffle:0        // increments on shuffle press to re-randomize
 };
 var TOL = 0.12;
 var POS_ORD = {QB:0,RB:1,WR:2,TE:3,PICK:4,K:5,DEF:6};
@@ -906,34 +977,163 @@ function sortedAssets(r) {
 }
 
 // TRADE ENGINE
-function findTrades(myRoster, targetIds) {
-  var tv=0;
-  for(var i=0;i<targetIds.length;i++){var id=targetIds[i];if(S.picks[id])tv+=S.picks[id].value;else tv+=(gv(id)||0);}
-  if(!tv)return[];
-  var assets=[];
-  if(myRoster.players)for(var i=0;i<myRoster.players.length;i++){var id=myRoster.players[i];if(targetIds.indexOf(id)>=0||!S.players[id]||!gv(id))continue;assets.push({id:id,v:gv(id),name:S.players[id].full_name||id,type:'player'});}
-  var myPks=getPicksForRoster(myRoster.roster_id);
-  for(var i=0;i<myPks.length;i++){var pk=myPks[i];if(targetIds.indexOf(pk.key)>=0)continue;assets.push({id:pk.key,v:pk.value,name:pk.label,type:'pick'});}
-  assets=assets.filter(function(a){return a.v>=tv*0.04;});
-  assets.sort(function(a,b){return b.v-a.v;});
-  assets=assets.slice(0,40);
-  var res=[],seen={};
-  function search(curr,idx){
-    if(res.length>=100)return;
-    var cv=0;for(var i=0;i<curr.length;i++)cv+=curr[i].v;
-    if(curr.length>0&&curr.length<=3&&Math.abs(cv-tv)/tv<=TOL){
-      var key=curr.map(function(a){return a.id;}).sort().join(',');
-      if(!seen[key]){seen[key]=true;
-        var rec=[];for(var i=0;i<targetIds.length;i++){var tid=targetIds[i];
-          if(S.picks[tid])rec.push({id:tid,v:S.picks[tid].value,name:S.picks[tid].label,type:'pick'});
-          else rec.push({id:tid,v:gv(tid)||0,name:(S.players[tid]||{}).full_name||tid,type:'player'});}
-        res.push({give:curr.slice(),receive:rec,gv:cv,rv:tv,diff:cv-tv,pct:((cv-tv)/tv*100).toFixed(1)});}}
-    if(curr.length>=3||cv>tv*(1+TOL+0.05))return;
-    for(var i=idx;i<assets.length;i++){curr.push(assets[i]);search(curr,i+1);curr.pop();}
+// Build the receive side (target players/picks) once
+function _buildReceive(targetIds) {
+  var rec = [];
+  for (var i = 0; i < targetIds.length; i++) {
+    var tid = targetIds[i];
+    if (S.picks[tid]) rec.push({id:tid, v:S.picks[tid].value, name:S.picks[tid].label, type:'pick'});
+    else rec.push({id:tid, v:gv(tid)||0, name:(S.players[tid]||{}).full_name||tid, type:'player'});
   }
-  search([],0);
-  res.sort(function(a,b){return Math.abs(a.diff)-Math.abs(b.diff);});
-  return res.slice(0,25);
+  return rec;
+}
+
+// Fisher-Yates shuffle
+function _shuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+// Make an asset object from an ID
+function _mkAsset(id) {
+  if (S.picks[id]) return {id:id, v:S.picks[id].value, name:S.picks[id].label, type:'pick'};
+  var v = gv(id) || 0;
+  return {id:id, v:v, name:(S.players[id]||{}).full_name||id, type:'player'};
+}
+
+function findTrades(myRoster, targetIds, opts) {
+  opts = opts || {};
+  var style = opts.style || 'balanced';
+  var maxAssets = opts.maxAssets || 3;
+  var mustInclude = opts.mustInclude || [];
+  var randomize = !!opts.randomize;
+
+  // Per-style settings
+  var tol, floorPct, poolSize;
+  if (style === 'flexible') { tol = 0.20; floorPct = 0.04; poolSize = 60; }
+  else if (style === 'bigswap') { tol = 0.15; floorPct = 0.40; poolSize = 30; }
+  else { tol = TOL; floorPct = 0.04; poolSize = 40; }
+
+  // Target value
+  var tv = 0;
+  for (var i = 0; i < targetIds.length; i++) {
+    var id = targetIds[i];
+    if (S.picks[id]) tv += S.picks[id].value;
+    else tv += (gv(id) || 0);
+  }
+  if (!tv) return [];
+
+  // Resolve must-include assets
+  var mustAssets = [], mustValue = 0;
+  for (var i = 0; i < mustInclude.length; i++) {
+    var a = _mkAsset(mustInclude[i]);
+    if (a.v > 0) { mustAssets.push(a); mustValue += a.v; }
+  }
+
+  // If must-includes already break the cap, return nothing
+  if (mustAssets.length > maxAssets) return [];
+
+  var rec = _buildReceive(targetIds);
+
+  // Special case: must-includes alone already match target within tolerance
+  // (or overpay) — surface as a single proposal
+  var results = [];
+  if (mustAssets.length > 0 && Math.abs(mustValue - tv) / tv <= tol) {
+    results.push({
+      give: mustAssets.slice(),
+      receive: rec,
+      gv: mustValue, rv: tv,
+      diff: mustValue - tv,
+      pct: ((mustValue - tv) / tv * 100).toFixed(1)
+    });
+  }
+
+  var fillTarget = tv - mustValue;
+  // If user is already overpaying and fill is negative, skip the search
+  // (the lone-proposal above handles it). Otherwise build the asset pool.
+  if (fillTarget > 0) {
+    var assets = [];
+    if (myRoster.players) {
+      for (var i = 0; i < myRoster.players.length; i++) {
+        var id = myRoster.players[i];
+        if (targetIds.indexOf(id) >= 0 || mustInclude.indexOf(id) >= 0) continue;
+        if (!S.players[id] || !gv(id)) continue;
+        assets.push({id:id, v:gv(id), name:S.players[id].full_name||id, type:'player'});
+      }
+    }
+    var myPks = getPicksForRoster(myRoster.roster_id);
+    for (var i = 0; i < myPks.length; i++) {
+      var pk = myPks[i];
+      if (targetIds.indexOf(pk.key) >= 0 || mustInclude.indexOf(pk.key) >= 0) continue;
+      assets.push({id:pk.key, v:pk.value, name:pk.label, type:'pick'});
+    }
+
+    // Floor based on the REMAINING value to fill (not full target)
+    // so big must-includes don't strand small filler picks.
+    var floorVal = fillTarget * floorPct;
+    assets = assets.filter(function(a){ return a.v >= floorVal; });
+    assets.sort(function(a,b){ return b.v - a.v; });
+
+    // Randomize: shuffle within value bands so high-value still bubbles up
+    // but the algorithm explores different combos each press
+    if (randomize) {
+      var bands = [];
+      for (var i = 0; i < assets.length; i += 6) bands.push(assets.slice(i, i+6));
+      for (var i = 0; i < bands.length; i++) _shuffle(bands[i]);
+      assets = [].concat.apply([], bands);
+    }
+    assets = assets.slice(0, poolSize);
+
+    var fillerSlots = maxAssets - mustAssets.length;
+    var seen = {};
+    function search(curr, idx) {
+      if (results.length >= 200) return;
+      var cv = 0;
+      for (var i = 0; i < curr.length; i++) cv += curr[i].v;
+      var totalCv = cv + mustValue;
+      var totalAssets = curr.length + mustAssets.length;
+
+      if (totalAssets > 0 && totalAssets <= maxAssets &&
+          Math.abs(totalCv - tv) / tv <= tol) {
+        var allGive = mustAssets.concat(curr);
+        var key = allGive.map(function(a){return a.id;}).sort().join(',');
+        if (!seen[key]) {
+          seen[key] = true;
+          results.push({
+            give: allGive,
+            receive: rec,
+            gv: totalCv, rv: tv,
+            diff: totalCv - tv,
+            pct: ((totalCv - tv) / tv * 100).toFixed(1)
+          });
+        }
+      }
+      if (curr.length >= fillerSlots) return;
+      if (cv > fillTarget * (1 + tol + 0.05)) return;
+      for (var i = idx; i < assets.length; i++) {
+        curr.push(assets[i]);
+        search(curr, i + 1);
+        curr.pop();
+      }
+    }
+    search([], 0);
+  }
+
+  // Sort: pure balance, OR slightly noisy when randomizing so the user
+  // sees different "good" options each shuffle (not always the same #1)
+  if (randomize) {
+    var jitter = tv * 0.04;
+    results.sort(function(a,b) {
+      return (Math.abs(a.diff) + Math.random()*jitter) -
+             (Math.abs(b.diff) + Math.random()*jitter);
+    });
+  } else {
+    results.sort(function(a,b){ return Math.abs(a.diff) - Math.abs(b.diff); });
+  }
+  return results.slice(0, 25);
 }
 
 // RENDERING
@@ -1093,27 +1293,94 @@ function renderRosters() {
 }
 
 function renderTgtPanel() {
-  var panel=document.getElementById('tgtP');
-  if(!S.tgtRid){panel.classList.add('hidden');return;}panel.classList.remove('hidden');
-  var r=null;for(var i=0;i<S.rosters.length;i++)if(S.rosters[i].roster_id===S.tgtRid){r=S.rosters[i];break;}
-  if(!r)return;
-  document.getElementById('tgtT').textContent='Select from '+userName(r.owner_id);
-  var pl=sortedAssets(r),html='';
-  for(var i=0;i<pl.length;i++){var a=pl[i],sel=S.tgtPids.indexOf(a.id)>=0,b=a.v!==null?vc(a.v):{t:'—',c:'vN'};
-    var sigB = a.type==='player' ? getSignalBadge(a.id) : '';
-    html+='<div class="pr '+(sel?'sel':'')+'" onclick="togTgt(\''+a.id.replace(/'/g,"\\'")+'\')">';
-    html+='<span class="pos pos-'+(a.p.position||'')+'">'+(a.p.position||'??')+'</span>';
-    html+='<span class="nm">'+esc(a.p.full_name||a.id)+sigB+'</span>';
-    html+='<span class="v '+b.c+'">'+b.t+'</span></div>';}
-  document.getElementById('tgtList').innerHTML=html;
-  var tv=0;for(var i=0;i<S.tgtPids.length;i++){var id=S.tgtPids[i];if(S.picks[id])tv+=S.picks[id].value;else tv+=(gv(id)||0);}
-  document.getElementById('tgtVal').textContent=tv?tv.toLocaleString():'—';
-  document.getElementById('tgtSub').textContent='Pick up to 3. Selected: '+S.tgtPids.length;
-  document.getElementById('bTrade').disabled=S.tgtPids.length===0||!S.valsLoaded;
+  var panel = document.getElementById('tgtP');
+  if (!S.tgtRid) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+
+  // --- RIGHT SIDE: target roster ---
+  var r = null;
+  for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].roster_id === S.tgtRid) { r = S.rosters[i]; break; }
+  if (!r) return;
+  document.getElementById('tgtT').textContent = 'From ' + userName(r.owner_id);
+  var pl = sortedAssets(r), html = '';
+  for (var i = 0; i < pl.length; i++) {
+    var a = pl[i], sel = S.tgtPids.indexOf(a.id) >= 0, b = a.v !== null ? vc(a.v) : {t:'—',c:'vN'};
+    var sigB = a.type === 'player' ? getSignalBadge(a.id) : '';
+    html += '<div class="pr ' + (sel?'sel':'') + '" onclick="togTgt(\'' + a.id.replace(/'/g,"\\'") + '\')">';
+    html += '<span class="pos pos-' + (a.p.position||'') + '">' + (a.p.position||'??') + '</span>';
+    html += '<span class="nm">' + esc(a.p.full_name||a.id) + sigB + '</span>';
+    html += '<span class="v ' + b.c + '">' + b.t + '</span></div>';
+  }
+  document.getElementById('tgtList').innerHTML = html;
+  var tv = 0;
+  for (var i = 0; i < S.tgtPids.length; i++) {
+    var id = S.tgtPids[i];
+    if (S.picks[id]) tv += S.picks[id].value; else tv += (gv(id)||0);
+  }
+  document.getElementById('tgtVal').textContent = tv ? tv.toLocaleString() : '—';
+  document.getElementById('tgtSub').textContent = 'Pick up to ' + S.tradeMax + '. Selected: ' + S.tgtPids.length;
+
+  // --- LEFT SIDE: my roster (must-include picker) ---
+  var my = null;
+  for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].roster_id === S.myRid) { my = S.rosters[i]; break; }
+  if (my) {
+    var ml = sortedAssets(my), mhtml = '';
+    for (var i = 0; i < ml.length; i++) {
+      var a = ml[i], sel = S.sendPids.indexOf(a.id) >= 0, b = a.v !== null ? vc(a.v) : {t:'—',c:'vN'};
+      var sigB = a.type === 'player' ? getSignalBadge(a.id) : '';
+      mhtml += '<div class="pr ' + (sel?'sel':'') + '" onclick="togSnd(\'' + a.id.replace(/'/g,"\\'") + '\')">';
+      mhtml += '<span class="pos pos-' + (a.p.position||'') + '">' + (a.p.position||'??') + '</span>';
+      mhtml += '<span class="nm">' + esc(a.p.full_name||a.id) + sigB + '</span>';
+      mhtml += '<span class="v ' + b.c + '">' + b.t + '</span></div>';
+    }
+    document.getElementById('sndList').innerHTML = mhtml;
+    var sv = 0;
+    for (var i = 0; i < S.sendPids.length; i++) {
+      var id = S.sendPids[i];
+      if (S.picks[id]) sv += S.picks[id].value; else sv += (gv(id)||0);
+    }
+    document.getElementById('sndVal').textContent = sv ? sv.toLocaleString() : '—';
+    document.getElementById('sndSub').textContent = S.sendPids.length
+      ? 'Locked: ' + S.sendPids.length + ' — algorithm will fill the rest'
+      : 'Lock in players you want to include (optional)';
+
+    // Update balance bar
+    var bb = document.getElementById('balBar');
+    if (sv > 0 || tv > 0) {
+      bb.style.display = '';
+      document.getElementById('balS').textContent = sv.toLocaleString();
+      document.getElementById('balR').textContent = tv.toLocaleString();
+      var diff = sv - tv;
+      var diffPct = tv > 0 ? (diff/tv*100) : 0;
+      var diffTxt = document.getElementById('balDiffTxt');
+      if (Math.abs(diffPct) < 1 && tv > 0) {
+        diffTxt.textContent = '✓ EVEN';
+        diffTxt.style.color = 'var(--grn)';
+      } else if (diff > 0) {
+        diffTxt.textContent = '+' + diffPct.toFixed(1) + '% (overpay)';
+        diffTxt.style.color = 'var(--red)';
+      } else if (diff < 0) {
+        diffTxt.textContent = diffPct.toFixed(1) + '% (underpay)';
+        diffTxt.style.color = 'var(--amb)';
+      } else {
+        diffTxt.textContent = '—';
+        diffTxt.style.color = 'var(--t3)';
+      }
+      var total = Math.max(sv + tv, 1);
+      document.getElementById('balBarS').style.width = (sv/total*100) + '%';
+      document.getElementById('balBarR').style.width = (tv/total*100) + '%';
+    } else {
+      bb.style.display = 'none';
+    }
+  }
+
+  document.getElementById('bTrade').disabled = S.tgtPids.length === 0 || !S.valsLoaded;
 }
 
 function renderTrades(trades) {
-  document.getElementById('trdSub').textContent='Found '+trades.length+' trade(s) within '+Math.round(TOL*100)+'% tolerance';
+  var styleLabel = S.tradeStyle==='flexible'?'Flexible (±20%)':S.tradeStyle==='bigswap'?'Big Swap (≥40% pieces)':'Balanced (±12%)';
+  var ctx = styleLabel + ' · max ' + S.tradeMax + '/side' + (S.sendPids.length?' · '+S.sendPids.length+' locked from your side':'');
+  document.getElementById('trdSub').textContent = 'Found '+trades.length+' trade(s) — ' + ctx;
   var el=document.getElementById('trdList');
   if(!trades.length){el.innerHTML='<div class="card" style="text-align:center;padding:40px"><div style="font-size:32px;margin-bottom:8px">🤔</div><div style="font-weight:600">No balanced trades found</div></div>';return;}
   var html='';
@@ -2568,17 +2835,61 @@ function countSeasons(trades) {
 }
 
 // INTERACTIONS
-function closeTgtPanel(){S.tgtRid=null;S.tgtPids=[];renderRosters();}
+function closeTgtPanel(){ S.tgtRid=null; S.tgtPids=[]; S.sendPids=[]; renderRosters(); }
 function clickR(rid){
   if(!S.myRid) S.myRid=rid;
-  else if(rid===S.tgtRid){S.tgtRid=null;S.tgtPids=[];} // click same target = deselect
-  else if(rid!==S.myRid){S.tgtRid=rid;S.tgtPids=[];}
+  else if(rid===S.tgtRid){ S.tgtRid=null; S.tgtPids=[]; S.sendPids=[]; }
+  else if(rid!==S.myRid){ S.tgtRid=rid; S.tgtPids=[]; S.sendPids=[]; }
   renderRosters();
-  // Scroll to target panel if we just selected one
-  if(S.tgtRid){var tp=document.getElementById('tgtP');if(tp)tp.scrollIntoView({behavior:'smooth',block:'start'});}
+  if(S.tgtRid){ var tp=document.getElementById('tgtP'); if(tp) tp.scrollIntoView({behavior:'smooth',block:'start'}); }
 }
-function togTgt(id){var i=S.tgtPids.indexOf(id);if(i>=0)S.tgtPids.splice(i,1);else if(S.tgtPids.length<3)S.tgtPids.push(id);renderTgtPanel();}
-function genTrades(){if(!S.valsLoaded)return;var my=null;for(var i=0;i<S.rosters.length;i++)if(S.rosters[i].roster_id===S.myRid){my=S.rosters[i];break;}if(!my||!S.tgtPids.length)return;renderTrades(findTrades(my,S.tgtPids));var tr=document.getElementById('trdResults');if(tr){tr.classList.remove('hidden');tr.scrollIntoView({behavior:'smooth'});}}
+function togTgt(id){
+  var i=S.tgtPids.indexOf(id);
+  if(i>=0) S.tgtPids.splice(i,1);
+  else if(S.tgtPids.length<S.tradeMax) S.tgtPids.push(id);
+  renderTgtPanel();
+}
+function togSnd(id){
+  var i=S.sendPids.indexOf(id);
+  if(i>=0) S.sendPids.splice(i,1);
+  else if(S.sendPids.length<S.tradeMax) S.sendPids.push(id);
+  renderTgtPanel();
+}
+function setTradeStyle(s,el){
+  S.tradeStyle=s;
+  var btns=el.parentElement.querySelectorAll('.sbtn');
+  for(var i=0;i<btns.length;i++) btns[i].classList.remove('on');
+  el.classList.add('on');
+}
+function setTradeMax(n,el){
+  S.tradeMax=n;
+  var btns=el.parentElement.querySelectorAll('.sbtn');
+  for(var i=0;i<btns.length;i++) btns[i].classList.remove('on');
+  el.classList.add('on');
+  // Trim selections if user shrinks the cap
+  if(S.tgtPids.length>n) S.tgtPids=S.tgtPids.slice(0,n);
+  if(S.sendPids.length>n) S.sendPids=S.sendPids.slice(0,n);
+  renderTgtPanel();
+}
+function shuffleTrades(){
+  S.tradeShuffle++;
+  if(S.tgtPids.length) genTrades(true);
+}
+function genTrades(randomize){
+  if(!S.valsLoaded) return;
+  var my=null;
+  for(var i=0;i<S.rosters.length;i++) if(S.rosters[i].roster_id===S.myRid){ my=S.rosters[i]; break; }
+  if(!my||!S.tgtPids.length) return;
+  var trades = findTrades(my, S.tgtPids, {
+    style: S.tradeStyle,
+    maxAssets: S.tradeMax,
+    mustInclude: S.sendPids,
+    randomize: !!randomize
+  });
+  renderTrades(trades);
+  var tr=document.getElementById('trdResults');
+  if(tr){ tr.classList.remove('hidden'); tr.scrollIntoView({behavior:'smooth'}); }
+}
 function setS(v,el){S.season=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 function setQB(v,el){S.numQbs=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 
