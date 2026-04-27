@@ -1011,13 +1011,23 @@ function findTrades(myRoster, targetIds, opts) {
   var mustInclude = opts.mustInclude || [];
   var randomize = !!opts.randomize;
 
-  // Per-style settings
+  // ───────────────────────────────────────────────────────────────
+  //  STYLE PRESETS
+  //  tol:      what counts as "balanced" for badging/sorting.
+  //  floorPct: minimum asset value (as fraction of target value).
+  //  poolSize: how many candidate assets we feed the search.
+  //
+  //  IMPORTANT: tol no longer filters the search. It only labels
+  //  results as "balanced" vs "near-miss" after the fact. The search
+  //  always enumerates the closest possible combos so the user
+  //  gets options even when their roster can't match perfectly.
+  // ───────────────────────────────────────────────────────────────
   var tol, floorPct, poolSize;
-  if (style === 'flexible') { tol = 0.20; floorPct = 0.04; poolSize = 60; }
-  else if (style === 'bigswap') { tol = 0.15; floorPct = 0.40; poolSize = 30; }
-  else { tol = TOL; floorPct = 0.04; poolSize = 40; }
+  if (style === 'flexible')      { tol = 0.20; floorPct = 0.02; poolSize = 70; }
+  else if (style === 'bigswap')  { tol = 0.15; floorPct = 0.40; poolSize = 35; }
+  else /* balanced */            { tol = TOL;  floorPct = 0.02; poolSize = 50; }
 
-  // Target value
+  // Compute target value (what the user wants to receive)
   var tv = 0;
   for (var i = 0; i < targetIds.length; i++) {
     var id = targetIds[i];
@@ -1026,126 +1036,115 @@ function findTrades(myRoster, targetIds, opts) {
   }
   if (!tv) return [];
 
-  // Resolve must-include assets
+  // Resolve must-include assets (locked from sender's side)
   var mustAssets = [], mustValue = 0;
   for (var i = 0; i < mustInclude.length; i++) {
     var a = _mkAsset(mustInclude[i]);
     if (a.v > 0) { mustAssets.push(a); mustValue += a.v; }
   }
-
-  // If must-includes already break the cap, return nothing
   if (mustAssets.length > maxAssets) return [];
 
   var rec = _buildReceive(targetIds);
 
-  // Special case: must-includes alone already match target within tolerance
-  // (or overpay) — surface as a single proposal
-  var results = [];
-  if (mustAssets.length > 0 && Math.abs(mustValue - tv) / tv <= tol) {
-    results.push({
-      give: mustAssets.slice(),
-      receive: rec,
-      gv: mustValue, rv: tv,
-      diff: mustValue - tv,
-      pct: ((mustValue - tv) / tv * 100).toFixed(1)
-    });
-  }
-
-  var fillTarget = tv - mustValue;
-  // If user is already overpaying and fill is negative, skip the search
-  // (the lone-proposal above handles it). Otherwise build the asset pool.
-  if (fillTarget > 0) {
-    var assets = [];
-    if (myRoster.players) {
-      for (var i = 0; i < myRoster.players.length; i++) {
-        var id = myRoster.players[i];
-        if (targetIds.indexOf(id) >= 0 || mustInclude.indexOf(id) >= 0) continue;
-        if (!S.players[id] || !gv(id)) continue;
-        assets.push({id:id, v:gv(id), name:S.players[id].full_name||id, type:'player'});
-      }
-    }
-    var myPks = getPicksForRoster(myRoster.roster_id);
-    for (var i = 0; i < myPks.length; i++) {
-      var pk = myPks[i];
-      if (targetIds.indexOf(pk.key) >= 0 || mustInclude.indexOf(pk.key) >= 0) continue;
-      assets.push({id:pk.key, v:pk.value, name:pk.label, type:'pick'});
-    }
-
-    // Floor based on the REMAINING value to fill (not full target)
-    // so big must-includes don't strand small filler picks.
-    var floorVal = fillTarget * floorPct;
-    assets = assets.filter(function(a){ return a.v >= floorVal; });
-    assets.sort(function(a,b){ return b.v - a.v; });
-
-    // Randomize: shuffle within value bands so high-value still bubbles up
-    // but the algorithm explores different combos each press
-    if (randomize) {
-      var bands = [];
-      for (var i = 0; i < assets.length; i += 6) bands.push(assets.slice(i, i+6));
-      for (var i = 0; i < bands.length; i++) _shuffle(bands[i]);
-      assets = [].concat.apply([], bands);
-    }
-    assets = assets.slice(0, poolSize);
-
-    var fillerSlots = maxAssets - mustAssets.length;
-    var seen = {};
-    var nearMisses = []; // outside tolerance but within 2x — surfaced as fallback
-    var nearTol = tol * 2; // expanded window for near-misses
-    function search(curr, idx) {
-      if (results.length >= 200 && nearMisses.length >= 80) return;
-      var cv = 0;
-      for (var i = 0; i < curr.length; i++) cv += curr[i].v;
-      var totalCv = cv + mustValue;
-      var totalAssets = curr.length + mustAssets.length;
-
-      if (totalAssets > 0 && totalAssets <= maxAssets) {
-        var diffRatio = Math.abs(totalCv - tv) / tv;
-        if (diffRatio <= nearTol) {
-          var allGive = mustAssets.concat(curr);
-          var key = allGive.map(function(a){return a.id;}).sort().join(',');
-          if (!seen[key]) {
-            seen[key] = true;
-            var rec2 = {
-              give: allGive,
-              receive: rec,
-              gv: totalCv, rv: tv,
-              diff: totalCv - tv,
-              pct: ((totalCv - tv) / tv * 100).toFixed(1)
-            };
-            if (diffRatio <= tol) {
-              results.push(rec2);
-            } else if (nearMisses.length < 80) {
-              rec2.nearMiss = true;
-              nearMisses.push(rec2);
-            }
-          }
-        }
-      }
-      if (curr.length >= fillerSlots) return;
-      // Expanded prune so near-misses can be discovered
-      if (cv > fillTarget * (1 + nearTol + 0.05)) return;
-      for (var i = idx; i < assets.length; i++) {
-        curr.push(assets[i]);
-        search(curr, i + 1);
-        curr.pop();
-      }
-    }
-    search([], 0);
-
-    // If we don't have enough exact matches, supplement with closest near-misses.
-    // Always show at least 5 options when the search found anything at all.
-    if (results.length < 5 && nearMisses.length > 0) {
-      nearMisses.sort(function(a,b){ return Math.abs(a.diff) - Math.abs(b.diff); });
-      var slotsToFill = Math.max(5 - results.length, 3);
-      results = results.concat(nearMisses.slice(0, slotsToFill));
+  // Build the asset pool from sender's roster + picks (excluding locked ones)
+  var assets = [];
+  if (myRoster.players) {
+    for (var i = 0; i < myRoster.players.length; i++) {
+      var id = myRoster.players[i];
+      if (targetIds.indexOf(id) >= 0 || mustInclude.indexOf(id) >= 0) continue;
+      if (!S.players[id] || !gv(id)) continue;
+      assets.push({id:id, v:gv(id), name:S.players[id].full_name||id, type:'player'});
     }
   }
+  var myPks = getPicksForRoster(myRoster.roster_id);
+  for (var i = 0; i < myPks.length; i++) {
+    var pk = myPks[i];
+    if (targetIds.indexOf(pk.key) >= 0 || mustInclude.indexOf(pk.key) >= 0) continue;
+    assets.push({id:pk.key, v:pk.value, name:pk.label, type:'pick'});
+  }
 
-  // Sort: exact-tolerance matches always come first, then near-misses.
-  // Within each group, by tightest balance (or with jitter when randomizing).
+  // Floor — keeps the search space tractable without excluding useful sweeteners.
+  // Big Swap mode keeps a strict 40% floor (only premium pieces). Other modes
+  // use a tiny floor (2% of target value or 50 points, whichever is bigger).
+  var floorVal;
+  if (style === 'bigswap') {
+    var fillTarget = Math.max(tv - mustValue, 1);
+    floorVal = fillTarget * floorPct;
+  } else {
+    floorVal = Math.max(tv * floorPct, 50);
+  }
+  assets = assets.filter(function(a){ return a.v >= floorVal; });
+  assets.sort(function(a,b){ return b.v - a.v; });
+
+  // Randomize via banded shuffle — high-value still bubbles up, but exact
+  // ordering changes so the DFS explores different combos each shuffle.
   if (randomize) {
-    var jitter = tv * 0.04;
-    results.sort(function(a,b) {
+    var bands = [];
+    for (var i = 0; i < assets.length; i += 6) bands.push(assets.slice(i, i+6));
+    for (var i = 0; i < bands.length; i++) _shuffle(bands[i]);
+    assets = [].concat.apply([], bands);
+  }
+  assets = assets.slice(0, poolSize);
+
+  // ───────────────────────────────────────────────────────────────
+  //  SEARCH: enumerate combinations, score by closeness to target
+  //
+  //  No tolerance gate during search. Every valid combination is a
+  //  candidate; we sort them all and return the top 25 closest.
+  //  This guarantees that if any reasonable trade exists in the
+  //  user's roster, the algorithm finds it.
+  // ───────────────────────────────────────────────────────────────
+  var fillerSlots = maxAssets - mustAssets.length;
+  var combos = [];
+  var seen = {};
+  var MAX_COMBOS = 1500;  // safety cap — prevents browser lockup on huge pools
+
+  function search(curr, idx) {
+    if (combos.length >= MAX_COMBOS) return;
+    var cv = 0;
+    for (var i = 0; i < curr.length; i++) cv += curr[i].v;
+    var totalCv = cv + mustValue;
+    var totalAssets = curr.length + mustAssets.length;
+
+    // Record this combination if it has at least one asset
+    if (totalAssets > 0 && totalAssets <= maxAssets) {
+      var allGive = mustAssets.concat(curr);
+      var key = allGive.map(function(a){return a.id;}).sort().join(',');
+      if (!seen[key]) {
+        seen[key] = true;
+        var diff = totalCv - tv;
+        var diffRatio = Math.abs(diff) / tv;
+        combos.push({
+          give: allGive,
+          receive: rec,
+          gv: totalCv, rv: tv,
+          diff: diff,
+          diffRatio: diffRatio,
+          pct: ((diff / tv) * 100).toFixed(1),
+          nearMiss: diffRatio > tol  // tagged for UI styling, not filtering
+        });
+      }
+    }
+
+    if (curr.length >= fillerSlots) return;
+    // Generous prune: stop expanding only when filler alone would push the
+    // total to 2x target (anything beyond that is a wildly bad trade).
+    // This is much more permissive than the old prune so we don't miss combos.
+    if (cv > tv * 2) return;
+
+    for (var i = idx; i < assets.length; i++) {
+      curr.push(assets[i]);
+      search(curr, i + 1);
+      curr.pop();
+    }
+  }
+  search([], 0);
+
+  // Sort: balanced (within tol) come first, then near-misses, both by closeness.
+  // Randomize adds jitter within each group so shuffle produces variety.
+  if (randomize) {
+    var jitter = tv * 0.03;
+    combos.sort(function(a,b) {
       var aGroup = a.nearMiss ? 1 : 0;
       var bGroup = b.nearMiss ? 1 : 0;
       if (aGroup !== bGroup) return aGroup - bGroup;
@@ -1153,14 +1152,15 @@ function findTrades(myRoster, targetIds, opts) {
              (Math.abs(b.diff) + Math.random()*jitter);
     });
   } else {
-    results.sort(function(a,b) {
+    combos.sort(function(a,b) {
       var aGroup = a.nearMiss ? 1 : 0;
       var bGroup = b.nearMiss ? 1 : 0;
       if (aGroup !== bGroup) return aGroup - bGroup;
       return Math.abs(a.diff) - Math.abs(b.diff);
     });
   }
-  return results.slice(0, 25);
+
+  return combos.slice(0, 25);
 }
 
 // RENDERING
