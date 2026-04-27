@@ -1089,30 +1089,41 @@ function findTrades(myRoster, targetIds, opts) {
 
     var fillerSlots = maxAssets - mustAssets.length;
     var seen = {};
+    var nearMisses = []; // outside tolerance but within 2x — surfaced as fallback
+    var nearTol = tol * 2; // expanded window for near-misses
     function search(curr, idx) {
-      if (results.length >= 200) return;
+      if (results.length >= 200 && nearMisses.length >= 80) return;
       var cv = 0;
       for (var i = 0; i < curr.length; i++) cv += curr[i].v;
       var totalCv = cv + mustValue;
       var totalAssets = curr.length + mustAssets.length;
 
-      if (totalAssets > 0 && totalAssets <= maxAssets &&
-          Math.abs(totalCv - tv) / tv <= tol) {
-        var allGive = mustAssets.concat(curr);
-        var key = allGive.map(function(a){return a.id;}).sort().join(',');
-        if (!seen[key]) {
-          seen[key] = true;
-          results.push({
-            give: allGive,
-            receive: rec,
-            gv: totalCv, rv: tv,
-            diff: totalCv - tv,
-            pct: ((totalCv - tv) / tv * 100).toFixed(1)
-          });
+      if (totalAssets > 0 && totalAssets <= maxAssets) {
+        var diffRatio = Math.abs(totalCv - tv) / tv;
+        if (diffRatio <= nearTol) {
+          var allGive = mustAssets.concat(curr);
+          var key = allGive.map(function(a){return a.id;}).sort().join(',');
+          if (!seen[key]) {
+            seen[key] = true;
+            var rec2 = {
+              give: allGive,
+              receive: rec,
+              gv: totalCv, rv: tv,
+              diff: totalCv - tv,
+              pct: ((totalCv - tv) / tv * 100).toFixed(1)
+            };
+            if (diffRatio <= tol) {
+              results.push(rec2);
+            } else if (nearMisses.length < 80) {
+              rec2.nearMiss = true;
+              nearMisses.push(rec2);
+            }
+          }
         }
       }
       if (curr.length >= fillerSlots) return;
-      if (cv > fillTarget * (1 + tol + 0.05)) return;
+      // Expanded prune so near-misses can be discovered
+      if (cv > fillTarget * (1 + nearTol + 0.05)) return;
       for (var i = idx; i < assets.length; i++) {
         curr.push(assets[i]);
         search(curr, i + 1);
@@ -1120,18 +1131,34 @@ function findTrades(myRoster, targetIds, opts) {
       }
     }
     search([], 0);
+
+    // If we don't have enough exact matches, supplement with closest near-misses.
+    // Always show at least 5 options when the search found anything at all.
+    if (results.length < 5 && nearMisses.length > 0) {
+      nearMisses.sort(function(a,b){ return Math.abs(a.diff) - Math.abs(b.diff); });
+      var slotsToFill = Math.max(5 - results.length, 3);
+      results = results.concat(nearMisses.slice(0, slotsToFill));
+    }
   }
 
-  // Sort: pure balance, OR slightly noisy when randomizing so the user
-  // sees different "good" options each shuffle (not always the same #1)
+  // Sort: exact-tolerance matches always come first, then near-misses.
+  // Within each group, by tightest balance (or with jitter when randomizing).
   if (randomize) {
     var jitter = tv * 0.04;
     results.sort(function(a,b) {
+      var aGroup = a.nearMiss ? 1 : 0;
+      var bGroup = b.nearMiss ? 1 : 0;
+      if (aGroup !== bGroup) return aGroup - bGroup;
       return (Math.abs(a.diff) + Math.random()*jitter) -
              (Math.abs(b.diff) + Math.random()*jitter);
     });
   } else {
-    results.sort(function(a,b){ return Math.abs(a.diff) - Math.abs(b.diff); });
+    results.sort(function(a,b) {
+      var aGroup = a.nearMiss ? 1 : 0;
+      var bGroup = b.nearMiss ? 1 : 0;
+      if (aGroup !== bGroup) return aGroup - bGroup;
+      return Math.abs(a.diff) - Math.abs(b.diff);
+    });
   }
   return results.slice(0, 25);
 }
@@ -1380,25 +1407,61 @@ function renderTgtPanel() {
 function renderTrades(trades) {
   var styleLabel = S.tradeStyle==='flexible'?'Flexible (±20%)':S.tradeStyle==='bigswap'?'Big Swap (≥40% pieces)':'Balanced (±12%)';
   var ctx = styleLabel + ' · max ' + S.tradeMax + '/side' + (S.sendPids.length?' · '+S.sendPids.length+' locked from your side':'');
-  document.getElementById('trdSub').textContent = 'Found '+trades.length+' trade(s) — ' + ctx;
-  var el=document.getElementById('trdList');
-  if(!trades.length){el.innerHTML='<div class="card" style="text-align:center;padding:40px"><div style="font-size:32px;margin-bottom:8px">🤔</div><div style="font-weight:600">No balanced trades found</div></div>';return;}
-  var html='';
-  for(var i=0;i<trades.length;i++){var t=trades[i];
-    var pa=Math.abs(parseFloat(t.pct));
-    var pc=pa<3?'var(--grn)':pa<8?'var(--amb)':'var(--red)';
-    var pb=pa<3?'var(--grn2)':pa<8?'var(--amb2)':'var(--red2)';
-    html+='<div class="tc" style="animation:fadeUp .3s ease-out '+(i*0.04)+'s both">';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bdr)">';
-    html+='<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--t3)">TRADE #'+(i+1)+'</span>';
-    html+='<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;font-family:\'DM Mono\',monospace;background:'+pb+';color:'+pc+'">'+(parseFloat(t.pct)>0?'+':'')+t.pct+'%</span></div>';
-    html+='<div class="ts"><div><div class="lbl" style="color:var(--red);margin-bottom:8px">You Send</div>';
-    for(var j=0;j<t.give.length;j++)html+=pRow(t.give[j]);
-    html+='<div style="margin-top:8px;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:500;color:var(--red);text-align:right;padding-right:10px">'+t.gv.toLocaleString()+'</div></div>';
-    html+='<div class="ta">⇄</div><div><div class="lbl" style="color:var(--grn);margin-bottom:8px">You Get</div>';
-    for(var j=0;j<t.receive.length;j++)html+=pRow(t.receive[j]);
-    html+='<div style="margin-top:8px;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:500;color:var(--grn);text-align:right;padding-right:10px">'+t.rv.toLocaleString()+'</div></div></div></div>';}
-  el.innerHTML=html;
+  // Count exact vs near-miss
+  var exactN = 0, nearN = 0;
+  for (var i = 0; i < trades.length; i++) { if (trades[i].nearMiss) nearN++; else exactN++; }
+  var subTxt = 'Found '+exactN+' balanced trade(s) — ' + ctx;
+  if (nearN > 0) subTxt += ' · ' + nearN + ' near-miss option(s) shown below';
+  document.getElementById('trdSub').textContent = subTxt;
+
+  var el = document.getElementById('trdList');
+  if (!trades.length) {
+    var hint = '';
+    if (S.tradeStyle === 'balanced') {
+      hint = '<button class="btn btn-g btn-s" onclick="setTradeStyle(\'flexible\',document.querySelector(\'#styleTog .sbtn:nth-child(2)\'));genTrades();" style="margin-top:14px">Try Flexible mode (±20%) →</button>';
+    } else if (S.tradeStyle === 'bigswap') {
+      hint = '<button class="btn btn-g btn-s" onclick="setTradeStyle(\'flexible\',document.querySelector(\'#styleTog .sbtn:nth-child(2)\'));genTrades();" style="margin-top:14px">Try Flexible mode instead →</button>';
+    }
+    var lockedHint = S.sendPids.length
+      ? '<div style="font-size:11px;color:var(--t3);margin-top:8px">You have '+S.sendPids.length+' player(s) locked on your side. Try unlocking them or selecting fewer.</div>'
+      : '';
+    el.innerHTML = '<div class="card" style="text-align:center;padding:40px">'
+      + '<div style="font-size:32px;margin-bottom:8px">🤔</div>'
+      + '<div style="font-weight:600;margin-bottom:6px">No trades found in this value range</div>'
+      + '<div style="font-size:12px;color:var(--t2)">Your locked picks/players don\'t combine to anything close to the target value.</div>'
+      + lockedHint + hint
+      + '</div>';
+    return;
+  }
+
+  // If we have near-misses but no exact matches, show a banner
+  var html = '';
+  if (exactN === 0 && nearN > 0) {
+    html += '<div class="card" style="background:var(--amb2);border-color:rgba(255,215,64,0.3);padding:12px 16px;margin-bottom:12px;font-size:12px;color:var(--t1);line-height:1.5">'
+      + '<strong style="color:var(--amb)">⚠ No exact ±'+(S.tradeStyle==='flexible'?20:S.tradeStyle==='bigswap'?15:12)+'% matches.</strong> '
+      + 'Showing closest options outside tolerance. Switch to <strong>Flexible</strong> mode for more matches, or adjust your locked players.'
+      + '</div>';
+  }
+
+  for (var i = 0; i < trades.length; i++) {
+    var t = trades[i];
+    var pa = Math.abs(parseFloat(t.pct));
+    var pc = pa<3?'var(--grn)':pa<8?'var(--amb)':'var(--red)';
+    var pb = pa<3?'var(--grn2)':pa<8?'var(--amb2)':'var(--red2)';
+    var nmStyle = t.nearMiss ? ';border-color:rgba(255,215,64,0.35);background:rgba(255,215,64,0.03)' : '';
+    var nmBadge = t.nearMiss ? '<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:var(--amb2);color:var(--amb);margin-left:8px;letter-spacing:.04em">NEAR-MISS</span>' : '';
+    html += '<div class="tc" style="animation:fadeUp .3s ease-out '+(i*0.04)+'s both'+nmStyle+'">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bdr)">';
+    html += '<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--t3)">TRADE #'+(i+1)+nmBadge+'</span>';
+    html += '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;font-family:\'DM Mono\',monospace;background:'+pb+';color:'+pc+'">'+(parseFloat(t.pct)>0?'+':'')+t.pct+'%</span></div>';
+    html += '<div class="ts"><div><div class="lbl" style="color:var(--red);margin-bottom:8px">You Send</div>';
+    for (var j = 0; j < t.give.length; j++) html += pRow(t.give[j]);
+    html += '<div style="margin-top:8px;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:500;color:var(--red);text-align:right;padding-right:10px">'+t.gv.toLocaleString()+'</div></div>';
+    html += '<div class="ta">⇄</div><div><div class="lbl" style="color:var(--grn);margin-bottom:8px">You Get</div>';
+    for (var j = 0; j < t.receive.length; j++) html += pRow(t.receive[j]);
+    html += '<div style="margin-top:8px;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:500;color:var(--grn);text-align:right;padding-right:10px">'+t.rv.toLocaleString()+'</div></div></div></div>';
+  }
+  el.innerHTML = html;
 }
 function pRow(a){var pos=a.type==='pick'?'PICK':((S.players[a.id]||{}).position||'??');
   var sigB = a.type==='player' ? getSignalBadge(a.id) : '';
