@@ -235,6 +235,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
         <div style="font-size:10px;color:var(--t3);margin-top:10px;line-height:1.5" id="styleHelp">
           <strong style="color:var(--t2)">Balanced:</strong> tight ±12% match. <strong style="color:var(--t2)">Flexible:</strong> ±20%, more options. <strong style="color:var(--t2)">Big Swap:</strong> only proposes trades where every asset is at least 40% of target value — surfaces star-for-star deals.
         </div>
+        <div id="tradeNeedChips" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid var(--bdr)"></div>
       </div>
     </div>
 
@@ -1044,12 +1045,38 @@ function _mkAsset(id) {
   return {id:id, v:v, name:(S.players[id]||{}).full_name||id, type:'player'};
 }
 
+function getWeakPositions(rosterId) {
+  var positions = ['QB','RB','WR','TE'];
+  var N = S.rosters.length;
+  var posVals = {};
+  for (var i = 0; i < S.rosters.length; i++) {
+    var r = S.rosters[i], pv = {QB:0,RB:0,WR:0,TE:0};
+    if (r.players) for (var j = 0; j < r.players.length; j++) {
+      var id = r.players[j], p = S.players[id], v = gv(id);
+      if (p && REL_POS.has(p.position) && v) pv[p.position] += v;
+    }
+    posVals[r.roster_id] = pv;
+  }
+  var myPV = posVals[rosterId] || {};
+  var weak = [];
+  for (var pi = 0; pi < positions.length; pi++) {
+    var pos = positions[pi], rank = 1;
+    for (var i = 0; i < S.rosters.length; i++) {
+      if (S.rosters[i].roster_id !== rosterId && (posVals[S.rosters[i].roster_id][pos]||0) > (myPV[pos]||0)) rank++;
+    }
+    if (rank > Math.ceil(N * 0.6)) weak.push(pos);
+  }
+  return weak;
+}
+
 function findTrades(myRoster, targetIds, opts) {
   opts = opts || {};
   var style = opts.style || 'balanced';
   var maxAssets = opts.maxAssets || 3;
   var mustInclude = opts.mustInclude || [];
   var randomize = !!opts.randomize;
+  var myNeeds = opts.myNeeds || [];
+  var theirNeeds = opts.theirNeeds || [];
 
   // ───────────────────────────────────────────────────────────────
   //  STYLE PRESETS
@@ -1154,6 +1181,17 @@ function findTrades(myRoster, targetIds, opts) {
         seen[key] = true;
         var diff = totalCv - tv;
         var diffRatio = Math.abs(diff) / tv;
+        var needScore = 0;
+        if (myNeeds.length || theirNeeds.length) {
+          for (var ni = 0; ni < allGive.length; ni++) {
+            var gp = S.players[allGive[ni].id];
+            if (gp && theirNeeds.indexOf(gp.position) >= 0) needScore += 2;
+          }
+          for (var ni = 0; ni < rec.length; ni++) {
+            var rp = S.players[rec[ni].id];
+            if (rp && myNeeds.indexOf(rp.position) >= 0) needScore += 2;
+          }
+        }
         combos.push({
           give: allGive,
           receive: rec,
@@ -1161,7 +1199,8 @@ function findTrades(myRoster, targetIds, opts) {
           diff: diff,
           diffRatio: diffRatio,
           pct: ((diff / tv) * 100).toFixed(1),
-          nearMiss: diffRatio > tol  // tagged for UI styling, not filtering
+          nearMiss: diffRatio > tol,
+          needScore: needScore
         });
       }
     }
@@ -1188,6 +1227,7 @@ function findTrades(myRoster, targetIds, opts) {
       var aGroup = a.nearMiss ? 1 : 0;
       var bGroup = b.nearMiss ? 1 : 0;
       if (aGroup !== bGroup) return aGroup - bGroup;
+      if (b.needScore !== a.needScore) return b.needScore - a.needScore;
       return (Math.abs(a.diff) + Math.random()*jitter) -
              (Math.abs(b.diff) + Math.random()*jitter);
     });
@@ -1196,6 +1236,7 @@ function findTrades(myRoster, targetIds, opts) {
       var aGroup = a.nearMiss ? 1 : 0;
       var bGroup = b.nearMiss ? 1 : 0;
       if (aGroup !== bGroup) return aGroup - bGroup;
+      if (b.needScore !== a.needScore) return b.needScore - a.needScore;
       return Math.abs(a.diff) - Math.abs(b.diff);
     });
   }
@@ -2970,14 +3011,36 @@ function shuffleTrades(){
 }
 function genTrades(randomize){
   if(!S.valsLoaded) return;
-  var my=null;
-  for(var i=0;i<S.rosters.length;i++) if(S.rosters[i].roster_id===S.myRid){ my=S.rosters[i]; break; }
+  var my=null, tgt=null;
+  for(var i=0;i<S.rosters.length;i++){
+    if(S.rosters[i].roster_id===S.myRid) my=S.rosters[i];
+    if(S.rosters[i].roster_id===S.tgtRid) tgt=S.rosters[i];
+  }
   if(!my||!S.tgtPids.length) return;
+
+  var myNeeds = getWeakPositions(S.myRid);
+  var theirNeeds = tgt ? getWeakPositions(S.tgtRid) : [];
+
+  // Show need chips in UI
+  var needEl = document.getElementById('tradeNeedChips');
+  if (needEl) {
+    var chipHtml = '';
+    if (myNeeds.length) chipHtml += '<span style="font-size:10px;color:var(--t3)">You need: </span>'
+      + myNeeds.map(function(p){ return '<span class="pos pos-'+p+'" style="font-size:9px;padding:1px 5px">'+p+'</span>'; }).join(' ');
+    if (myNeeds.length && theirNeeds.length) chipHtml += '<span style="color:var(--t3);margin:0 6px">·</span>';
+    if (theirNeeds.length) chipHtml += '<span style="font-size:10px;color:var(--t3)">They need: </span>'
+      + theirNeeds.map(function(p){ return '<span class="pos pos-'+p+'" style="font-size:9px;padding:1px 5px">'+p+'</span>'; }).join(' ');
+    needEl.innerHTML = chipHtml;
+    needEl.style.display = chipHtml ? 'flex' : 'none';
+  }
+
   var trades = findTrades(my, S.tgtPids, {
     style: S.tradeStyle,
     maxAssets: S.tradeMax,
     mustInclude: S.sendPids,
-    randomize: !!randomize
+    randomize: !!randomize,
+    myNeeds: myNeeds,
+    theirNeeds: theirNeeds
   });
   renderTrades(trades);
   var tr=document.getElementById('trdResults');
