@@ -73,6 +73,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div class="logo">D</div>
     <div><div style="font-size:17px;font-weight:800;letter-spacing:-.03em">Dynasty Trade Finder</div><div style="font-size:11px;color:var(--t3);font-weight:500;margin-top:1px">Sleeper + FantasyCalc Values</div></div>
     <div class="hdr-r">
+      <button class="btn btn-o btn-s hidden" id="bswl" onclick="switchLeague()">⇄ Switch League</button>
       <button class="btn btn-o btn-s hidden" id="brst" onclick="resetApp()">Reset</button>
     </div>
   </div>
@@ -450,6 +451,8 @@ async function doSelectLeague(leagueId) {
   document.getElementById('fBar').style.width = '5%';
   document.getElementById('rosT').textContent = league.name;
   document.getElementById('rosSub').textContent = 'Loading...';
+  var bswl=document.getElementById('bswl');
+  if(bswl) bswl.textContent='⇄ '+league.name;
 
   try {
     addLog(log, 'Loading rosters...', 'in');
@@ -2975,6 +2978,8 @@ function go(k){
     }
     var rst=document.getElementById('brst');
     if(rst) rst.classList.toggle('hidden',k==='con');
+    var bswl=document.getElementById('bswl');
+    if(bswl) bswl.classList.toggle('hidden',k==='con'||k==='lea'||!S.leagues.length);
     if(k==='ros'&&S.valsLoaded){try{renderRosters();}catch(e){console.error(e);}}
     if(k==='pck'&&S.valsLoaded){try{renderPickEditorPage();}catch(e){console.error(e);}}
     window.scrollTo(0,0);
@@ -2982,6 +2987,14 @@ function go(k){
     console.error('go() error:',e);
     var nav2=document.getElementById('navBar');if(nav2)nav2.style.display='block';
   }
+}
+function switchLeague(){
+  S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.sendPids=[];
+  S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;
+  S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;
+  document.getElementById('fetchP').classList.add('hidden');
+  renderLeagues();
+  go('lea');
 }
 function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
 </script>
