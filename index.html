@@ -761,8 +761,8 @@ function buildPickAssets(log) {
       }
     } else {
       missed++;
-      if (tpSeason === 2026 && log) {
-        addLog(log, '  ⚠ MISSED: 2026 R' + tpRound + ' roster_id=' + tpOrigRid + ' (' + getOwnerName(tpOrigRid) + ') → owner_id=' + tpNewOwner + ' (' + getOwnerName(tpNewOwner) + ')', 'er');
+      if (log && draftStatusByYear[tpSeason] !== 'complete') {
+        addLog(log, '  ⚠ MISSED: ' + tpSeason + ' R' + tpRound + ' roster_id=' + tpOrigRid + ' (' + getOwnerName(tpOrigRid) + ') → owner_id=' + tpNewOwner + ' (' + getOwnerName(tpNewOwner) + ')', 'er');
       }
     }
   }
