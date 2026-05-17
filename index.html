@@ -1511,7 +1511,7 @@ function openMomentum() {
 
 async function loadPredictions() {
   try {
-    var data = await fetchJSON('data/predictions.json', true);
+    var data = await fetchJSON('data/predictions.json?_t=' + Date.now(), true);
     if (data && data.players && Object.keys(data.players).length > 0) {
       S.predictions = data;
       var el = document.getElementById('momSub');
