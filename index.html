@@ -86,6 +86,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <button class="navtab" id="nav-reb" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
       <button class="navtab" id="nav-hist" onclick="openHistory()">📊 History</button>
       <button class="navtab" id="nav-pck" onclick="go('pck')">📝 Picks</button>
+      <button class="navtab" id="nav-h2h" onclick="openH2H()">⚔️ H2H</button>
     </div>
   </div>
 
@@ -324,6 +325,30 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div id="rebTrades" style="margin-bottom:16px"></div>
   </div>
 
+  <!-- HEAD-TO-HEAD RECORDS -->
+  <div id="s-h2h" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">⚔️ Head-to-Head Records</div>
+      <div style="font-size:13px;color:var(--t2)" id="h2hSub">Your record vs every manager across all leagues and seasons.</div>
+    </div>
+    <div id="h2hLoading" class="hidden">
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div class="spin"></div>
+          <div style="font-size:13px;font-weight:600" id="h2hStat">Loading...</div>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;margin-bottom:10px">
+          <div id="h2hBar" style="height:100%;width:0%;background:var(--grn);border-radius:3px;transition:width .3s"></div>
+        </div>
+        <div id="h2hLog" style="font-size:10px;font-family:'DM Mono',monospace;max-height:140px;overflow-y:auto;color:var(--t3)"></div>
+      </div>
+    </div>
+    <div id="h2hContent" class="hidden">
+      <div id="h2hSummary" style="margin-bottom:16px"></div>
+      <div id="h2hList"></div>
+    </div>
+  </div>
+
   <div style="margin-top:40px;padding:16px 0;border-top:1px solid var(--bdr);text-align:center;font-size:10px;color:var(--t3);line-height:1.8">
     Values from <a href="https://fantasycalc.com" target="_blank" style="color:var(--grn)">FantasyCalc</a> (free, no key). Rosters from <a href="https://docs.sleeper.com" target="_blank" style="color:var(--blu)">Sleeper API</a>.<br>
     2025 pick slots from confirmed Sleeper draft order. 2026+ pick positions projected by roster strength — use 📝 Edit Picks to correct.
@@ -332,7 +357,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 
 <script>
 var S = {
-  season:'2026', numQbs:2, username:'', userId:null, leagues:[], league:null,
+  season:'2026', numQbs:2, username:'', userId:null, leagues:[], league:null, h2hData:null, h2hLoaded:false,
   rosters:[], users:[], players:{}, playersLoaded:false,
   myRid:null, tgtRid:null, tgtPids:[],
   vals:{}, picks:{}, pickVals:{}, valsLoaded:false,
@@ -2961,7 +2986,7 @@ function genTrades(randomize){
 function setS(v,el){S.season=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 function setQB(v,el){S.numQbs=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 
-var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',mom:'s-mom',hist:'s-hist',pck:'s-pck',reb:'s-reb'};
+var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',mom:'s-mom',hist:'s-hist',pck:'s-pck',reb:'s-reb',h2h:'s-h2h'};
 var STEP_IDX={con:0,lea:1,ros:2,mom:3,hist:4,pck:5,reb:6};
 function go(k){
   try{
@@ -2972,8 +2997,8 @@ function go(k){
     }
     var nav=document.getElementById('navBar');
     if(nav) nav.style.display=(k!=='con'&&k!=='lea')?'block':'none';
-    var tabs=['nav-ros','nav-mom','nav-reb','nav-hist','nav-pck'];
-    var tabMap={ros:'nav-ros',mom:'nav-mom',reb:'nav-reb',hist:'nav-hist',pck:'nav-pck'};
+    var tabs=['nav-ros','nav-mom','nav-reb','nav-hist','nav-pck','nav-h2h'];
+    var tabMap={ros:'nav-ros',mom:'nav-mom',reb:'nav-reb',hist:'nav-hist',pck:'nav-pck',h2h:'nav-h2h'};
     for(var i=0;i<tabs.length;i++){
       var btn=document.getElementById(tabs[i]);
       if(btn) btn.className='navtab'+(tabs[i]===(tabMap[k]||'')?' on':'');
@@ -2994,9 +3019,235 @@ function switchLeague(){
   S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.sendPids=[];
   S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;
   S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;
+  S.h2hData=null;S.h2hLoaded=false;
   document.getElementById('fetchP').classList.add('hidden');
   renderLeagues();
   go('lea');
+}
+
+async function openH2H() {
+  if (!S.userId) { alert('Connect your Sleeper account first.'); return; }
+  go('h2h');
+  if (S.h2hLoaded) { renderH2H(); return; }
+  await loadH2HData();
+}
+
+async function loadH2HData() {
+  var logEl = document.getElementById('h2hLog');
+  var barEl = document.getElementById('h2hBar');
+  var statEl = document.getElementById('h2hStat');
+  document.getElementById('h2hLoading').classList.remove('hidden');
+  document.getElementById('h2hContent').classList.add('hidden');
+  logEl.innerHTML = '';
+
+  function setProgress(pct, msg) { barEl.style.width = pct + '%'; statEl.textContent = msg; }
+
+  setProgress(2, 'Fetching leagues across seasons...');
+  var seasons = ['2022','2023','2024','2025','2026'];
+  var allLeagues = [];
+  for (var si = 0; si < seasons.length; si++) {
+    try {
+      var ls = await fetchJSON('https://api.sleeper.app/v1/user/' + S.userId + '/leagues/nfl/' + seasons[si]);
+      if (ls && ls.length) { allLeagues = allLeagues.concat(ls); addLog(logEl, seasons[si] + ': ' + ls.length + ' league(s)', 'ok'); }
+    } catch(e) {}
+  }
+  if (!allLeagues.length) { setProgress(100, 'No leagues found.'); return; }
+  addLog(logEl, 'Found ' + allLeagues.length + ' total leagues', 'ok');
+
+  var h2h = {};
+  var leaguesDone = 0;
+
+  for (var li = 0; li < allLeagues.length; li++) {
+    var league = allLeagues[li];
+    var leagueId = league.league_id;
+    var season = league.season;
+    setProgress(10 + Math.round(85 * li / allLeagues.length), 'Loading ' + league.name + '...');
+    addLog(logEl, '📋 ' + league.name + ' (' + season + ')...', 'in');
+
+    try {
+      var initData = await Promise.all([
+        fetchJSON('https://api.sleeper.app/v1/league/' + leagueId + '/rosters'),
+        fetchJSON('https://api.sleeper.app/v1/league/' + leagueId + '/users'),
+        fetchJSON('https://api.sleeper.app/v1/league/' + leagueId + '/winners_bracket').catch(function(){return [];}),
+        fetchJSON('https://api.sleeper.app/v1/league/' + leagueId).catch(function(){return {};})
+      ]);
+      var rosters = initData[0] || [], users = initData[1] || [], bracket = initData[2] || [], leagueInfo = initData[3] || {};
+
+      var myRosterId = null;
+      for (var ri = 0; ri < rosters.length; ri++) if (rosters[ri].owner_id === S.userId) { myRosterId = rosters[ri].roster_id; break; }
+      if (!myRosterId) { addLog(logEl, '  ↳ Not in this league, skipping', 'in'); continue; }
+
+      var rosterToUser = {}, userNames = {};
+      for (var ri = 0; ri < rosters.length; ri++) rosterToUser[rosters[ri].roster_id] = rosters[ri].owner_id;
+      for (var ui = 0; ui < users.length; ui++) userNames[users[ui].user_id] = users[ui].display_name || users[ui].username || users[ui].user_id;
+
+      var playoffStart = (leagueInfo.settings && leagueInfo.settings.playoff_week_start) || 15;
+
+      // Fetch all 18 weeks in parallel
+      var weekFetches = [];
+      for (var w = 1; w <= 18; w++) {
+        weekFetches.push((function(wk){ return fetchJSON('https://api.sleeper.app/v1/league/'+leagueId+'/matchups/'+wk).catch(function(){return [];}); })(w));
+      }
+      var allWeeks = await Promise.all(weekFetches);
+
+      for (var wi = 0; wi < allWeeks.length; wi++) {
+        var week = wi + 1;
+        var matchups = allWeeks[wi];
+        if (!matchups || !matchups.length) continue;
+
+        var myMatchup = null;
+        for (var mi = 0; mi < matchups.length; mi++) if (matchups[mi].roster_id === myRosterId) { myMatchup = matchups[mi]; break; }
+        if (!myMatchup || !myMatchup.matchup_id) continue;
+
+        var oppMatchup = null;
+        for (var mi = 0; mi < matchups.length; mi++) {
+          if (matchups[mi].matchup_id === myMatchup.matchup_id && matchups[mi].roster_id !== myRosterId) { oppMatchup = matchups[mi]; break; }
+        }
+        if (!oppMatchup) continue;
+
+        var myPts = parseFloat(myMatchup.points) || 0;
+        var oppPts = parseFloat(oppMatchup.points) || 0;
+        if (myPts === 0 && oppPts === 0) continue;
+
+        var oppUid = rosterToUser[oppMatchup.roster_id];
+        if (!oppUid) continue;
+        if (!h2h[oppUid]) h2h[oppUid] = {userId:oppUid,name:userNames[oppUid]||oppUid,wins:0,losses:0,ties:0,ptsFor:0,ptsAgainst:0,regWins:0,regLosses:0,regTies:0,plyWins:0,plyLosses:0,chmpWins:[],chmpLosses:[],biggestWin:null,biggestLoss:null};
+
+        var rec = h2h[oppUid];
+        var margin = Math.round((myPts - oppPts) * 100) / 100;
+        var isPlayoff = week >= playoffStart;
+
+        if (myPts > oppPts) {
+          rec.wins++; if (isPlayoff) rec.plyWins++; else rec.regWins++;
+          if (!rec.biggestWin || margin > rec.biggestWin.margin) rec.biggestWin = {margin:margin,myPts:myPts,oppPts:oppPts,week:week,season:season,leagueName:league.name};
+        } else if (oppPts > myPts) {
+          rec.losses++; if (isPlayoff) rec.plyLosses++; else rec.regLosses++;
+          if (!rec.biggestLoss || margin < rec.biggestLoss.margin) rec.biggestLoss = {margin:margin,myPts:myPts,oppPts:oppPts,week:week,season:season,leagueName:league.name};
+        } else { rec.ties++; if (!isPlayoff) rec.regTies++; }
+        rec.ptsFor += myPts; rec.ptsAgainst += oppPts;
+      }
+
+      // Championship detection from winners bracket
+      if (bracket && bracket.length) {
+        var maxRound = 0;
+        for (var bi = 0; bi < bracket.length; bi++) if ((bracket[bi].r||0) > maxRound) maxRound = bracket[bi].r;
+        for (var bi = 0; bi < bracket.length; bi++) {
+          var bm = bracket[bi];
+          if (bm.r !== maxRound || bm.m !== 1 || bm.w == null) continue;
+          var winRid = parseInt(bm.w), losRid = parseInt(bm.l);
+          if (winRid === myRosterId || losRid === myRosterId) {
+            var oppRid = (winRid === myRosterId) ? losRid : winRid;
+            var oppUid = rosterToUser[oppRid];
+            if (oppUid) {
+              if (!h2h[oppUid]) h2h[oppUid] = {userId:oppUid,name:userNames[oppUid]||oppUid,wins:0,losses:0,ties:0,ptsFor:0,ptsAgainst:0,regWins:0,regLosses:0,regTies:0,plyWins:0,plyLosses:0,chmpWins:[],chmpLosses:[],biggestWin:null,biggestLoss:null};
+              if (winRid === myRosterId) h2h[oppUid].chmpWins.push({season:season,leagueName:league.name});
+              else h2h[oppUid].chmpLosses.push({season:season,leagueName:league.name});
+            }
+          }
+        }
+      }
+
+      addLog(logEl, '  ✓ done', 'ok');
+      leaguesDone++;
+    } catch(e) { addLog(logEl, '  ⚠ Error: ' + e.message, 'er'); }
+  }
+
+  setProgress(100, 'Done! ' + leaguesDone + ' of ' + allLeagues.length + ' leagues loaded.');
+  S.h2hData = h2h; S.h2hLoaded = true;
+  document.getElementById('h2hLoading').classList.add('hidden');
+  renderH2H();
+}
+
+function renderH2H() {
+  var h2h = S.h2hData || {};
+  var opponents = Object.values(h2h).filter(function(o){ return (o.wins+o.losses+o.ties) > 0 || o.chmpWins.length || o.chmpLosses.length; });
+  opponents.sort(function(a,b){ return (b.wins+b.losses+b.ties)-(a.wins+a.losses+a.ties); });
+
+  var totalW=0,totalL=0,totalT=0;
+  for (var i=0;i<opponents.length;i++){ totalW+=opponents[i].wins; totalL+=opponents[i].losses; totalT+=opponents[i].ties; }
+  var totalG=totalW+totalL+totalT, winPct=totalG?Math.round(totalW/totalG*1000)/10:0;
+
+  // Summary card
+  var sHtml='<div class="card" style="margin-bottom:16px">';
+  sHtml+='<div style="font-size:15px;font-weight:800;margin-bottom:12px">⚔️ All-Time Summary</div>';
+  sHtml+='<div style="display:flex;gap:28px;flex-wrap:wrap">';
+  sHtml+='<div><div style="font-size:26px;font-weight:900;color:var(--grn)">'+totalW+'-'+totalL+(totalT?'-'+totalT:'')+'</div><div style="font-size:10px;color:var(--t3)">Overall Record</div></div>';
+  sHtml+='<div><div style="font-size:26px;font-weight:900;color:var(--blu)">'+winPct+'%</div><div style="font-size:10px;color:var(--t3)">Win Rate</div></div>';
+  sHtml+='<div><div style="font-size:26px;font-weight:900;color:var(--t2)">'+opponents.length+'</div><div style="font-size:10px;color:var(--t3)">Unique Opponents</div></div>';
+  sHtml+='</div></div>';
+  document.getElementById('h2hSummary').innerHTML=sHtml;
+
+  // Per-opponent cards
+  var html='';
+  for (var i=0;i<opponents.length;i++) {
+    var opp=opponents[i];
+    var games=opp.wins+opp.losses+opp.ties;
+    var wpct=games?Math.round(opp.wins/games*1000)/10:0;
+    var recordColor=opp.wins>opp.losses?'var(--grn)':opp.losses>opp.wins?'var(--red)':'var(--t2)';
+    var plyG=opp.plyWins+opp.plyLosses, totalChmp=opp.chmpWins.length+opp.chmpLosses.length;
+
+    html+='<div class="card" style="margin-bottom:12px">';
+
+    // Header
+    html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
+    html+='<div><div style="font-size:15px;font-weight:800">'+esc(opp.name)+'</div>';
+    html+='<div style="font-size:10px;color:var(--t3);margin-top:2px">'+games+' game'+(games!==1?'s':'')+'</div></div>';
+    html+='<div style="text-align:right"><div style="font-size:20px;font-weight:900;color:'+recordColor+'">'+opp.wins+'-'+opp.losses+(opp.ties?'-'+opp.ties:'')+'</div>';
+    html+='<div style="font-size:10px;color:var(--t3)">'+wpct+'% win rate</div></div></div>';
+
+    // Stat grid
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:10px">';
+
+    html+='<div style="background:rgba(255,255,255,0.03);border-radius:6px;padding:8px">';
+    html+='<div style="font-size:9px;color:var(--t3);font-weight:700;margin-bottom:2px">REGULAR SEASON</div>';
+    html+='<div style="font-size:14px;font-weight:800">'+opp.regWins+'-'+opp.regLosses+(opp.regTies?'-'+opp.regTies:'')+'</div></div>';
+
+    if (plyG>0) {
+      html+='<div style="background:rgba(255,255,255,0.03);border-radius:6px;padding:8px">';
+      html+='<div style="font-size:9px;color:var(--t3);font-weight:700;margin-bottom:2px">PLAYOFFS</div>';
+      html+='<div style="font-size:14px;font-weight:800;color:var(--amb)">'+opp.plyWins+'-'+opp.plyLosses+'</div></div>';
+    }
+
+    if (totalChmp>0) {
+      html+='<div style="background:rgba(255,200,0,0.06);border:1px solid rgba(255,200,0,0.2);border-radius:6px;padding:8px">';
+      html+='<div style="font-size:9px;color:var(--amb);font-weight:700;margin-bottom:2px">CHAMPIONSHIPS</div>';
+      var cs=''; if(opp.chmpWins.length) cs+='🏆 '+opp.chmpWins.length+'W '; if(opp.chmpLosses.length) cs+='💀 '+opp.chmpLosses.length+'L';
+      html+='<div style="font-size:13px;font-weight:800">'+cs.trim()+'</div>';
+      var details=opp.chmpWins.map(function(c){return c.season+' '+c.leagueName;}).concat(opp.chmpLosses.map(function(c){return c.season+' '+c.leagueName+' (L)';}));
+      html+='<div style="font-size:9px;color:var(--t3);margin-top:2px">'+esc(details.join(' · '))+'</div></div>';
+    }
+
+    if (games>0) {
+      html+='<div style="background:rgba(255,255,255,0.03);border-radius:6px;padding:8px">';
+      html+='<div style="font-size:9px;color:var(--t3);font-weight:700;margin-bottom:2px">PTS/GAME</div>';
+      html+='<div style="font-size:13px;font-weight:800">'+(Math.round(opp.ptsFor/games*10)/10)+' <span style="color:var(--t3);font-size:10px;font-weight:400">for</span></div>';
+      html+='<div style="font-size:11px;color:var(--t3)">'+(Math.round(opp.ptsAgainst/games*10)/10)+' against</div></div>';
+    }
+    html+='</div>';
+
+    // Biggest win/loss
+    if (opp.biggestWin||opp.biggestLoss) {
+      html+='<div style="display:flex;gap:8px;font-size:10px;flex-wrap:wrap">';
+      if (opp.biggestWin) {
+        html+='<div style="flex:1;min-width:180px;padding:6px 8px;background:rgba(0,230,118,0.06);border-radius:5px">';
+        html+='<span style="color:var(--grn);font-weight:700">Biggest Win: </span>+'+opp.biggestWin.margin.toFixed(1)+' pts';
+        html+='<span style="color:var(--t3)"> ('+opp.biggestWin.myPts.toFixed(1)+'-'+opp.biggestWin.oppPts.toFixed(1)+', '+esc(opp.biggestWin.leagueName)+' '+opp.biggestWin.season+' Wk '+opp.biggestWin.week+')</span></div>';
+      }
+      if (opp.biggestLoss) {
+        html+='<div style="flex:1;min-width:180px;padding:6px 8px;background:rgba(255,82,82,0.06);border-radius:5px">';
+        html+='<span style="color:var(--red);font-weight:700">Biggest Loss: </span>'+opp.biggestLoss.margin.toFixed(1)+' pts';
+        html+='<span style="color:var(--t3)"> ('+opp.biggestLoss.myPts.toFixed(1)+'-'+opp.biggestLoss.oppPts.toFixed(1)+', '+esc(opp.biggestLoss.leagueName)+' '+opp.biggestLoss.season+' Wk '+opp.biggestLoss.week+')</span></div>';
+      }
+      html+='</div>';
+    }
+
+    html+='</div>';
+  }
+
+  if (!opponents.length) html='<div class="card" style="text-align:center;color:var(--t3);padding:40px">No matchup data found.</div>';
+  document.getElementById('h2hList').innerHTML=html;
+  document.getElementById('h2hContent').classList.remove('hidden');
+  document.getElementById('h2hSub').textContent='Loaded '+opponents.length+' opponents across all leagues and seasons.';
 }
 function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
 </script>
