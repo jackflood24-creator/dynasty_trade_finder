@@ -126,6 +126,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <div style="font-size:20px;font-weight:800;letter-spacing:-.03em" id="rosT"></div>
       <div style="font-size:13px;color:var(--t2)" id="rosSub"></div>
     </div>
+    <div style="background:rgba(0,230,118,0.05);border:1px solid rgba(0,230,118,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Browse all rosters in your league. Click a team to open the trade panel — select their players you want, then hit <strong style="color:var(--t2)">Find Trades →</strong> to get value-balanced proposals including what to send back. Lock in specific players on your side to force them into suggestions. Position chips show each team's strengths <span style="color:var(--grn);font-weight:700">●</span> and weaknesses <span style="color:var(--red);font-weight:700">●</span>.
+    </div>
     <div id="noVal" class="warn hidden"><span style="font-size:18px">⚠️</span><div><strong>Loading values...</strong></div></div>
     <div id="fetchP" class="fp hidden">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -257,6 +260,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📈 Value Momentum</div>
       <div style="font-size:13px;color:var(--t2)" id="momSub">30-day value trends — find buy-low and sell-high windows</div>
     </div>
+    <div style="background:rgba(68,138,255,0.05);border:1px solid rgba(68,138,255,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Tracks 30-day FantasyCalc value trends across every player in your league. <strong style="color:var(--t2)">Risers</strong> are players gaining value — good buy targets before the price rises further. <strong style="color:var(--t2)">Fallers</strong> are losing value — sell candidates before the market catches up. BUY/SELL/HOLD signals factor in age curves and trend momentum.
+    </div>
     <!-- FILTER TABS -->
     <div id="momFilters" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap"></div>
     <!-- MY ROSTER MOMENTUM -->
@@ -290,6 +296,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📊 Trade History</div>
       <div style="font-size:13px;color:var(--t2)" id="histSub">Loading trades...</div>
     </div>
+    <div style="background:rgba(179,136,255,0.05);border:1px solid rgba(179,136,255,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Every trade made in your league evaluated at <strong style="color:var(--t2)">current FantasyCalc prices</strong>. The leaderboard ranks managers by total value gained across all trades. The top 10 list highlights the most lopsided wins. Draft picks show the actual player drafted when the pick is resolved.
+    </div>
     <div id="histLoading" class="hidden" style="text-align:center;padding:40px"><div class="spin" style="margin:0 auto 12px"></div><div style="font-size:13px;color:var(--t3)">Fetching trade history from Sleeper...</div></div>
     <!-- LEADERBOARD -->
     <div id="histBoard" style="margin-bottom:20px"></div>
@@ -304,6 +313,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div style="margin-bottom:20px">
       <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">🔄 Rebuild Analyzer</div>
       <div style="font-size:13px;color:var(--t2)" id="rebSub"></div>
+    </div>
+    <div style="background:rgba(255,215,64,0.05);border:1px solid rgba(255,215,64,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Analyzes your roster's age, value, and positional strength versus the rest of the league to recommend a strategy — <strong style="color:var(--t2)">Compete</strong>, <strong style="color:var(--t2)">Rebuild</strong>, or <strong style="color:var(--t2)">Fill Gaps</strong>. Shows sell candidates (aging/declining players) and buy targets (young players at your weak positions) with suggested trade matchups.
     </div>
 
     <!-- COMPETITIVE OUTLOOK -->
@@ -333,6 +345,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div style="margin-bottom:20px">
       <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">⚔️ Head-to-Head Records</div>
       <div style="font-size:13px;color:var(--t2)" id="h2hSub">Your record vs every manager across all leagues and seasons.</div>
+    </div>
+    <div style="background:rgba(255,82,82,0.05);border:1px solid rgba(255,82,82,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Pulls every matchup you've played across <strong style="color:var(--t2)">all your leagues from 2022–2026</strong> (dynasty and redraft). Shows your all-time W-L record vs each manager, broken down by regular season vs playoffs, with championship wins/losses and your biggest blowout or gut-punch in each matchup. First load takes ~30–60 seconds.
     </div>
     <div id="h2hLoading" class="hidden">
       <div class="card" style="margin-bottom:16px">
