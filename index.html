@@ -102,7 +102,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
           <button class="btn btn-g" id="bCon" onclick="doConnect()">Connect</button>
         </div>
         <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;align-items:flex-end">
-          <div><div class="lbl" style="margin-bottom:8px">Season</div><div class="stog" id="seasonTog"><button class="sbtn" onclick="setS('2024',this)">2024</button><button class="sbtn on" onclick="setS('2025',this)">2025</button></div></div>
+          <div><div class="lbl" style="margin-bottom:8px">Season</div><div class="stog" id="seasonTog"><button class="sbtn" onclick="setS('2024',this)">2024</button><button class="sbtn" onclick="setS('2025',this)">2025</button><button class="sbtn on" onclick="setS('2026',this)">2026</button></div></div>
           <div><div class="lbl" style="margin-bottom:8px">Format</div><div class="stog" id="qbTog"><button class="sbtn" onclick="setQB(1,this)">1QB</button><button class="sbtn on" onclick="setQB(2,this)">SF</button></div></div>
         </div>
         <div id="conErr" style="margin-top:10px;color:var(--red);font-size:12px" class="hidden"></div>
@@ -332,7 +332,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 
 <script>
 var S = {
-  season:'2025', numQbs:2, username:'', userId:null, leagues:[], league:null,
+  season:'2026', numQbs:2, username:'', userId:null, leagues:[], league:null,
   rosters:[], users:[], players:{}, playersLoaded:false,
   myRid:null, tgtRid:null, tgtPids:[],
   vals:{}, picks:{}, pickVals:{}, valsLoaded:false,
