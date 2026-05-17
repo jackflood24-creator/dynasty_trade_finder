@@ -412,7 +412,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" id="evalPanel">
       <div class="card" style="border-color:rgba(255,82,82,0.3)">
         <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:10px">You Give</div>
-        <input class="inp" id="evalIngive" placeholder="Search player..." oninput="evalSearch('give',this.value)" style="margin-bottom:6px">
+        <input class="inp" id="evalIngive" placeholder="Search player or pick..." oninput="evalSearch('give',this.value)" style="margin-bottom:4px">
+        <button class="btn btn-o btn-s" onclick="evalTogglePicks('give')" id="evalPickBtngive" style="margin-bottom:6px;font-size:10px">📋 Browse Picks</button>
+        <div id="evalPicksgive" class="hidden" style="margin-bottom:8px"></div>
         <div id="evalSuggive" style="margin-bottom:8px"></div>
         <div id="evalGiveList"></div>
         <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--bdr);padding-top:8px">
@@ -422,7 +424,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       </div>
       <div class="card" style="border-color:var(--blu3)">
         <div style="font-size:13px;font-weight:800;color:var(--blu);margin-bottom:10px">You Get</div>
-        <input class="inp" id="evalInget" placeholder="Search player..." oninput="evalSearch('get',this.value)" style="margin-bottom:6px">
+        <input class="inp" id="evalInget" placeholder="Search player or pick..." oninput="evalSearch('get',this.value)" style="margin-bottom:4px">
+        <button class="btn btn-o btn-s" onclick="evalTogglePicks('get')" id="evalPickBtnget" style="margin-bottom:6px;font-size:10px">📋 Browse Picks</button>
+        <div id="evalPicksget" class="hidden" style="margin-bottom:8px"></div>
         <div id="evalSugget" style="margin-bottom:8px"></div>
         <div id="evalGetList"></div>
         <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--bdr);padding-top:8px">
@@ -3582,30 +3586,79 @@ function openEvaluator() {
 function evalSearch(side, query) {
   var el = document.getElementById('evalSug'+side);
   if (!query || query.length < 2) { el.innerHTML = ''; return; }
-  var q = query.toLowerCase(), results = [], ids = Object.keys(S.vals);
+  var q = query.toLowerCase(), combined = [];
+  // Search players
+  var ids = Object.keys(S.vals);
   for (var i = 0; i < ids.length; i++) {
     var id = ids[i], p = S.players[id];
     if (!p || !p.full_name || !REL_POS.has(p.position)) continue;
     if (p.full_name.toLowerCase().indexOf(q) < 0) continue;
-    results.push({id:id, p:p, val:S.vals[id]||0});
+    combined.push({id:id, name:p.full_name, pos:p.position, val:S.vals[id]||0, type:'player'});
   }
-  results.sort(function(a,b){return b.val-a.val;});
-  evalSuggestions[side] = results.slice(0,8);
+  // Search picks
+  var pkKeys = Object.keys(S.picks);
+  for (var i = 0; i < pkKeys.length; i++) {
+    var pk = S.picks[pkKeys[i]];
+    if (!pk.label) continue;
+    if (pk.label.toLowerCase().indexOf(q) < 0 && pk.shortLabel.toLowerCase().indexOf(q) < 0) continue;
+    combined.push({id:pk.key, name:pk.label, pos:'PICK', val:pk.value, type:'pick'});
+  }
+  combined.sort(function(a,b){ return b.val - a.val; });
+  evalSuggestions[side] = combined.slice(0,10);
   var html = '';
   for (var i = 0; i < evalSuggestions[side].length; i++) {
     var item = evalSuggestions[side][i], vd = vc(item.val);
     html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;border:1px solid var(--bdr);margin-bottom:2px;cursor:pointer;background:rgba(255,255,255,0.02)" onclick="evalAddIdx(\''+side+'\','+i+')">';
-    html += '<span class="pos pos-'+item.p.position+'">'+item.p.position+'</span>';
-    html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(item.p.full_name)+'</span>';
+    html += '<span class="pos pos-'+item.pos+'">'+item.pos+'</span>';
+    html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(item.name)+'</span>';
     html += '<span class="v '+vd.c+'">'+vd.t+'</span></div>';
   }
   el.innerHTML = html || '<div style="font-size:11px;color:var(--t3);padding:6px">No results.</div>';
+}
+function evalTogglePicks(side) {
+  var el = document.getElementById('evalPicks'+side);
+  var btn = document.getElementById('evalPickBtn'+side);
+  var isHidden = el.classList.contains('hidden');
+  if (isHidden) {
+    el.classList.remove('hidden');
+    btn.textContent = '✕ Hide Picks';
+    evalShowPicks(side);
+  } else {
+    el.classList.add('hidden');
+    btn.textContent = '📋 Browse Picks';
+  }
+}
+function evalShowPicks(side) {
+  var el = document.getElementById('evalPicks'+side);
+  var pkKeys = Object.keys(S.picks);
+  var picks = [];
+  for (var i = 0; i < pkKeys.length; i++) {
+    var pk = S.picks[pkKeys[i]];
+    if (pk.value) picks.push(pk);
+  }
+  picks.sort(function(a,b){ return b.value - a.value; });
+  var html = '<div style="font-size:10px;color:var(--t3);margin-bottom:4px;font-weight:700">ALL PICKS (click to add)</div>';
+  for (var i = 0; i < picks.length; i++) {
+    var pk = picks[i], vd = vc(pk.value);
+    html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;border:1px solid var(--bdr);margin-bottom:2px;cursor:pointer;background:rgba(255,255,255,0.02)" onclick="evalAddPickKey(\''+side+'\',\''+pk.key+'\')">';
+    html += '<span class="pos pos-PICK" style="font-size:9px">PICK</span>';
+    html += '<span style="flex:1;font-size:11px;font-weight:500">'+esc(pk.label)+'</span>';
+    html += '<span class="v '+vd.c+'" style="font-size:10px">'+vd.t+'</span></div>';
+  }
+  el.innerHTML = html || '<div style="font-size:11px;color:var(--t3);padding:6px">No picks available. Load a league first.</div>';
+}
+function evalAddPickKey(side, key) {
+  var pk = S.picks[key]; if (!pk) return;
+  var arr = side === 'give' ? evalGive : evalGet;
+  for (var i = 0; i < arr.length; i++) if (arr[i].id === pk.key) return;
+  arr.push({id:pk.key, name:pk.label, pos:'PICK', val:pk.value, type:'pick'});
+  renderEvalPanel();
 }
 function evalAddIdx(side, idx) {
   var item = evalSuggestions[side][idx]; if (!item) return;
   var arr = side === 'give' ? evalGive : evalGet;
   for (var i = 0; i < arr.length; i++) if (arr[i].id === item.id) return;
-  arr.push({id:item.id, name:item.p.full_name, pos:item.p.position, val:item.val});
+  arr.push({id:item.id, name:item.name, pos:item.pos, val:item.val, type:item.type});
   document.getElementById('evalIn'+side).value = '';
   document.getElementById('evalSug'+side).innerHTML = '';
   renderEvalPanel();
@@ -3615,21 +3668,31 @@ function evalRemove(side, id) {
   else evalGet = evalGet.filter(function(x){return x.id!==id;});
   renderEvalPanel();
 }
-function clearEval() { evalGive = []; evalGet = []; renderEvalPanel(); }
+function clearEval() {
+  evalGive = []; evalGet = [];
+  ['give','get'].forEach(function(side){
+    var el = document.getElementById('evalPicks'+side);
+    var btn = document.getElementById('evalPickBtn'+side);
+    if (el) el.classList.add('hidden');
+    if (btn) btn.textContent = '📋 Browse Picks';
+  });
+  renderEvalPanel();
+}
 function renderEvalPanel() {
   function renderSide(arr, side) {
     var total = 0, html = '';
     for (var i = 0; i < arr.length; i++) {
       var item = arr[i], vd = vc(item.val); total += item.val;
+      var badge = item.pos !== 'PICK' ? getSignalBadge(item.id) : '';
       html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;margin-bottom:3px;background:rgba(255,255,255,0.02);border:1px solid var(--bdr)">';
       html += '<span class="pos pos-'+item.pos+'">'+item.pos+'</span>';
-      html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(item.name)+getSignalBadge(item.id)+'</span>';
+      html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(item.name)+badge+'</span>';
       html += '<span class="v '+vd.c+'">'+vd.t+'</span>';
-      html += '<button onclick="evalRemove(\''+side+'\',\''+item.id+'\')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:12px;padding:0 4px">✕</button>';
+      html += '<button onclick="evalRemove(\''+side+'\',\''+item.id.replace(/'/g,"\\'")+'\')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:12px;padding:0 4px">✕</button>';
       html += '</div>';
     }
     var cap = side.charAt(0).toUpperCase()+side.slice(1);
-    document.getElementById('eval'+cap+'List').innerHTML = html || '<div style="font-size:11px;color:var(--t3);padding:8px 0">No players added.</div>';
+    document.getElementById('eval'+cap+'List').innerHTML = html || '<div style="font-size:11px;color:var(--t3);padding:8px 0">No assets added.</div>';
     document.getElementById('eval'+cap+'Total').textContent = total.toLocaleString();
     return total;
   }
