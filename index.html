@@ -1646,7 +1646,8 @@ function renderMomentum(posFilter) {
 
   var sHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px">🎯 Signals</div>';
   if (S.predictions && S.predictions.updated) {
-    sHtml += '<div style="font-size:10px;color:var(--pur);margin-bottom:12px">🤖 Model predictions loaded (updated ' + new Date(S.predictions.updated).toLocaleDateString() + ') — signals use XGBoost model trained on usage trends</div>';
+    var modelNote = (S.predictions.model_info && S.predictions.model_info.note) ? S.predictions.model_info.note : 'XGBoost model trained on usage trends';
+    sHtml += '<div style="font-size:10px;color:var(--pur);margin-bottom:12px">🤖 Signals updated ' + new Date(S.predictions.updated).toLocaleDateString() + ' (refreshes daily) — ' + modelNote + '</div>';
   } else {
     sHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:12px">Using heuristic signals from FantasyCalc trends + age curves. Run the GitHub Action to enable ML model predictions.</div>';
   }
