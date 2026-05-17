@@ -2733,23 +2733,12 @@ function renderHistory() {
   bHtml += '</div>';
   document.getElementById('histBoard').innerHTML = bHtml;
 
-  // ── BIGGEST WINS / LOSSES ──
-  var sortedByDiff = analyzed.filter(function(a){return a.diffPct>=5;}).sort(function(a,b){return b.diff-a.diff;});
-  var bigWins = sortedByDiff.slice(0, 3);
-  var bigLosses = sortedByDiff.slice(-3).reverse();
+  // ── BIGGEST WINS ──
+  var bigWins = analyzed.filter(function(a){return a.diffPct>=5;}).sort(function(a,b){return b.diff-a.diff;}).slice(0, 10);
 
-  var hHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">';
-
-  hHtml += '<div class="card"><div style="font-size:14px;font-weight:800;color:var(--grn);margin-bottom:10px">🏅 Most Value Gained</div>';
+  var hHtml = '<div class="card"><div style="font-size:14px;font-weight:800;color:var(--grn);margin-bottom:10px">🏅 Top 10 Best Trades (by value gained)</div>';
   if (!bigWins.length) hHtml += '<div style="font-size:12px;color:var(--t3)">No lopsided trades found.</div>';
   for (var i = 0; i < bigWins.length; i++) hHtml += tradeCard(bigWins[i], true);
-  hHtml += '</div>';
-
-  hHtml += '<div class="card"><div style="font-size:14px;font-weight:800;color:var(--red);margin-bottom:10px">💀 Most Value Lost</div>';
-  if (!bigLosses.length) hHtml += '<div style="font-size:12px;color:var(--t3)">No lopsided trades found.</div>';
-  for (var i = 0; i < bigLosses.length; i++) hHtml += tradeCard(bigLosses[i], false);
-  hHtml += '</div>';
-
   hHtml += '</div>';
   document.getElementById('histHighlights').innerHTML = hHtml;
 
