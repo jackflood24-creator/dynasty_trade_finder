@@ -64,6 +64,10 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .navtab{flex:1;padding:8px 4px;border-radius:8px;border:2px solid transparent;background:var(--bg2);color:var(--t3);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:border-color .15s,color .15s;white-space:nowrap}
 .navtab:hover{color:var(--t2);border-color:var(--bdr2)}
 .navtab.on{color:var(--grn);border-color:var(--grn3);background:var(--grn2)}
+.navtab2{flex:1;padding:6px 3px;border-radius:6px;border:2px solid transparent;background:var(--bg2);color:var(--t3);font-family:inherit;font-size:10px;font-weight:700;cursor:pointer;text-align:center;transition:border-color .15s,color .15s;white-space:nowrap}
+.navtab2:hover{color:var(--t2);border-color:var(--bdr2)}
+.navtab2.on{color:var(--grn);border-color:var(--grn3);background:var(--grn2)}
+@media(max-width:700px){#evalPanel{grid-template-columns:1fr!important}}
 .hidden{display:none!important}
 </style>
 </head>
@@ -80,13 +84,23 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 
   <!-- PERSISTENT NAV — fixed size, never changes -->
   <div id="navBar" style="display:none">
-    <div style="display:flex;gap:2px;padding:8px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:20px">
+    <div style="display:flex;gap:2px;padding:8px 0 6px">
       <button class="navtab" id="nav-ros" onclick="go('ros')">🤝 Rosters + Trade Finder</button>
       <button class="navtab" id="nav-mom" onclick="openMomentum()">📈 Roster Momentum</button>
       <button class="navtab" id="nav-reb" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
       <button class="navtab" id="nav-hist" onclick="openHistory()">📊 Trade History</button>
       <button class="navtab" id="nav-pck" onclick="go('pck')">📝 Picks</button>
       <button class="navtab" id="nav-h2h" onclick="openH2H()">⚔️ H2H</button>
+    </div>
+    <div style="display:flex;gap:2px;padding:4px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:20px">
+      <button class="navtab2" id="nav-wvr" onclick="openWaiverWire()">🏊 Waivers</button>
+      <button class="navtab2" id="nav-eval" onclick="openEvaluator()">⚖️ Evaluator</button>
+      <button class="navtab2" id="nav-dgrd" onclick="openDraftGrade()">🎓 Draft Grade</button>
+      <button class="navtab2" id="nav-wtch" onclick="openWatchList()">⭐ Watch List</button>
+      <button class="navtab2" id="nav-dash" onclick="openDash()">🌐 Leagues</button>
+      <button class="navtab2" id="nav-act" onclick="openActivity()">📰 Activity</button>
+      <button class="navtab2" id="nav-age" onclick="openAgeCurve()">📉 Age Curves</button>
+      <button class="navtab2" id="nav-rnk" onclick="openRankings()">📋 Rankings</button>
     </div>
   </div>
 
@@ -367,6 +381,150 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     </div>
   </div>
 
+  <!-- WAIVER WIRE TARGETS -->
+  <div id="s-wvr" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">🏊 Waiver Wire Targets</div>
+      <div style="font-size:13px;color:var(--t2)">Top unrostered players ranked by dynasty value</div>
+    </div>
+    <div style="background:rgba(0,230,118,0.05);border:1px solid rgba(0,230,118,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Players with dynasty value not currently on any roster in your league — perfect for finding overlooked pickups. BUY/SELL signals and 30-day FantasyCalc trends help you time the move correctly.
+    </div>
+    <div class="stog" id="wvrFilters" style="margin-bottom:14px">
+      <button class="sbtn on wvr-filter" data-pos="ALL" onclick="renderWaiverWire('ALL')">All</button>
+      <button class="sbtn wvr-filter" data-pos="QB" onclick="renderWaiverWire('QB')">QB</button>
+      <button class="sbtn wvr-filter" data-pos="RB" onclick="renderWaiverWire('RB')">RB</button>
+      <button class="sbtn wvr-filter" data-pos="WR" onclick="renderWaiverWire('WR')">WR</button>
+      <button class="sbtn wvr-filter" data-pos="TE" onclick="renderWaiverWire('TE')">TE</button>
+    </div>
+    <div id="wvrList"></div>
+  </div>
+
+  <!-- TRADE OFFER EVALUATOR -->
+  <div id="s-eval" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">⚖️ Trade Offer Evaluator</div>
+      <div style="font-size:13px;color:var(--t2)">Check if any trade is fair before you accept or counter</div>
+    </div>
+    <div style="background:rgba(255,215,64,0.05);border:1px solid rgba(255,215,64,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Search for any players on each side to instantly see the value balance. Useful for evaluating outside offers or fact-checking a proposed deal. Values are live from FantasyCalc.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" id="evalPanel">
+      <div class="card" style="border-color:rgba(255,82,82,0.3)">
+        <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:10px">You Give</div>
+        <input class="inp" id="evalIngive" placeholder="Search player..." oninput="evalSearch('give',this.value)" style="margin-bottom:6px">
+        <div id="evalSuggive" style="margin-bottom:8px"></div>
+        <div id="evalGiveList"></div>
+        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--bdr);padding-top:8px">
+          <div class="lbl">Total Value</div>
+          <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--red)" id="evalGiveTotal">0</div>
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--blu3)">
+        <div style="font-size:13px;font-weight:800;color:var(--blu);margin-bottom:10px">You Get</div>
+        <input class="inp" id="evalInget" placeholder="Search player..." oninput="evalSearch('get',this.value)" style="margin-bottom:6px">
+        <div id="evalSugget" style="margin-bottom:8px"></div>
+        <div id="evalGetList"></div>
+        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--bdr);padding-top:8px">
+          <div class="lbl">Total Value</div>
+          <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--blu)" id="evalGetTotal">0</div>
+        </div>
+      </div>
+    </div>
+    <div id="evalVerdict" class="card" style="padding:14px 16px;text-align:center;transition:.2s"><div style="color:var(--t3);font-size:12px">Add players to both sides to evaluate a trade.</div></div>
+    <div style="text-align:center;margin-top:10px"><button class="btn btn-o btn-s" onclick="clearEval()">Clear All</button></div>
+  </div>
+
+  <!-- ROOKIE DRAFT GRADE -->
+  <div id="s-dgrd" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">🎓 Rookie Draft Grade</div>
+      <div style="font-size:13px;color:var(--t2)">How well did each team do in the 2026 rookie draft?</div>
+    </div>
+    <div style="background:rgba(179,136,255,0.05);border:1px solid rgba(179,136,255,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Compares each pick's current dynasty value vs the cost of that draft slot. An <strong style="color:var(--grn)">A</strong> means you got more value than you spent; an <strong style="color:var(--red)">F</strong> means you overpaid. Grades are based on current FantasyCalc values — early prospects often improve as they develop.
+    </div>
+    <div id="dgrdContent"></div>
+  </div>
+
+  <!-- WATCH LIST -->
+  <div id="s-wtch" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">⭐ Watch List</div>
+      <div style="font-size:13px;color:var(--t2)" id="wtchCount">0 players</div>
+    </div>
+    <div style="background:rgba(255,215,64,0.05);border:1px solid rgba(255,215,64,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Star players you want to track — trade targets, buy-low candidates, or rising prospects. Saved to your browser across sessions so your list persists between visits.
+    </div>
+    <div style="margin-bottom:16px">
+      <input class="inp" id="wtchInp" placeholder="Search to add a player..." oninput="wtchDoSearch(this.value)" style="max-width:420px;margin-bottom:6px">
+      <div id="wtchSuggest"></div>
+    </div>
+    <div id="wtchList"></div>
+  </div>
+
+  <!-- ALL LEAGUES DASHBOARD -->
+  <div id="s-dash" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">🌐 All Leagues</div>
+      <div style="font-size:13px;color:var(--t2)">All leagues for this season — click to switch</div>
+    </div>
+    <div style="background:rgba(68,138,255,0.05);border:1px solid rgba(68,138,255,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Every league tied to your Sleeper account for the current season. Click a card to load that league — rosters, values, and trade tools all switch instantly. Great for managing multiple dynasty teams.
+    </div>
+    <div id="dashGrid" class="rg"></div>
+  </div>
+
+  <!-- LEAGUE ACTIVITY FEED -->
+  <div id="s-act" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📰 League Activity</div>
+      <div style="font-size:13px;color:var(--t2)">Recent adds, drops, and trades in your league</div>
+    </div>
+    <div style="background:rgba(255,82,82,0.05);border:1px solid rgba(255,82,82,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Real-time transaction feed from Sleeper — trades, waiver claims, free agent adds, and drops. Useful for spotting market moves and knowing what your leaguemates are doing before it affects player values.
+    </div>
+    <div id="actLoading" class="hidden" style="text-align:center;padding:40px"><div class="spin" style="margin:0 auto 12px"></div><div style="font-size:13px;color:var(--t3)">Fetching transactions...</div></div>
+    <div id="actList"></div>
+    <div id="actLoadMore" class="hidden" style="text-align:center;margin-top:16px">
+      <button class="btn btn-o btn-s" onclick="loadMoreActivity()">Load more weeks...</button>
+    </div>
+  </div>
+
+  <!-- AGE CURVE PROJECTOR -->
+  <div id="s-age" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📉 Age Curve Projector</div>
+      <div style="font-size:13px;color:var(--t2)">Projected value trajectory for your roster over 5 years</div>
+    </div>
+    <div style="background:rgba(255,215,64,0.05);border:1px solid rgba(255,215,64,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Projects how each of your players' dynasty values will change over the next 5 years using position-specific age decay curves. <strong style="color:var(--t2)">RBs</strong> peak early and fade fast; <strong style="color:var(--t2)">QBs</strong> age gracefully. Useful for deciding who to sell before the drop-off and who to build around long-term.
+    </div>
+    <div id="ageList"></div>
+  </div>
+
+  <!-- DYNASTY RANKINGS / STARTUP HELPER -->
+  <div id="s-rnk" class="sec hidden">
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">📋 Dynasty Rankings</div>
+      <div style="font-size:13px;color:var(--t2)">All players ranked by current dynasty value</div>
+    </div>
+    <div style="background:rgba(179,136,255,0.05);border:1px solid rgba(179,136,255,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
+      Full rankings pulled live from FantasyCalc — every player ordered by dynasty value. Shows who on your roster is rostered vs on the wire. Perfect for startup drafts, trade research, or a league-wide value snapshot.
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+      <div class="stog" id="rnkFilters">
+        <button class="sbtn on rnk-filter" data-pos="ALL" onclick="renderRankings('ALL')">All</button>
+        <button class="sbtn rnk-filter" data-pos="QB" onclick="renderRankings('QB')">QB</button>
+        <button class="sbtn rnk-filter" data-pos="RB" onclick="renderRankings('RB')">RB</button>
+        <button class="sbtn rnk-filter" data-pos="WR" onclick="renderRankings('WR')">WR</button>
+        <button class="sbtn rnk-filter" data-pos="TE" onclick="renderRankings('TE')">TE</button>
+      </div>
+      <input class="inp" id="rnkSearch" placeholder="🔍 Search..." oninput="renderRankings()" style="max-width:200px;padding:6px 10px;font-size:12px">
+    </div>
+    <div id="rnkList"></div>
+  </div>
+
   <div style="margin-top:40px;padding:16px 0;border-top:1px solid var(--bdr);text-align:center;font-size:10px;color:var(--t3);line-height:1.8">
     Values from <a href="https://fantasycalc.com" target="_blank" style="color:var(--grn)">FantasyCalc</a> (free, no key). Rosters from <a href="https://docs.sleeper.com" target="_blank" style="color:var(--blu)">Sleeper API</a>.<br>
     2025 pick slots from confirmed Sleeper draft order. 2026+ pick positions projected by roster strength — use 📝 Edit Picks to correct.
@@ -385,7 +543,8 @@ var S = {
   sendPids:[],          // must-include players/picks from MY side
   tradeStyle:'balanced',// 'balanced' | 'flexible' | 'bigswap'
   tradeMax:3,           // max assets per side (3 or 4)
-  tradeShuffle:0        // increments on shuffle press to re-randomize
+  tradeShuffle:0,        // increments on shuffle press to re-randomize
+  watchList:(function(){try{return JSON.parse(localStorage.getItem('dtf_watchlist')||'[]');}catch(e){return[];}}())
 };
 var TOL = 0.12;
 var POS_ORD = {QB:0,RB:1,WR:2,TE:3,PICK:4,K:5,DEF:6};
@@ -3098,7 +3257,7 @@ function genTrades(randomize){
 function setS(v,el){S.season=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 function setQB(v,el){S.numQbs=v;var btns=el.parentElement.querySelectorAll('.sbtn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');el.classList.add('on');}
 
-var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',mom:'s-mom',hist:'s-hist',pck:'s-pck',reb:'s-reb',h2h:'s-h2h'};
+var STEPS={con:'s-con',lea:'s-lea',ros:'s-ros',mom:'s-mom',hist:'s-hist',pck:'s-pck',reb:'s-reb',h2h:'s-h2h',wvr:'s-wvr',eval:'s-eval',dgrd:'s-dgrd',wtch:'s-wtch',dash:'s-dash',act:'s-act',age:'s-age',rnk:'s-rnk'};
 var STEP_IDX={con:0,lea:1,ros:2,mom:3,hist:4,pck:5,reb:6};
 function go(k){
   try{
@@ -3109,8 +3268,8 @@ function go(k){
     }
     var nav=document.getElementById('navBar');
     if(nav) nav.style.display=(k!=='con'&&k!=='lea')?'block':'none';
-    var tabs=['nav-ros','nav-mom','nav-reb','nav-hist','nav-pck','nav-h2h'];
-    var tabMap={ros:'nav-ros',mom:'nav-mom',reb:'nav-reb',hist:'nav-hist',pck:'nav-pck',h2h:'nav-h2h'};
+    var tabs=['nav-ros','nav-mom','nav-reb','nav-hist','nav-pck','nav-h2h','nav-wvr','nav-eval','nav-dgrd','nav-wtch','nav-dash','nav-act','nav-age','nav-rnk'];
+    var tabMap={ros:'nav-ros',mom:'nav-mom',reb:'nav-reb',hist:'nav-hist',pck:'nav-pck',h2h:'nav-h2h',wvr:'nav-wvr',eval:'nav-eval',dgrd:'nav-dgrd',wtch:'nav-wtch',dash:'nav-dash',act:'nav-act',age:'nav-age',rnk:'nav-rnk'};
     for(var i=0;i<tabs.length;i++){
       var btn=document.getElementById(tabs[i]);
       if(btn) btn.className='navtab'+(tabs[i]===(tabMap[k]||'')?' on':'');
@@ -3362,6 +3521,553 @@ function renderH2H() {
   document.getElementById('h2hSub').textContent='Loaded '+opponents.length+' opponents across all leagues and seasons.';
 }
 function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
+
+// ==========================================
+// WAIVER WIRE TARGETS
+// ==========================================
+var wvrPos = 'ALL';
+function openWaiverWire() {
+  if (!S.valsLoaded) { alert('Load a league first.'); return; }
+  go('wvr');
+  wvrPos = 'ALL';
+  renderWaiverWire('ALL');
+}
+function renderWaiverWire(pos) {
+  if (pos !== undefined) wvrPos = pos;
+  var filterBtns = document.querySelectorAll('.wvr-filter');
+  for (var i = 0; i < filterBtns.length; i++) filterBtns[i].classList.toggle('on', filterBtns[i].dataset.pos === wvrPos);
+  var rostered = {};
+  for (var i = 0; i < S.rosters.length; i++) { var r = S.rosters[i]; if (r.players) for (var j = 0; j < r.players.length; j++) rostered[r.players[j]] = true; }
+  var free = [];
+  var ids = Object.keys(S.vals);
+  for (var i = 0; i < ids.length; i++) {
+    var id = ids[i]; if (rostered[id]) continue;
+    var p = S.players[id]; if (!p || !REL_POS.has(p.position)) continue;
+    var val = S.vals[id]; if (!val || val < 200) continue;
+    if (wvrPos !== 'ALL' && p.position !== wvrPos) continue;
+    free.push({id:id, val:val, p:p, meta:S.fcMeta[id]||{}});
+  }
+  free.sort(function(a,b){ return b.val - a.val; });
+  var el = document.getElementById('wvrList');
+  if (!free.length) { el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:40px">No players found — everyone is rostered!</div>'; return; }
+  var html = '';
+  for (var i = 0; i < Math.min(free.length, 150); i++) {
+    var item = free[i], meta = item.meta, trend = meta.trend || 0, vd = vc(item.val);
+    var nm = item.p.full_name || ((item.p.first_name||'')+' '+(item.p.last_name||''));
+    var trendStr = trend > 50 ? '<span style="color:var(--grn);font-size:10px;font-weight:700">▲ +'+Math.round(trend)+'</span>' :
+                   trend < -50 ? '<span style="color:var(--red);font-size:10px;font-weight:700">▼ '+Math.round(trend)+'</span>' :
+                   '<span style="color:var(--t3);font-size:10px">—</span>';
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;border:1px solid var(--bdr);margin-bottom:3px">';
+    html += '<span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--t3);min-width:22px;text-align:right">'+(i+1)+'.</span>';
+    html += '<span class="pos pos-'+item.p.position+'">'+item.p.position+'</span>';
+    html += '<span style="flex:1;font-size:13px;font-weight:500">'+esc(nm)+getSignalBadge(item.id)+'</span>';
+    if (meta.age) html += '<span style="font-size:10px;color:var(--t3)">'+meta.age+'y</span>';
+    html += trendStr+'<span class="v '+vd.c+'">'+vd.t+'</span>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+// ==========================================
+// TRADE OFFER EVALUATOR
+// ==========================================
+var evalSuggestions = {give:[], get:[]};
+var evalGive = [];
+var evalGet = [];
+function openEvaluator() {
+  if (!S.valsLoaded) { alert('Load a league first.'); return; }
+  go('eval');
+  renderEvalPanel();
+}
+function evalSearch(side, query) {
+  var el = document.getElementById('evalSug'+side);
+  if (!query || query.length < 2) { el.innerHTML = ''; return; }
+  var q = query.toLowerCase(), results = [], ids = Object.keys(S.vals);
+  for (var i = 0; i < ids.length; i++) {
+    var id = ids[i], p = S.players[id];
+    if (!p || !p.full_name || !REL_POS.has(p.position)) continue;
+    if (p.full_name.toLowerCase().indexOf(q) < 0) continue;
+    results.push({id:id, p:p, val:S.vals[id]||0});
+  }
+  results.sort(function(a,b){return b.val-a.val;});
+  evalSuggestions[side] = results.slice(0,8);
+  var html = '';
+  for (var i = 0; i < evalSuggestions[side].length; i++) {
+    var item = evalSuggestions[side][i], vd = vc(item.val);
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;border:1px solid var(--bdr);margin-bottom:2px;cursor:pointer;background:rgba(255,255,255,0.02)" onclick="evalAddIdx(\''+side+'\','+i+')">';
+    html += '<span class="pos pos-'+item.p.position+'">'+item.p.position+'</span>';
+    html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(item.p.full_name)+'</span>';
+    html += '<span class="v '+vd.c+'">'+vd.t+'</span></div>';
+  }
+  el.innerHTML = html || '<div style="font-size:11px;color:var(--t3);padding:6px">No results.</div>';
+}
+function evalAddIdx(side, idx) {
+  var item = evalSuggestions[side][idx]; if (!item) return;
+  var arr = side === 'give' ? evalGive : evalGet;
+  for (var i = 0; i < arr.length; i++) if (arr[i].id === item.id) return;
+  arr.push({id:item.id, name:item.p.full_name, pos:item.p.position, val:item.val});
+  document.getElementById('evalIn'+side).value = '';
+  document.getElementById('evalSug'+side).innerHTML = '';
+  renderEvalPanel();
+}
+function evalRemove(side, id) {
+  if (side === 'give') evalGive = evalGive.filter(function(x){return x.id!==id;});
+  else evalGet = evalGet.filter(function(x){return x.id!==id;});
+  renderEvalPanel();
+}
+function clearEval() { evalGive = []; evalGet = []; renderEvalPanel(); }
+function renderEvalPanel() {
+  function renderSide(arr, side) {
+    var total = 0, html = '';
+    for (var i = 0; i < arr.length; i++) {
+      var item = arr[i], vd = vc(item.val); total += item.val;
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;margin-bottom:3px;background:rgba(255,255,255,0.02);border:1px solid var(--bdr)">';
+      html += '<span class="pos pos-'+item.pos+'">'+item.pos+'</span>';
+      html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(item.name)+getSignalBadge(item.id)+'</span>';
+      html += '<span class="v '+vd.c+'">'+vd.t+'</span>';
+      html += '<button onclick="evalRemove(\''+side+'\',\''+item.id+'\')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:12px;padding:0 4px">✕</button>';
+      html += '</div>';
+    }
+    var cap = side.charAt(0).toUpperCase()+side.slice(1);
+    document.getElementById('eval'+cap+'List').innerHTML = html || '<div style="font-size:11px;color:var(--t3);padding:8px 0">No players added.</div>';
+    document.getElementById('eval'+cap+'Total').textContent = total.toLocaleString();
+    return total;
+  }
+  var giveTotal = renderSide(evalGive, 'give');
+  var getTotal  = renderSide(evalGet, 'get');
+  var verdict = document.getElementById('evalVerdict');
+  if (!evalGive.length && !evalGet.length) { verdict.innerHTML = '<div style="color:var(--t3);font-size:12px">Add players to both sides to evaluate a trade.</div>'; verdict.style.background=''; return; }
+  var diff = getTotal - giveTotal;
+  var base = Math.max(giveTotal, getTotal, 1);
+  var pct = Math.round(Math.abs(diff) / base * 100);
+  var txt, col, bg;
+  if (pct <= 6) {
+    txt = '⚖️  Fair Trade — within '+pct+'% balanced'; col = 'var(--t2)'; bg = 'rgba(255,255,255,0.03)';
+  } else if (diff > 0) {
+    txt = '✅  You WIN by '+pct+'% — receiving +'+diff.toLocaleString()+' more value'; col = 'var(--grn)'; bg = 'var(--grn2)';
+  } else {
+    txt = '❌  You LOSE by '+pct+'% — giving away '+Math.abs(diff).toLocaleString()+' extra value'; col = 'var(--red)'; bg = 'var(--red2)';
+  }
+  verdict.innerHTML = '<div style="font-size:14px;font-weight:800;color:'+col+'">'+txt+'</div><div style="margin-top:6px;font-size:11px;color:var(--t3)">You give: '+giveTotal.toLocaleString()+' · You get: '+getTotal.toLocaleString()+'</div>';
+  verdict.style.background = bg;
+}
+
+// ==========================================
+// ROOKIE DRAFT GRADE
+// ==========================================
+async function openDraftGrade() {
+  if (!S.valsLoaded) { alert('Load a league first.'); return; }
+  go('dgrd');
+  var el = document.getElementById('dgrdContent');
+  var completedDraft = null;
+  for (var i = 0; i < S.drafts.length; i++) { if (S.drafts[i].season === '2026' && S.drafts[i].status === 'complete') { completedDraft = S.drafts[i]; break; } }
+  if (!completedDraft) {
+    el.innerHTML = '<div class="card" style="text-align:center;padding:40px;color:var(--t3)"><div style="font-size:32px;margin-bottom:8px">📋</div><div>No completed 2026 rookie draft found.</div><div style="font-size:11px;margin-top:8px">Grades appear here once the draft finishes.</div></div>';
+    return;
+  }
+  el.innerHTML = '<div style="text-align:center;padding:30px"><div class="spin" style="margin:0 auto 8px"></div><div style="font-size:12px;color:var(--t3)">Loading draft picks...</div></div>';
+  try {
+    var picks = await fetchJSON('https://api.sleeper.app/v1/draft/'+completedDraft.draft_id+'/picks');
+    renderDraftGrade(picks, completedDraft);
+  } catch(e) {
+    el.innerHTML = '<div class="card" style="color:var(--red);padding:20px">Failed to load picks: '+esc(e.message)+'</div>';
+  }
+}
+function renderDraftGrade(picks, draft) {
+  var el = document.getElementById('dgrdContent');
+  var teams = {};
+  for (var i = 0; i < S.rosters.length; i++) teams[S.rosters[i].roster_id] = {picks:[], totalPickVal:0, totalPlayerVal:0, rosterId:S.rosters[i].roster_id};
+  for (var i = 0; i < picks.length; i++) {
+    var pk = picks[i];
+    var useRid = null;
+    if (draft.slot_to_roster_id && pk.draft_slot) useRid = parseInt(draft.slot_to_roster_id[pk.draft_slot]);
+    if (!useRid && pk.picked_by) { for (var j = 0; j < S.rosters.length; j++) if (S.rosters[j].owner_id === pk.picked_by) { useRid = S.rosters[j].roster_id; break; } }
+    if (!useRid) continue;
+    if (!teams[useRid]) teams[useRid] = {picks:[], totalPickVal:0, totalPlayerVal:0, rosterId:useRid};
+    var slot = pk.draft_slot || 0;
+    var slotStr = pk.round + '.' + (slot < 10 ? '0'+slot : ''+slot);
+    var pickVal = S.pickVals[slotStr] || 0;
+    var playerVal = pk.player_id ? (S.vals[pk.player_id] || 0) : 0;
+    var pInfo = pk.player_id ? S.players[pk.player_id] : null;
+    var pName = pInfo ? ((pInfo.first_name||'')+' '+(pInfo.last_name||pInfo.full_name||'')) : ('Pick #'+(pk.pick_no||'?'));
+    teams[useRid].picks.push({slot:slotStr, round:pk.round, pickNo:pk.pick_no||0, playerId:pk.player_id, playerName:pName, playerPos:pInfo?pInfo.position:'??', pickVal:pickVal, playerVal:playerVal, surplus:playerVal-pickVal});
+    teams[useRid].totalPickVal += pickVal;
+    teams[useRid].totalPlayerVal += playerVal;
+  }
+  var teamArr = Object.keys(teams).map(function(rid){ return teams[rid]; }).filter(function(t){ return t.picks.length > 0; });
+  teamArr.sort(function(a,b){ return (b.totalPlayerVal-b.totalPickVal)-(a.totalPlayerVal-a.totalPickVal); });
+  function getGrade(pct) {
+    if (pct >= 20) return {g:'A+', c:'var(--grn)'};
+    if (pct >= 8)  return {g:'A',  c:'var(--grn)'};
+    if (pct >= -4) return {g:'B',  c:'var(--grn)'};
+    if (pct >= -15) return {g:'C', c:'var(--amb)'};
+    if (pct >= -30) return {g:'D', c:'var(--red)'};
+    return {g:'F', c:'var(--red)'};
+  }
+  var html = '';
+  for (var i = 0; i < teamArr.length; i++) {
+    var t = teamArr[i], surplus = t.totalPlayerVal - t.totalPickVal;
+    var pct = t.totalPickVal > 0 ? Math.round(surplus / t.totalPickVal * 100) : 0;
+    var gr = getGrade(pct), isMe = t.rosterId === S.myRid;
+    html += '<div class="card" style="margin-bottom:12px'+(isMe?';border-color:var(--grn3);background:rgba(0,230,118,0.04)':'')+'">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+    html += '<div><div style="font-size:15px;font-weight:800">'+esc(getOwnerName(t.rosterId))+(isMe?' <span style="font-size:11px;color:var(--grn)">(You)</span>':'')+'</div>';
+    html += '<div style="font-size:10px;color:var(--t3)">'+(surplus>=0?'+':'')+surplus.toLocaleString()+' value vs pick cost</div></div>';
+    html += '<div style="text-align:center"><div style="font-size:28px;font-weight:900;color:'+gr.c+'">'+gr.g+'</div><div style="font-size:10px;color:var(--t3)">'+(pct>=0?'+':'')+pct+'%</div></div></div>';
+    var sorted = t.picks.slice().sort(function(a,b){return a.round*1000+a.pickNo-(b.round*1000+b.pickNo);});
+    for (var j = 0; j < sorted.length; j++) {
+      var p = sorted[j], surpColor = p.surplus >= 0 ? 'var(--grn)' : 'var(--red)';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;margin-bottom:3px;background:rgba(255,255,255,0.02)">';
+      html += '<span class="pos pos-PICK">'+esc(p.slot)+'</span>';
+      html += '<span class="pos pos-'+(p.playerPos||'??')+'">'+esc(p.playerPos||'??')+'</span>';
+      html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(p.playerName.trim())+getSignalBadge(p.playerId)+'</span>';
+      if (p.pickVal) html += '<span style="font-size:10px;color:var(--t3)">cost: '+p.pickVal.toLocaleString()+'</span>';
+      html += '<span style="font-size:10px;font-weight:700;color:'+surpColor+'">'+(p.surplus>=0?'+':'')+p.surplus.toLocaleString()+'</span>';
+      if (p.playerVal) { var vd2=vc(p.playerVal); html += '<span class="v '+vd2.c+'">'+vd2.t+'</span>'; }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html || '<div style="text-align:center;color:var(--t3);padding:40px">No draft data available.</div>';
+}
+
+// ==========================================
+// WATCH LIST
+// ==========================================
+function openWatchList() {
+  if (!S.valsLoaded) { alert('Load a league first.'); return; }
+  go('wtch');
+  renderWatchList();
+}
+function renderWatchList() {
+  var el = document.getElementById('wtchList'), wl = S.watchList;
+  document.getElementById('wtchCount').textContent = wl.length+' player'+(wl.length!==1?'s':'');
+  var items = [];
+  for (var i = 0; i < wl.length; i++) { var id = wl[i], p = S.players[id]; if (!p) continue; items.push({id:id, p:p, val:gv(id)||0}); }
+  items.sort(function(a,b){return b.val-a.val;});
+  if (!items.length) { el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:40px">Your watch list is empty.<br><div style="font-size:11px;margin-top:6px">Search for players above to track them.</div></div>'; return; }
+  var html = '';
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i], meta = S.fcMeta[item.id]||{}, vd = vc(item.val);
+    var trend = meta.trend||0;
+    var trendStr = trend > 50 ? ' <span style="color:var(--grn);font-size:10px">▲</span>' : trend < -50 ? ' <span style="color:var(--red);font-size:10px">▼</span>' : '';
+    var nm = item.p.full_name || ((item.p.first_name||'')+' '+(item.p.last_name||''));
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;border:1px solid var(--bdr);margin-bottom:4px">';
+    html += '<span class="pos pos-'+item.p.position+'">'+item.p.position+'</span>';
+    html += '<span style="flex:1;font-size:13px;font-weight:500">'+esc(nm)+getSignalBadge(item.id)+trendStr+'</span>';
+    if (meta.age) html += '<span style="font-size:10px;color:var(--t3)">'+meta.age+'y</span>';
+    html += '<span class="v '+vd.c+'">'+vd.t+'</span>';
+    html += '<button onclick="removeWatchList(\''+item.id+'\')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0 4px" title="Remove">✕</button>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+function wtchDoSearch(query) {
+  var el = document.getElementById('wtchSuggest');
+  if (!query || query.length < 2) { el.innerHTML = ''; return; }
+  var q = query.toLowerCase(), results = [], ids = Object.keys(S.vals);
+  for (var i = 0; i < ids.length; i++) {
+    var id = ids[i], p = S.players[id];
+    if (!p || !p.full_name || !REL_POS.has(p.position)) continue;
+    if (p.full_name.toLowerCase().indexOf(q) < 0) continue;
+    results.push({id:id, p:p, val:S.vals[id]||0});
+  }
+  results.sort(function(a,b){return b.val-a.val;});
+  var html = '';
+  for (var i = 0; i < Math.min(results.length, 6); i++) {
+    var item = results[i], vd = vc(item.val);
+    var inList = S.watchList.indexOf(item.id) >= 0;
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;border:1px solid var(--bdr);margin-bottom:2px;cursor:pointer;background:rgba(255,255,255,0.02)" onclick="addWatchList(\''+item.id+'\')">';
+    html += '<span class="pos pos-'+item.p.position+'">'+item.p.position+'</span>';
+    html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(item.p.full_name)+'</span>';
+    html += '<span class="v '+vd.c+'">'+vd.t+'</span>';
+    html += inList ? '<span style="font-size:10px;color:var(--grn);font-weight:700">⭐ added</span>' : '<span style="font-size:10px;color:var(--t3)">+ add</span>';
+    html += '</div>';
+  }
+  el.innerHTML = html || '<div style="font-size:11px;color:var(--t3);padding:6px">No results.</div>';
+}
+function addWatchList(id) {
+  if (S.watchList.indexOf(id) < 0) { S.watchList.push(id); saveWatchList(); }
+  document.getElementById('wtchInp').value = '';
+  document.getElementById('wtchSuggest').innerHTML = '';
+  renderWatchList();
+}
+function removeWatchList(id) {
+  S.watchList = S.watchList.filter(function(x){return x!==id;});
+  saveWatchList(); renderWatchList();
+}
+function saveWatchList() {
+  try { localStorage.setItem('dtf_watchlist', JSON.stringify(S.watchList)); } catch(e) {}
+}
+
+// ==========================================
+// ALL LEAGUES DASHBOARD
+// ==========================================
+function openDash() {
+  if (!S.userId) { alert('Connect your Sleeper account first.'); return; }
+  go('dash');
+  renderDash();
+}
+function renderDash() {
+  var el = document.getElementById('dashGrid');
+  if (!S.leagues.length) { el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:40px">No leagues found.</div>'; return; }
+  var html = '';
+  for (var i = 0; i < S.leagues.length; i++) {
+    var l = S.leagues[i], isActive = S.league && S.league.league_id === l.league_id;
+    var tp = (l.settings&&l.settings.type===2)?'Dynasty':(l.settings&&l.settings.type===1)?'Keeper':'Redraft';
+    var ppr = (l.scoring_settings&&l.scoring_settings.rec!=null)?' · '+l.scoring_settings.rec+' PPR':'';
+    html += '<div class="card rc'+(isActive?' mine':'')+'" onclick="doSelectLeague(\''+l.league_id+'\')" style="cursor:pointer">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">';
+    html += '<div style="font-size:14px;font-weight:800;flex:1">'+esc(l.name||'League')+'</div>';
+    if (isActive) html += '<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:var(--grn2);color:var(--grn);white-space:nowrap;margin-left:6px">ACTIVE</span>';
+    html += '</div>';
+    html += '<div style="font-size:11px;color:var(--t3)">'+l.total_rosters+' teams · '+tp+ppr+'</div>';
+    html += '<div style="margin-top:8px;font-size:11px;color:var(--blu);font-weight:600">'+(isActive?'Currently viewing →':'Switch to this league →')+'</div>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+// ==========================================
+// LEAGUE ACTIVITY FEED
+// ==========================================
+var actWeeksLoaded = 0;
+var actLeagueId = null;
+function openActivity() {
+  if (!S.league) { alert('Load a league first.'); return; }
+  go('act');
+  var lid = S.league.league_id;
+  if (actLeagueId !== lid) {
+    actWeeksLoaded = 0;
+    actLeagueId = lid;
+    document.getElementById('actList').innerHTML = '';
+    document.getElementById('actLoadMore').classList.add('hidden');
+  }
+  if (actWeeksLoaded === 0) loadActivity(0, 4);
+}
+async function loadActivity(fromWeek, toWeek) {
+  var listEl = document.getElementById('actList');
+  var loadBtn = document.getElementById('actLoadMore');
+  var loadingEl = document.getElementById('actLoading');
+  loadingEl.classList.remove('hidden');
+  loadBtn.classList.add('hidden');
+  var leagueId = S.league.league_id;
+  var txns = [];
+  for (var week = fromWeek; week <= toWeek; week++) {
+    try {
+      var data = await fetchJSON('https://api.sleeper.app/v1/league/'+leagueId+'/transactions/'+week);
+      if (data && data.length) for (var i = 0; i < data.length; i++) { data[i]._week = week; txns.push(data[i]); }
+    } catch(e) {}
+  }
+  actWeeksLoaded = toWeek + 1;
+  loadingEl.classList.add('hidden');
+  txns = txns.filter(function(t){ return t.status === 'complete'; });
+  txns.sort(function(a,b){ return (b.created||0)-(a.created||0); });
+  if (!txns.length && fromWeek === 0) {
+    listEl.innerHTML = '<div style="text-align:center;color:var(--t3);padding:40px">No activity found yet. Activity will appear here once transactions are made in your league.</div>';
+    loadBtn.classList.add('hidden');
+    return;
+  }
+  var html = fromWeek > 0 ? listEl.innerHTML : '';
+  for (var i = 0; i < txns.length; i++) {
+    var tx = txns[i];
+    var ts = tx.created ? new Date(tx.created).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}) : 'Week '+tx._week;
+    var typeLabel, typeColor;
+    if (tx.type === 'trade') { typeLabel = '🔄 TRADE'; typeColor = 'var(--pur)'; }
+    else if (tx.type === 'waiver') { typeLabel = '📋 WAIVER'; typeColor = 'var(--amb)'; }
+    else { typeLabel = '✅ FREE AGENT'; typeColor = 'var(--blu)'; }
+    html += '<div style="border:1px solid var(--bdr);border-radius:8px;padding:10px 14px;margin-bottom:8px;background:var(--bg2)">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    html += '<span style="font-size:11px;font-weight:700;color:'+typeColor+'">'+typeLabel+'</span>';
+    html += '<span style="font-size:10px;color:var(--t3)">'+ts+'</span></div>';
+    if (tx.type === 'trade' && tx.roster_ids) {
+      var rnames = tx.roster_ids.map(function(rid){ return esc(getOwnerName(rid)); });
+      html += '<div style="font-size:11px;color:var(--t2);margin-bottom:6px;font-weight:600">'+rnames.join(' ↔ ')+'</div>';
+      if (tx.adds) {
+        var addKeys = Object.keys(tx.adds);
+        for (var j = 0; j < addKeys.length; j++) {
+          var pid = addKeys[j], toRid = parseInt(tx.adds[pid]), p = S.players[pid];
+          var pName = p ? (p.full_name || (p.first_name||'')+' '+(p.last_name||'')) : pid;
+          var pPos = p ? p.position : '??'; var vd = vc(gv(pid));
+          html += '<div style="display:flex;align-items:center;gap:6px;padding:3px 0">';
+          html += '<span class="pos pos-'+pPos+'" style="font-size:8px;padding:1px 4px">'+pPos+'</span>';
+          html += '<span style="font-size:11px;font-weight:500">'+esc(pName)+'</span>';
+          html += '<span style="font-size:9px;color:var(--t3)">→ '+esc(getOwnerName(toRid))+'</span>';
+          html += '<span class="v '+vd.c+'" style="font-size:10px">'+vd.t+'</span></div>';
+        }
+      }
+      if (tx.draft_picks && tx.draft_picks.length) {
+        for (var j = 0; j < tx.draft_picks.length; j++) {
+          var dp = tx.draft_picks[j];
+          var dpLabel = dp.season+' Round '+dp.round+' pick';
+          html += '<div style="display:flex;align-items:center;gap:6px;padding:3px 0">';
+          html += '<span class="pos pos-PICK" style="font-size:8px;padding:1px 4px">PICK</span>';
+          html += '<span style="font-size:11px;font-weight:500">'+esc(dpLabel)+'</span>';
+          html += '<span style="font-size:9px;color:var(--t3)">→ '+esc(getOwnerName(parseInt(dp.owner_id)))+'</span></div>';
+        }
+      }
+    } else {
+      var rid2 = tx.roster_ids && tx.roster_ids[0];
+      var ownerTag = rid2 ? ' <span style="font-size:9px;color:var(--t3)">'+esc(getOwnerName(rid2))+'</span>' : '';
+      if (tx.adds) {
+        var addKeys2 = Object.keys(tx.adds);
+        for (var j = 0; j < addKeys2.length; j++) {
+          var pid2 = addKeys2[j], p2 = S.players[pid2];
+          var pName2 = p2 ? (p2.full_name || (p2.first_name||'')+' '+(p2.last_name||'')) : pid2;
+          var pPos2 = p2 ? p2.position : '??'; var vd2 = vc(gv(pid2));
+          html += '<div style="display:flex;align-items:center;gap:6px;padding:3px 0">';
+          html += '<span style="font-size:10px;color:var(--grn);font-weight:700">+ ADD</span>';
+          html += '<span class="pos pos-'+pPos2+'" style="font-size:8px;padding:1px 4px">'+pPos2+'</span>';
+          html += '<span style="font-size:11px;font-weight:500">'+esc(pName2)+'</span>';
+          html += ownerTag + '<span class="v '+vd2.c+'" style="font-size:10px">'+vd2.t+'</span></div>';
+        }
+      }
+      if (tx.drops) {
+        var dropKeys = Object.keys(tx.drops);
+        for (var j = 0; j < dropKeys.length; j++) {
+          var pid3 = dropKeys[j], p3 = S.players[pid3];
+          var pName3 = p3 ? (p3.full_name || (p3.first_name||'')+' '+(p3.last_name||'')) : pid3;
+          var pPos3 = p3 ? p3.position : '??';
+          html += '<div style="display:flex;align-items:center;gap:6px;padding:3px 0">';
+          html += '<span style="font-size:10px;color:var(--red);font-weight:700">− DROP</span>';
+          html += '<span class="pos pos-'+pPos3+'" style="font-size:8px;padding:1px 4px">'+pPos3+'</span>';
+          html += '<span style="font-size:11px;font-weight:500">'+esc(pName3)+'</span>';
+          html += ownerTag + '</div>';
+        }
+      }
+    }
+    html += '</div>';
+  }
+  listEl.innerHTML = html;
+  loadBtn.classList.remove('hidden');
+  if (actWeeksLoaded > 18) loadBtn.classList.add('hidden');
+}
+function loadMoreActivity() {
+  if (actWeeksLoaded > 18) { document.getElementById('actLoadMore').classList.add('hidden'); return; }
+  loadActivity(actWeeksLoaded, Math.min(actWeeksLoaded+4, 18));
+}
+
+// ==========================================
+// AGE CURVE PROJECTOR
+// ==========================================
+function openAgeCurve() {
+  if (!S.valsLoaded || !S.myRid) { alert('Load a league and click your roster first.'); return; }
+  go('age');
+  renderAgeCurve();
+}
+function projectValue(val, age, pos) {
+  var peaks = {QB:31, RB:26, WR:28, TE:28};
+  var peak = peaks[pos] || 29;
+  var decayMap = {QB:[0.04,0.07,0.11,0.15,0.20], RB:[0.10,0.15,0.20,0.25,0.30], WR:[0.06,0.10,0.14,0.19,0.25], TE:[0.05,0.09,0.13,0.18,0.23]};
+  var dArr = decayMap[pos] || decayMap.WR;
+  var proj = [], v = val;
+  for (var y = 1; y <= 5; y++) {
+    var futureAge = age + y;
+    if (futureAge <= peak) {
+      v = Math.round(v * 1.03);
+    } else {
+      var yp = futureAge - peak;
+      var dr = dArr[Math.min(yp-1, dArr.length-1)] || 0.25;
+      v = Math.max(0, Math.round(val * (1 - dr)));
+    }
+    proj.push(v);
+  }
+  return proj;
+}
+function renderAgeCurve() {
+  var myRoster = null;
+  for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].roster_id === S.myRid) { myRoster = S.rosters[i]; break; }
+  if (!myRoster || !myRoster.players) { document.getElementById('ageList').innerHTML = '<div style="text-align:center;color:var(--t3);padding:40px">No roster data found.</div>'; return; }
+  var players = [];
+  for (var i = 0; i < myRoster.players.length; i++) {
+    var id = myRoster.players[i], p = S.players[id], val = gv(id), meta = S.fcMeta[id]||{};
+    if (!p || !REL_POS.has(p.position) || !val || !meta.age) continue;
+    players.push({id:id, p:p, val:val, age:meta.age, pos:p.position});
+  }
+  players.sort(function(a,b){ return b.val - a.val; });
+  var maxVal = 1;
+  for (var i = 0; i < players.length; i++) if (players[i].val > maxVal) maxVal = players[i].val;
+  var html = '';
+  for (var i = 0; i < players.length; i++) {
+    var pl = players[i], proj = projectValue(pl.val, pl.age, pl.pos);
+    var finalProj = proj[4];
+    var trend = finalProj > pl.val * 1.05 ? 'rising' : finalProj < pl.val * 0.65 ? 'declining' : 'stable';
+    var trendCol = trend === 'rising' ? 'var(--grn)' : trend === 'declining' ? 'var(--red)' : 'var(--amb)';
+    var nm = pl.p.full_name || ((pl.p.first_name||'')+' '+(pl.p.last_name||''));
+    html += '<div class="card" style="margin-bottom:10px">';
+    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+    html += '<span class="pos pos-'+pl.pos+'">'+pl.pos+'</span>';
+    html += '<div style="flex:1"><div style="font-size:13px;font-weight:700">'+esc(nm)+getSignalBadge(pl.id)+'</div>';
+    html += '<div style="font-size:10px;color:var(--t3)">Age '+pl.age+' · <span style="color:'+trendCol+';font-weight:600">'+trend+'</span></div></div>';
+    var vdMain = vc(pl.val); html += '<span class="v '+vdMain.c+'">'+vdMain.t+'</span></div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">';
+    for (var y = 0; y < 5; y++) {
+      var pv = proj[y], pct = Math.round(pv / maxVal * 100);
+      var barCol = pv >= pl.val * 0.9 ? 'var(--grn)' : pv >= pl.val * 0.6 ? 'var(--amb)' : 'var(--red)';
+      html += '<div style="text-align:center">';
+      html += '<div style="font-size:9px;color:var(--t3);margin-bottom:3px">'+(2026+y)+'</div>';
+      html += '<div style="height:40px;background:rgba(255,255,255,0.05);border-radius:3px;display:flex;align-items:flex-end;overflow:hidden">';
+      html += '<div style="width:100%;height:'+Math.max(pct,2)+'%;background:'+barCol+';border-radius:2px"></div></div>';
+      html += '<div style="font-size:9px;margin-top:3px;color:'+barCol+';font-weight:700;font-family:\'DM Mono\',monospace">'+pv.toLocaleString()+'</div>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+  }
+  document.getElementById('ageList').innerHTML = html || '<div style="text-align:center;color:var(--t3);padding:40px">No players with age data found on your roster.</div>';
+}
+
+// ==========================================
+// DYNASTY RANKINGS / STARTUP HELPER
+// ==========================================
+var rnkPos = 'ALL';
+function openRankings() {
+  if (!S.valsLoaded) { alert('Load a league first.'); return; }
+  go('rnk');
+  rnkPos = 'ALL';
+  var searchEl = document.getElementById('rnkSearch');
+  if (searchEl) searchEl.value = '';
+  renderRankings('ALL');
+}
+function renderRankings(pos) {
+  if (pos !== undefined) rnkPos = pos;
+  var filterBtns = document.querySelectorAll('.rnk-filter');
+  for (var i = 0; i < filterBtns.length; i++) filterBtns[i].classList.toggle('on', filterBtns[i].dataset.pos === rnkPos);
+  var query = ((document.getElementById('rnkSearch')||{}).value||'').toLowerCase().trim();
+  var players = [];
+  var ids = Object.keys(S.vals);
+  for (var i = 0; i < ids.length; i++) {
+    var id = ids[i], p = S.players[id];
+    if (!p || !REL_POS.has(p.position)) continue;
+    if (rnkPos !== 'ALL' && p.position !== rnkPos) continue;
+    var val = S.vals[id]; if (!val) continue;
+    if (query) { var fn = p.full_name || ((p.first_name||'')+' '+(p.last_name||'')); if (fn.toLowerCase().indexOf(query) < 0) continue; }
+    players.push({id:id, p:p, val:val, meta:S.fcMeta[id]||{}});
+  }
+  players.sort(function(a,b){ return b.val - a.val; });
+  var el = document.getElementById('rnkList');
+  if (!players.length) { el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:40px">No players found.</div>'; return; }
+  var rostered = {};
+  for (var i = 0; i < S.rosters.length; i++) { var r = S.rosters[i]; if (r.players) for (var j = 0; j < r.players.length; j++) rostered[r.players[j]] = r.roster_id; }
+  var html = '';
+  for (var i = 0; i < Math.min(players.length, 300); i++) {
+    var pl = players[i], meta = pl.meta, vd = vc(pl.val);
+    var ownerRid = rostered[pl.id];
+    var isMe = ownerRid === S.myRid;
+    var ownerTag = ownerRid ? '<span style="font-size:10px;color:var(--t3)">'+esc(getOwnerName(ownerRid))+(isMe?' <span style="color:var(--grn)">(You)</span>':'')+'</span>' : '<span style="font-size:10px;color:rgba(0,230,118,0.5)">FA</span>';
+    var trend = meta.trend||0;
+    var trendStr = trend > 50 ? ' <span style="color:var(--grn);font-size:10px">▲</span>' : trend < -50 ? ' <span style="color:var(--red);font-size:10px">▼</span>' : '';
+    var nm = pl.p.full_name || ((pl.p.first_name||'')+' '+(pl.p.last_name||''));
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;border:1px solid var(--bdr);margin-bottom:3px'+(isMe?';background:rgba(0,230,118,0.04)':'')+'">';
+    html += '<span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--t3);min-width:26px;text-align:right">'+(i+1)+'.</span>';
+    html += '<span class="pos pos-'+pl.p.position+'">'+pl.p.position+'</span>';
+    html += '<span style="flex:1;font-size:13px;font-weight:500">'+esc(nm)+getSignalBadge(pl.id)+trendStr+'</span>';
+    if (meta.age) html += '<span style="font-size:10px;color:var(--t3)">'+meta.age+'y</span>';
+    html += ownerTag;
+    html += '<span class="v '+vd.c+'">'+vd.t+'</span>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
 </script>
 </body>
 </html>
