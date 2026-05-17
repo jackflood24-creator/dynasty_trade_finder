@@ -3128,10 +3128,23 @@ function tradeCard(t, showWinner) {
     html += '<span>Est. at trade</span><span>'+((s.side.estTradeVal||0).toLocaleString())+'</span></div>';
     html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2)">';
     html += '<span>Current value</span><span style="font-weight:700">'+s.side.totalVal.toLocaleString()+'</span></div>';
-    html += '<div style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;color:'+gainColor+';text-align:right;margin-top:2px">'+(gainVal>=0?'+':'')+gainVal.toLocaleString()+' since trade</div>';
     html += '</div></div>';
   }
-  html += '</div></div>';
+  // Net verdict once, below both panels
+  var winSide = null, loseSide = null;
+  for (var si = 0; si < t.sides.length; si++) {
+    var sv = t.sides[si].side.valueGained || 0;
+    if (sv > 0) winSide = t.sides[si];
+    else if (sv < 0) loseSide = t.sides[si];
+  }
+  if (winSide && loseSide) {
+    var leadAmt = Math.abs(winSide.side.valueGained || 0);
+    html += '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(0,230,118,0.06);border:1px solid var(--grn3);font-size:11px;font-weight:700;color:var(--grn);text-align:center">';
+    html += esc(getOwnerName(winSide.rid))+' ahead by '+leadAmt.toLocaleString()+' at current values</div>';
+  } else {
+    html += '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,0.03);border:1px solid var(--bdr);font-size:11px;color:var(--t3);text-align:center">Values even at current market</div>';
+  }
+  html += '</div>';
   return html;
 }
 
@@ -3170,19 +3183,25 @@ function timelineRow(t) {
         html += '<div style="font-size:11px;padding:1px 0;color:var(--pur)">🎯 '+pk.label+' <span style="font-size:9px">'+pk.v.toLocaleString()+'</span></div>';
       }
     }
-    var gainColor = (s.side.valueGained||0) > 0 ? 'var(--grn)' : (s.side.valueGained||0) < 0 ? 'var(--red)' : 'var(--t3)';
     html += '<div style="margin-top:4px;border-top:1px solid var(--bdr);padding-top:3px">';
     html += '<div style="display:flex;justify-content:space-between;font-size:10px">';
     html += '<span style="color:var(--t3)">Now: <strong style="color:var(--t2)">'+s.side.totalVal.toLocaleString()+'</strong></span>';
     if (s.side.estTradeVal) html += '<span style="color:var(--t3)">Est. at trade: '+s.side.estTradeVal.toLocaleString()+'</span>';
     html += '</div>';
-    if (s.side.valueGained !== undefined) {
-      html += '<div style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+gainColor+';margin-top:2px">'+(s.side.valueGained>=0?'+':'')+s.side.valueGained.toLocaleString()+' since trade</div>';
-    }
     html += '</div>';
     html += '</div>';
   }
-  html += '</div></div>';
+  // Single net verdict below both panels
+  var winSide = null;
+  for (var si = 0; si < t.sides.length; si++) {
+    if ((t.sides[si].side.valueGained || 0) > 0) { winSide = t.sides[si]; break; }
+  }
+  if (winSide) {
+    var leadAmt = Math.abs(winSide.side.valueGained || 0);
+    html += '<div style="margin-top:6px;padding:4px 8px;border-radius:5px;background:rgba(0,230,118,0.06);border:1px solid var(--grn3);font-size:10px;font-weight:700;color:var(--grn);text-align:center">';
+    html += esc(getOwnerName(winSide.rid))+' ahead by '+leadAmt.toLocaleString()+'</div>';
+  }
+  html += '</div>';
   return html;
 }
 
@@ -3754,9 +3773,13 @@ function renderDraftGrade(picks, draft) {
   for (var i = 0; i < S.rosters.length; i++) teams[S.rosters[i].roster_id] = {picks:[], totalPickVal:0, totalPlayerVal:0, rosterId:S.rosters[i].roster_id};
   for (var i = 0; i < picks.length; i++) {
     var pk = picks[i];
+    // Use picked_by only — slot_to_roster_id reflects the original slot owner before any pick trades, which would credit the wrong team
     var useRid = null;
-    if (draft.slot_to_roster_id && pk.draft_slot) useRid = parseInt(draft.slot_to_roster_id[pk.draft_slot]);
-    if (!useRid && pk.picked_by) { for (var j = 0; j < S.rosters.length; j++) if (S.rosters[j].owner_id === pk.picked_by) { useRid = S.rosters[j].roster_id; break; } }
+    if (pk.picked_by) {
+      for (var j = 0; j < S.rosters.length; j++) {
+        if (S.rosters[j].owner_id === pk.picked_by) { useRid = S.rosters[j].roster_id; break; }
+      }
+    }
     if (!useRid) continue;
     if (!teams[useRid]) teams[useRid] = {picks:[], totalPickVal:0, totalPlayerVal:0, rosterId:useRid};
     var slot = pk.draft_slot || 0;
@@ -3770,32 +3793,58 @@ function renderDraftGrade(picks, draft) {
     teams[useRid].totalPlayerVal += playerVal;
   }
   var teamArr = Object.keys(teams).map(function(rid){ return teams[rid]; }).filter(function(t){ return t.picks.length > 0; });
-  teamArr.sort(function(a,b){ return (b.totalPlayerVal-b.totalPickVal)-(a.totalPlayerVal-a.totalPickVal); });
-  function getGrade(pct) {
-    if (pct >= 20) return {g:'A+', c:'var(--grn)'};
-    if (pct >= 8)  return {g:'A',  c:'var(--grn)'};
-    if (pct >= -4) return {g:'B',  c:'var(--grn)'};
-    if (pct >= -15) return {g:'C', c:'var(--amb)'};
-    if (pct >= -30) return {g:'D', c:'var(--red)'};
-    return {g:'F', c:'var(--red)'};
-  }
-  var html = '';
+  // Compute pct surplus per team
   for (var i = 0; i < teamArr.length; i++) {
-    var t = teamArr[i], surplus = t.totalPlayerVal - t.totalPickVal;
-    var pct = t.totalPickVal > 0 ? Math.round(surplus / t.totalPickVal * 100) : 0;
-    var gr = getGrade(pct), isMe = t.rosterId === S.myRid;
+    var t = teamArr[i];
+    t.surplus = t.totalPlayerVal - t.totalPickVal;
+    t.pct = t.totalPickVal > 0 ? t.surplus / t.totalPickVal * 100 : 0;
+  }
+  // Relative grading: z-score vs this league's draft class so grades spread across the curve
+  var n = teamArr.length;
+  var mean = 0;
+  for (var i = 0; i < n; i++) mean += teamArr[i].pct;
+  mean /= n || 1;
+  var variance = 0;
+  for (var i = 0; i < n; i++) variance += Math.pow(teamArr[i].pct - mean, 2);
+  var sd = n > 1 ? Math.sqrt(variance / (n - 1)) : 1;
+  if (sd < 1) sd = 1;
+  function getGrade(z) {
+    if (z >= 1.5)  return {g:'A+', c:'var(--grn)'};
+    if (z >= 0.8)  return {g:'A',  c:'var(--grn)'};
+    if (z >= 0.25) return {g:'B+', c:'var(--grn)'};
+    if (z >= -0.25)return {g:'B',  c:'var(--amb)'};
+    if (z >= -0.8) return {g:'C',  c:'var(--amb)'};
+    if (z >= -1.5) return {g:'D',  c:'var(--red)'};
+    return         {g:'F',  c:'var(--red)'};
+  }
+  // Per-pick steal/reach threshold: 20% of avg pick cost
+  var totalCost = 0, totalPkCount = 0;
+  for (var i = 0; i < teamArr.length; i++) { totalCost += teamArr[i].totalPickVal; totalPkCount += teamArr[i].picks.length; }
+  var avgCost = totalPkCount > 0 ? totalCost / totalPkCount : 1000;
+  var badgeThresh = avgCost * 0.20;
+  teamArr.sort(function(a,b){ return b.surplus - a.surplus; });
+  var html = '<div style="margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:11px;color:var(--t3)">Grades are relative — each team ranked vs others in this draft class.</div>';
+  for (var i = 0; i < teamArr.length; i++) {
+    var t = teamArr[i];
+    var z = (t.pct - mean) / sd;
+    var gr = getGrade(z), isMe = t.rosterId === S.myRid;
+    var pctLabel = (t.pct >= 0 ? '+' : '') + Math.round(t.pct) + '% surplus';
     html += '<div class="card" style="margin-bottom:12px'+(isMe?';border-color:var(--grn3);background:rgba(0,230,118,0.04)':'')+'">';
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
     html += '<div><div style="font-size:15px;font-weight:800">'+esc(getOwnerName(t.rosterId))+(isMe?' <span style="font-size:11px;color:var(--grn)">(You)</span>':'')+'</div>';
-    html += '<div style="font-size:10px;color:var(--t3)">'+(surplus>=0?'+':'')+surplus.toLocaleString()+' value vs pick cost</div></div>';
-    html += '<div style="text-align:center"><div style="font-size:28px;font-weight:900;color:'+gr.c+'">'+gr.g+'</div><div style="font-size:10px;color:var(--t3)">'+(pct>=0?'+':'')+pct+'%</div></div></div>';
+    html += '<div style="font-size:10px;color:var(--t3)">'+(t.surplus>=0?'+':'')+t.surplus.toLocaleString()+' value · '+pctLabel+'</div></div>';
+    html += '<div style="text-align:center"><div style="font-size:28px;font-weight:900;color:'+gr.c+'">'+gr.g+'</div>';
+    html += '<div style="font-size:10px;color:var(--t3)">#'+(i+1)+' of '+n+'</div></div></div>';
     var sorted = t.picks.slice().sort(function(a,b){return a.round*1000+a.pickNo-(b.round*1000+b.pickNo);});
     for (var j = 0; j < sorted.length; j++) {
       var p = sorted[j], surpColor = p.surplus >= 0 ? 'var(--grn)' : 'var(--red)';
+      var isSteal = p.surplus > badgeThresh, isReach = p.surplus < -badgeThresh;
       html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;margin-bottom:3px;background:rgba(255,255,255,0.02)">';
       html += '<span class="pos pos-PICK">'+esc(p.slot)+'</span>';
       html += '<span class="pos pos-'+(p.playerPos||'??')+'">'+esc(p.playerPos||'??')+'</span>';
       html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(p.playerName.trim())+getSignalBadge(p.playerId)+'</span>';
+      if (isSteal) html += '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(0,230,118,0.15);color:var(--grn);font-weight:700">STEAL</span>';
+      else if (isReach) html += '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(255,75,75,0.15);color:var(--red);font-weight:700">REACH</span>';
       if (p.pickVal) html += '<span style="font-size:10px;color:var(--t3)">cost: '+p.pickVal.toLocaleString()+'</span>';
       html += '<span style="font-size:10px;font-weight:700;color:'+surpColor+'">'+(p.surplus>=0?'+':'')+p.surplus.toLocaleString()+'</span>';
       if (p.playerVal) { var vd2=vc(p.playerVal); html += '<span class="v '+vd2.c+'">'+vd2.t+'</span>'; }
@@ -4052,7 +4101,7 @@ function projectValue(val, age, pos) {
     } else {
       var yp = futureAge - peak;
       var dr = dArr[Math.min(yp-1, dArr.length-1)] || 0.25;
-      v = Math.max(0, Math.round(val * (1 - dr)));
+      v = Math.max(0, Math.round(v * (1 - dr)));
     }
     proj.push(v);
   }
@@ -4069,8 +4118,6 @@ function renderAgeCurve() {
     players.push({id:id, p:p, val:val, age:meta.age, pos:p.position});
   }
   players.sort(function(a,b){ return b.val - a.val; });
-  var maxVal = 1;
-  for (var i = 0; i < players.length; i++) if (players[i].val > maxVal) maxVal = players[i].val;
   var html = '';
   for (var i = 0; i < players.length; i++) {
     var pl = players[i], proj = projectValue(pl.val, pl.age, pl.pos);
@@ -4084,15 +4131,18 @@ function renderAgeCurve() {
     html += '<div style="flex:1"><div style="font-size:13px;font-weight:700">'+esc(nm)+getSignalBadge(pl.id)+'</div>';
     html += '<div style="font-size:10px;color:var(--t3)">Age '+pl.age+' · <span style="color:'+trendCol+';font-weight:600">'+trend+'</span></div></div>';
     var vdMain = vc(pl.val); html += '<span class="v '+vdMain.c+'">'+vdMain.t+'</span></div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">';
-    for (var y = 0; y < 5; y++) {
-      var pv = proj[y], pct = Math.round(pv / maxVal * 100);
+    // Grid includes current year (col 0) + 5 projected years; each bar scales to current value = 100%
+    html += '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px">';
+    var allYears = [pl.val].concat(proj);
+    for (var y = 0; y < 6; y++) {
+      var pv = allYears[y], pct = pl.val > 0 ? Math.round(pv / pl.val * 100) : 0;
       var barCol = pv >= pl.val * 0.9 ? 'var(--grn)' : pv >= pl.val * 0.6 ? 'var(--amb)' : 'var(--red)';
+      if (y === 0) barCol = 'rgba(255,255,255,0.25)';
       html += '<div style="text-align:center">';
-      html += '<div style="font-size:9px;color:var(--t3);margin-bottom:3px">'+(2026+y)+'</div>';
+      html += '<div style="font-size:9px;color:var(--t3);margin-bottom:3px">'+(y===0?'Now':2026+y)+'</div>';
       html += '<div style="height:40px;background:rgba(255,255,255,0.05);border-radius:3px;display:flex;align-items:flex-end;overflow:hidden">';
       html += '<div style="width:100%;height:'+Math.max(pct,2)+'%;background:'+barCol+';border-radius:2px"></div></div>';
-      html += '<div style="font-size:9px;margin-top:3px;color:'+barCol+';font-weight:700;font-family:\'DM Mono\',monospace">'+pv.toLocaleString()+'</div>';
+      html += '<div style="font-size:9px;margin-top:3px;color:'+(y===0?'var(--t2)':barCol)+';font-weight:700;font-family:\'DM Mono\',monospace">'+pv.toLocaleString()+'</div>';
       html += '</div>';
     }
     html += '</div></div>';
