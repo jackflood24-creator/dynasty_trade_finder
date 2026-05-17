@@ -82,9 +82,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   <div id="navBar" style="display:none">
     <div style="display:flex;gap:2px;padding:8px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:20px">
       <button class="navtab" id="nav-ros" onclick="go('ros')">🤝 Rosters + Trade Finder</button>
-      <button class="navtab" id="nav-mom" onclick="openMomentum()">📈 Momentum</button>
+      <button class="navtab" id="nav-mom" onclick="openMomentum()">📈 Roster Momentum</button>
       <button class="navtab" id="nav-reb" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
-      <button class="navtab" id="nav-hist" onclick="openHistory()">📊 History</button>
+      <button class="navtab" id="nav-hist" onclick="openHistory()">📊 Trade History</button>
       <button class="navtab" id="nav-pck" onclick="go('pck')">📝 Picks</button>
       <button class="navtab" id="nav-h2h" onclick="openH2H()">⚔️ H2H</button>
     </div>
@@ -169,6 +169,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
             <div>
               <div style="font-size:13px;font-weight:800;color:var(--red)" id="sndT">You'll send (optional)</div>
               <div style="font-size:10px;color:var(--t3)" id="sndSub">Lock in players you want to include</div>
+              <div id="sndPosChips" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px"></div>
             </div>
             <div style="text-align:right">
               <div class="lbl">Send Value</div>
@@ -183,6 +184,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
             <div>
               <div style="font-size:13px;font-weight:800;color:var(--blu)" id="tgtT"></div>
               <div style="font-size:10px;color:var(--t3)" id="tgtSub">Pick up to 3 players/picks</div>
+              <div id="tgtPosChips" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px"></div>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
               <div style="text-align:right">
@@ -1400,6 +1402,36 @@ function renderRosters() {
   renderTgtPanel();
 }
 
+function renderPosChips(rosterId, elementId) {
+  var el = document.getElementById(elementId);
+  if (!el || !rosterId || !S.valsLoaded) return;
+  var positions = ['QB','RB','WR','TE'], N = S.rosters.length;
+  var posVals = {};
+  for (var i = 0; i < S.rosters.length; i++) {
+    var r = S.rosters[i], pv = {QB:0,RB:0,WR:0,TE:0};
+    if (r.players) for (var j = 0; j < r.players.length; j++) {
+      var id = r.players[j], p = S.players[id], v = gv(id);
+      if (p && REL_POS.has(p.position) && v) pv[p.position] += v;
+    }
+    posVals[r.roster_id] = pv;
+  }
+  var myPV = posVals[rosterId] || {}, html = '';
+  for (var pi = 0; pi < positions.length; pi++) {
+    var pos = positions[pi], rank = 1;
+    for (var i = 0; i < S.rosters.length; i++) {
+      if (S.rosters[i].roster_id !== rosterId && (posVals[S.rosters[i].roster_id][pos]||0) > (myPV[pos]||0)) rank++;
+    }
+    var isStrong = rank <= Math.ceil(N * 0.3);
+    var isWeak = rank > Math.ceil(N * 0.6);
+    var bg, color, border, label;
+    if (isStrong) { bg='rgba(0,230,118,0.15)'; color='var(--grn)'; border='1px solid rgba(0,230,118,0.4)'; label=pos; }
+    else if (isWeak) { bg='rgba(255,82,82,0.15)'; color='var(--red)'; border='1px solid rgba(255,82,82,0.4)'; label=pos; }
+    else { bg='rgba(255,255,255,0.05)'; color='var(--t3)'; border='1px solid var(--bdr)'; label=pos; }
+    html += '<span title="'+(isStrong?'Strong':isWeak?'Weak':'Mid')+' at '+pos+' (#'+rank+'/'+N+')" style="font-family:\'DM Mono\',monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:'+bg+';color:'+color+';border:'+border+'">'+label+'</span>';
+  }
+  el.innerHTML = html;
+}
+
 function renderTgtPanel() {
   var panel = document.getElementById('tgtP');
   if (!S.tgtRid) { panel.classList.add('hidden'); return; }
@@ -1427,6 +1459,7 @@ function renderTgtPanel() {
   }
   document.getElementById('tgtVal').textContent = tv ? tv.toLocaleString() : '—';
   document.getElementById('tgtSub').textContent = 'Pick up to ' + S.tradeMax + '. Selected: ' + S.tgtPids.length;
+  renderPosChips(S.tgtRid, 'tgtPosChips');
 
   // --- LEFT SIDE: my roster (must-include picker) ---
   var my = null;
@@ -1451,6 +1484,7 @@ function renderTgtPanel() {
     document.getElementById('sndSub').textContent = S.sendPids.length
       ? 'Locked: ' + S.sendPids.length + ' — algorithm will fill the rest'
       : 'Lock in players you want to include (optional)';
+    renderPosChips(S.myRid, 'sndPosChips');
 
     // Update balance bar
     var bb = document.getElementById('balBar');
