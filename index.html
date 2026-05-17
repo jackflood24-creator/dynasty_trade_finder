@@ -637,6 +637,10 @@ function buildPickAssets(log) {
   var slotYearList = Object.keys(slotYears).map(Number).sort();
   for (var yi = 0; yi < slotYearList.length; yi++) {
     var year = slotYearList[yi];
+    if (draftStatusByYear[year] === 'complete') {
+      if (log) addLog(log, '⏭ '+year+': draft complete — skipping picks (players already on rosters)', 'ok');
+      continue;
+    }
     // Use: Sleeper draft ALWAYS wins > manual overrides > projected
     var hasSleeperData = !!slotMapByYear[year];
     var slotMap = hasSleeperData ? slotMapByYear[year] : (S.slotOverrides[year] || projectedMap);
@@ -682,6 +686,10 @@ function buildPickAssets(log) {
   var genericYearList = Object.keys(genericYears).map(Number).filter(function(y){return y>=2025;}).sort();
   for (var yi = 0; yi < genericYearList.length; yi++) {
     var year = genericYearList[yi];
+    if (draftStatusByYear[year] === 'complete') {
+      if (log) addLog(log, '⏭ '+year+': draft complete — skipping picks', 'ok');
+      continue;
+    }
     if (log) addLog(log, '📋 '+year+': generic values → Early/Mid/Late buckets', 'in');
 
     // Assign each roster to a tier based on strength
