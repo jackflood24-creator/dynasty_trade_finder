@@ -514,7 +514,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <div style="font-size:13px;color:var(--t2)">All players ranked by current dynasty value</div>
     </div>
     <div style="background:rgba(179,136,255,0.05);border:1px solid rgba(179,136,255,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
-      Full rankings pulled live from FantasyCalc — every player ordered by dynasty value. Shows who on your roster is rostered vs on the wire. Perfect for startup drafts, trade research, or a league-wide value snapshot.
+      Dynasty rankings from FantasyCalc ordered by their overall rank — similar methodology to FantasyPros dynasty ECR (expert consensus). Numbers on the left are the <strong style="color:var(--t2)">overall dynasty rank</strong>; the <span style="font-family:'DM Mono',monospace;font-size:10px">QB1</span>-style tag shows position rank. Rankings reflect your league's format (SF vs 1QB). Perfect for startup drafts, trade research, or a league-wide snapshot.
     </div>
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
       <div class="stog" id="rnkFilters">
@@ -1425,17 +1425,29 @@ function findTrades(myRoster, targetIds, opts) {
 }
 
 // RENDERING
+function isDynastyLeague(l) {
+  return l.settings && (l.settings.type === 2 || l.settings.type === 1);
+}
 function renderLeagues() {
-  document.getElementById('leaSub').textContent='Found '+S.leagues.length+' league(s) for '+S.username;
+  var dynasty = S.leagues.filter(isDynastyLeague);
+  var redraft = S.leagues.filter(function(l){ return !isDynastyLeague(l); });
+  document.getElementById('leaSub').textContent='Found '+dynasty.length+' dynasty/keeper league'+(dynasty.length!==1?'s':'')+(redraft.length?' ('+redraft.length+' redraft hidden)':'');
   var html='';
-  for(var i=0;i<S.leagues.length;i++){var l=S.leagues[i];
-    var tp=(l.settings&&l.settings.type===2)?'Dynasty':(l.settings&&l.settings.type===1)?'Keeper':'Redraft';
+  if (!dynasty.length) {
+    html='<div style="text-align:center;padding:40px;color:var(--t3)"><div style="font-size:32px;margin-bottom:8px">🏈</div><div style="font-size:14px;font-weight:700;margin-bottom:6px">No dynasty or keeper leagues found for '+S.season+'.</div><div style="font-size:12px;line-height:1.7">'+(redraft.length?redraft.length+' redraft league'+(redraft.length!==1?'s':'')+' exist but are hidden — this tool is designed for dynasty formats. Redraft support coming soon.':'Try a different season in the settings.')+'</div></div>';
+    document.getElementById('leaList').innerHTML=html; return;
+  }
+  for(var i=0;i<dynasty.length;i++){var l=dynasty[i];
+    var tp=(l.settings&&l.settings.type===2)?'Dynasty':'Keeper';
     var ppr=(l.scoring_settings&&l.scoring_settings.rec!=null)?' · '+l.scoring_settings.rec+' PPR':'';
     html+='<div class="card" style="cursor:pointer" onclick="doSelectLeague(\''+l.league_id+'\')">'
       +'<div style="display:flex;justify-content:space-between;align-items:center">'
       +'<div><div style="font-weight:700;font-size:14px;margin-bottom:3px">'+esc(l.name)+'</div>'
       +'<div style="font-size:11px;color:var(--t3)">'+l.total_rosters+' teams · '+tp+ppr+'</div></div>'
       +'<span style="color:var(--grn);font-size:18px">→</span></div></div>';}
+  if (redraft.length) {
+    html+='<div style="margin-top:12px;padding:10px 14px;border-radius:8px;background:rgba(255,215,64,0.06);border:1px solid rgba(255,215,64,0.2);font-size:11px;color:var(--t3)">⚠️ '+redraft.length+' redraft league'+(redraft.length!==1?'s':'')+' hidden — dynasty values don\'t apply to redraft formats. Redraft support coming soon.</div>';
+  }
   document.getElementById('leaList').innerHTML=html;
 }
 
@@ -3874,10 +3886,16 @@ function openDash() {
 function renderDash() {
   var el = document.getElementById('dashGrid');
   if (!S.leagues.length) { el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:40px">No leagues found.</div>'; return; }
+  var dynasty = S.leagues.filter(isDynastyLeague);
+  var redraft = S.leagues.filter(function(l){ return !isDynastyLeague(l); });
   var html = '';
-  for (var i = 0; i < S.leagues.length; i++) {
-    var l = S.leagues[i], isActive = S.league && S.league.league_id === l.league_id;
-    var tp = (l.settings&&l.settings.type===2)?'Dynasty':(l.settings&&l.settings.type===1)?'Keeper':'Redraft';
+  if (!dynasty.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3)">No dynasty or keeper leagues found. Redraft support coming soon.</div>';
+    return;
+  }
+  for (var i = 0; i < dynasty.length; i++) {
+    var l = dynasty[i], isActive = S.league && S.league.league_id === l.league_id;
+    var tp = (l.settings&&l.settings.type===2)?'Dynasty':'Keeper';
     var ppr = (l.scoring_settings&&l.scoring_settings.rec!=null)?' · '+l.scoring_settings.rec+' PPR':'';
     html += '<div class="card rc'+(isActive?' mine':'')+'" onclick="doSelectLeague(\''+l.league_id+'\')" style="cursor:pointer">';
     html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">';
@@ -3887,6 +3905,9 @@ function renderDash() {
     html += '<div style="font-size:11px;color:var(--t3)">'+l.total_rosters+' teams · '+tp+ppr+'</div>';
     html += '<div style="margin-top:8px;font-size:11px;color:var(--blu);font-weight:600">'+(isActive?'Currently viewing →':'Switch to this league →')+'</div>';
     html += '</div>';
+  }
+  if (redraft.length) {
+    html += '<div style="grid-column:1/-1;padding:10px 14px;border-radius:8px;background:rgba(255,215,64,0.06);border:1px solid rgba(255,215,64,0.2);font-size:11px;color:var(--t3)">⚠️ '+redraft.length+' redraft league'+(redraft.length!==1?'s':'')+' hidden — redraft support coming soon.</div>';
   }
   el.innerHTML = html;
 }
@@ -4104,14 +4125,18 @@ function renderRankings(pos) {
     if (rnkPos !== 'ALL' && p.position !== rnkPos) continue;
     var val = S.vals[id]; if (!val) continue;
     if (query) { var fn = p.full_name || ((p.first_name||'')+' '+(p.last_name||'')); if (fn.toLowerCase().indexOf(query) < 0) continue; }
-    players.push({id:id, p:p, val:val, meta:S.fcMeta[id]||{}});
+    var meta = S.fcMeta[id] || {};
+    players.push({id:id, p:p, val:val, meta:meta, rank:meta.rank||9999, posRank:meta.posRank||9999});
   }
-  players.sort(function(a,b){ return b.val - a.val; });
+  // Sort by FantasyCalc overall dynasty rank (same methodology as FantasyPros dynasty ECR)
+  players.sort(function(a,b){ return a.rank - b.rank; });
   var el = document.getElementById('rnkList');
   if (!players.length) { el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:40px">No players found.</div>'; return; }
   var rostered = {};
   for (var i = 0; i < S.rosters.length; i++) { var r = S.rosters[i]; if (r.players) for (var j = 0; j < r.players.length; j++) rostered[r.players[j]] = r.roster_id; }
   var html = '';
+  // Track per-position counters for pos rank display when filtering
+  var posCounter = {};
   for (var i = 0; i < Math.min(players.length, 300); i++) {
     var pl = players[i], meta = pl.meta, vd = vc(pl.val);
     var ownerRid = rostered[pl.id];
@@ -4120,10 +4145,14 @@ function renderRankings(pos) {
     var trend = meta.trend||0;
     var trendStr = trend > 50 ? ' <span style="color:var(--grn);font-size:10px">▲</span>' : trend < -50 ? ' <span style="color:var(--red);font-size:10px">▼</span>' : '';
     var nm = pl.p.full_name || ((pl.p.first_name||'')+' '+(pl.p.last_name||''));
+    // Show overall rank when "All", position rank when filtered
+    var rankNum = rnkPos === 'ALL' ? (pl.rank < 9999 ? pl.rank : i+1) : (pl.posRank < 9999 ? pl.posRank : i+1);
+    var posRankTag = rnkPos === 'ALL' && pl.posRank < 9999 ? '<span style="font-size:9px;color:var(--t3);font-family:\'DM Mono\',monospace">'+pl.p.position+pl.posRank+'</span>' : '';
     html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;border:1px solid var(--bdr);margin-bottom:3px'+(isMe?';background:rgba(0,230,118,0.04)':'')+'">';
-    html += '<span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--t3);min-width:26px;text-align:right">'+(i+1)+'.</span>';
+    html += '<span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--t3);min-width:26px;text-align:right">'+rankNum+'.</span>';
     html += '<span class="pos pos-'+pl.p.position+'">'+pl.p.position+'</span>';
     html += '<span style="flex:1;font-size:13px;font-weight:500">'+esc(nm)+getSignalBadge(pl.id)+trendStr+'</span>';
+    html += posRankTag;
     if (meta.age) html += '<span style="font-size:10px;color:var(--t3)">'+meta.age+'y</span>';
     html += ownerTag;
     html += '<span class="v '+vd.c+'">'+vd.t+'</span>';
