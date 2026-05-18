@@ -1249,179 +1249,253 @@ function getWeakPositions(rosterId) {
   return weak;
 }
 
-function findTrades(myRoster, targetIds, opts) {
+// ─────────────────────────────────────────────────────────────────
+//  findTrades — TRUE bidirectional search
+//
+//  Both sides can have sweeteners added beyond the anchors:
+//    anchorSend    = mustInclude (locked by user on send side)
+//    anchorReceive = targetIds   (selected by user on receive side)
+//    sendFiller    = algo picks from MY pool to top up give value
+//    recvFiller    = algo picks from THEIR pool to top up receive value
+//
+//  Strategy: pre-enumerate all recvFiller subsets, sort by value,
+//  then for each sendFiller combo do a binary-search nearest-match
+//  into recvFiller — avoids O(N²) full cross-product.
+// ─────────────────────────────────────────────────────────────────
+function findTrades(myRoster, targetRoster, targetIds, opts) {
   opts = opts || {};
-  var style = opts.style || 'balanced';
-  var maxAssets = opts.maxAssets || 3;
+  var style     = opts.style      || 'balanced';
+  var maxAssets = opts.maxAssets  || 3;
   var mustInclude = opts.mustInclude || [];
-  var randomize = !!opts.randomize;
-  var myNeeds = opts.myNeeds || [];
-  var theirNeeds = opts.theirNeeds || [];
+  var randomize   = !!opts.randomize;
+  var myNeeds     = opts.myNeeds   || [];
+  var theirNeeds  = opts.theirNeeds || [];
 
-  // ───────────────────────────────────────────────────────────────
-  //  STYLE PRESETS
-  //  tol:      what counts as "balanced" for badging/sorting.
-  //  floorPct: minimum asset value (as fraction of target value).
-  //  poolSize: how many candidate assets we feed the search.
-  //
-  //  IMPORTANT: tol no longer filters the search. It only labels
-  //  results as "balanced" vs "near-miss" after the fact. The search
-  //  always enumerates the closest possible combos so the user
-  //  gets options even when their roster can't match perfectly.
-  // ───────────────────────────────────────────────────────────────
-  var tol, floorPct, poolSize;
-  if (style === 'flexible')      { tol = 0.20; floorPct = 0.02; poolSize = 70; }
-  else if (style === 'bigswap')  { tol = 0.15; floorPct = 0.40; poolSize = 35; }
-  else /* balanced */            { tol = TOL;  floorPct = 0.02; poolSize = 50; }
+  var tol, poolSize;
+  if (style === 'flexible')     { tol = 0.20; poolSize = 22; }
+  else if (style === 'bigswap') { tol = 0.15; poolSize = 18; }
+  else /* balanced */           { tol = TOL;  poolSize = 20; }
 
-  // Compute target value (what the user wants to receive)
-  var tv = 0;
-  for (var i = 0; i < targetIds.length; i++) {
-    var id = targetIds[i];
-    if (S.picks[id]) tv += S.picks[id].value;
-    else tv += (gv(id) || 0);
-  }
-  if (!tv) return [];
+  // ── Anchor assets ─────────────────────────────────────────────
+  var anchorReceive = _buildReceive(targetIds);
+  var anchorRV = 0;
+  for (var i = 0; i < anchorReceive.length; i++) anchorRV += anchorReceive[i].v;
+  if (!anchorRV) return [];
 
-  // Resolve must-include assets (locked from sender's side)
-  var mustAssets = [], mustValue = 0;
+  var anchorSend = [], anchorGV = 0;
   for (var i = 0; i < mustInclude.length; i++) {
     var a = _mkAsset(mustInclude[i]);
-    if (a.v > 0) { mustAssets.push(a); mustValue += a.v; }
+    if (a.v > 0) { anchorSend.push(a); anchorGV += a.v; }
   }
-  if (mustAssets.length > maxAssets) return [];
+  if (anchorSend.length > maxAssets) return [];
 
-  var rec = _buildReceive(targetIds);
+  var maxSendFill = maxAssets - anchorSend.length;
+  // Their side can expand up to maxAssets only if they selected fewer than max anchors
+  var maxRecvFill = Math.max(0, maxAssets - anchorReceive.length);
 
-  // Build the asset pool from sender's roster + picks (excluding locked ones)
-  var assets = [];
-  if (myRoster.players) {
+  // ── Build pools ────────────────────────────────────────────────
+  var excludeSend = {}, excludeRecv = {};
+  for (var i = 0; i < mustInclude.length; i++) excludeSend[mustInclude[i]] = true;
+  for (var i = 0; i < targetIds.length;   i++) { excludeSend[targetIds[i]] = true; excludeRecv[targetIds[i]] = true; }
+
+  // MY send pool (everything I own minus anchors)
+  var sendPool = [];
+  if (myRoster && myRoster.players) {
     for (var i = 0; i < myRoster.players.length; i++) {
       var id = myRoster.players[i];
-      if (targetIds.indexOf(id) >= 0 || mustInclude.indexOf(id) >= 0) continue;
-      if (!S.players[id] || !gv(id)) continue;
-      assets.push({id:id, v:gv(id), name:S.players[id].full_name||id, type:'player'});
+      if (excludeSend[id] || !S.players[id] || !gv(id)) continue;
+      sendPool.push({id:id, v:gv(id), name:S.players[id].full_name||id, type:'player'});
     }
   }
-  var myPks = getPicksForRoster(myRoster.roster_id);
+  var myPks = getPicksForRoster(myRoster ? myRoster.roster_id : -1);
   for (var i = 0; i < myPks.length; i++) {
     var pk = myPks[i];
-    if (targetIds.indexOf(pk.key) >= 0 || mustInclude.indexOf(pk.key) >= 0) continue;
-    assets.push({id:pk.key, v:pk.value, name:pk.label, type:'pick'});
+    if (excludeSend[pk.key]) continue;
+    sendPool.push({id:pk.key, v:pk.value, name:pk.label, type:'pick'});
   }
 
-  // Floor — keeps the search space tractable without excluding useful sweeteners.
-  // Big Swap mode keeps a strict 40% floor (only premium pieces). Other modes
-  // use a tiny floor (2% of target value or 50 points, whichever is bigger).
-  var floorVal;
-  if (style === 'bigswap') {
-    var fillTarget = Math.max(tv - mustValue, 1);
-    floorVal = fillTarget * floorPct;
-  } else {
-    floorVal = Math.max(tv * floorPct, 50);
+  // THEIR receive pool (everything they own minus their anchors)
+  var recvPool = [];
+  if (targetRoster && targetRoster.players) {
+    for (var i = 0; i < targetRoster.players.length; i++) {
+      var id = targetRoster.players[i];
+      if (excludeRecv[id] || !S.players[id] || !gv(id)) continue;
+      recvPool.push({id:id, v:gv(id), name:S.players[id].full_name||id, type:'player'});
+    }
   }
-  assets = assets.filter(function(a){ return a.v >= floorVal; });
-  assets.sort(function(a,b){ return b.v - a.v; });
+  var theirPks = getPicksForRoster(targetRoster ? targetRoster.roster_id : -1);
+  for (var i = 0; i < theirPks.length; i++) {
+    var pk = theirPks[i];
+    if (excludeRecv[pk.key]) continue;
+    recvPool.push({id:pk.key, v:pk.value, name:pk.label, type:'pick'});
+  }
 
-  // Randomize via banded shuffle — high-value still bubbles up, but exact
-  // ordering changes so the DFS explores different combos each shuffle.
+  // Floor filter — ignore trivial assets
+  var floorVal = style === 'bigswap'
+    ? Math.max(anchorRV * 0.35, 100)
+    : Math.max(anchorRV * 0.02, 50);
+  sendPool = sendPool.filter(function(a){ return a.v >= floorVal; });
+  recvPool = recvPool.filter(function(a){ return a.v >= floorVal; });
+
+  sendPool.sort(function(a,b){ return b.v - a.v; });
+  recvPool.sort(function(a,b){ return b.v - a.v; });
+
+  // Randomize: independent banded shuffle on both pools
+  // Smaller bands = more mixing = more variety between shuffles
   if (randomize) {
-    var bands = [];
-    for (var i = 0; i < assets.length; i += 6) bands.push(assets.slice(i, i+6));
-    for (var i = 0; i < bands.length; i++) _shuffle(bands[i]);
-    assets = [].concat.apply([], bands);
+    var BAND = style === 'bigswap' ? 3 : 4;
+    function bandShuffle(arr) {
+      var out = [];
+      for (var i = 0; i < arr.length; i += BAND) {
+        var sl = arr.slice(i, i + BAND);
+        _shuffle(sl);
+        for (var j = 0; j < sl.length; j++) out.push(sl[j]);
+      }
+      return out;
+    }
+    sendPool = bandShuffle(sendPool);
+    recvPool = bandShuffle(recvPool);
   }
-  assets = assets.slice(0, poolSize);
 
-  // ───────────────────────────────────────────────────────────────
-  //  SEARCH: enumerate combinations, score by closeness to target
-  //
-  //  No tolerance gate during search. Every valid combination is a
-  //  candidate; we sort them all and return the top 25 closest.
-  //  This guarantees that if any reasonable trade exists in the
-  //  user's roster, the algorithm finds it.
-  // ───────────────────────────────────────────────────────────────
-  var fillerSlots = maxAssets - mustAssets.length;
-  var combos = [];
-  var seen = {};
-  var MAX_COMBOS = 1500;  // safety cap — prevents browser lockup on huge pools
+  sendPool = sendPool.slice(0, poolSize);
+  recvPool = recvPool.slice(0, poolSize);
 
-  function search(curr, idx) {
-    if (combos.length >= MAX_COMBOS) return;
-    var cv = 0;
-    for (var i = 0; i < curr.length; i++) cv += curr[i].v;
-    var totalCv = cv + mustValue;
-    var totalAssets = curr.length + mustAssets.length;
+  // ── Pre-enumerate all receive-filler subsets ───────────────────
+  // Sorted by value so we can binary-search for the nearest match
+  var recvSubsets = [{items:[], v:0}];  // size-0 subset = they add nothing
+  if (maxRecvFill > 0) {
+    (function enumRecv(curr, idx) {
+      if (recvSubsets.length >= 900) return;
+      if (curr.length > 0) {
+        var sv = 0; for (var i = 0; i < curr.length; i++) sv += curr[i].v;
+        recvSubsets.push({items:curr.slice(), v:sv});
+      }
+      if (curr.length >= maxRecvFill) return;
+      for (var i = idx; i < recvPool.length; i++) {
+        curr.push(recvPool[i]);
+        enumRecv(curr, i + 1);
+        curr.pop();
+      }
+    }([], 0));
+  }
+  recvSubsets.sort(function(a,b){ return a.v - b.v; });
+  var recvVals = [];
+  for (var i = 0; i < recvSubsets.length; i++) recvVals.push(recvSubsets[i].v);
 
-    // Record this combination if it has at least one asset
-    if (totalAssets > 0 && totalAssets <= maxAssets) {
-      var allGive = mustAssets.concat(curr);
-      var key = allGive.map(function(a){return a.id;}).sort().join(',');
-      if (!seen[key]) {
-        seen[key] = true;
-        var diff = totalCv - tv;
-        var diffRatio = Math.abs(diff) / tv;
+  // Binary search: leftmost index where recvVals[idx] >= target
+  function bsearch(target) {
+    var lo = 0, hi = recvVals.length;
+    while (lo < hi) { var mid = (lo+hi)>>1; if (recvVals[mid] < target) lo=mid+1; else hi=mid; }
+    return lo;
+  }
+
+  // ── Enumerate send-filler subsets, match to nearest recv subsets ─
+  var MATCH_K = randomize ? 5 : 4;   // how many recv candidates to try per send combo
+  var pairs   = [];
+  var seenKeys = {};
+
+  (function enumSend(curr, idx) {
+    if (pairs.length >= 2500) return;
+    var sendFV = 0; for (var i = 0; i < curr.length; i++) sendFV += curr[i].v;
+    var totalGV   = anchorGV + sendFV;
+    var totalSend = anchorSend.length + curr.length;
+
+    if (totalSend > 0) {
+      // How much does the recv filler need to add so sides balance?
+      var needed = totalGV - anchorRV;  // positive = they add, negative = I'm overpaying
+      var pos = bsearch(needed);
+      // Collect candidates around the nearest match point
+      var seen2 = {};
+      var cands = [];
+      for (var di = 0; di <= MATCH_K + 2; di++) {
+        var lo2 = pos - di - 1, hi2 = pos + di;
+        if (lo2 >= 0 && !seen2[lo2]) { seen2[lo2]=true; cands.push(recvSubsets[lo2]); }
+        if (hi2 < recvSubsets.length && !seen2[hi2]) { seen2[hi2]=true; cands.push(recvSubsets[hi2]); }
+        if (cands.length >= MATCH_K * 2) break;
+      }
+
+      for (var m = 0; m < cands.length; m++) {
+        var rf = cands[m];
+        var totalRV = anchorRV + rf.v;
+        var diff = totalGV - totalRV;
+        var diffRatio = Math.abs(diff) / Math.max(totalRV, 1);
+
+        // Dedup by sorted IDs on both sides
+        var giveIds = [];
+        for (var x = 0; x < anchorSend.length; x++) giveIds.push(anchorSend[x].id);
+        for (var x = 0; x < curr.length; x++) giveIds.push(curr[x].id);
+        var recvIds = [];
+        for (var x = 0; x < anchorReceive.length; x++) recvIds.push(anchorReceive[x].id);
+        for (var x = 0; x < rf.items.length; x++) recvIds.push(rf.items[x].id);
+        var key = giveIds.sort().join(',') + '|' + recvIds.sort().join(',');
+        if (seenKeys[key]) continue;
+        seenKeys[key] = true;
+
+        // Tag filler items as suggested (💡 in UI)
+        var giveArr = [];
+        for (var x = 0; x < anchorSend.length; x++) giveArr.push(anchorSend[x]);
+        for (var x = 0; x < curr.length; x++) giveArr.push({id:curr[x].id,v:curr[x].v,name:curr[x].name,type:curr[x].type,_suggested:true});
+        var recvArr = [];
+        for (var x = 0; x < anchorReceive.length; x++) recvArr.push(anchorReceive[x]);
+        for (var x = 0; x < rf.items.length; x++) recvArr.push({id:rf.items[x].id,v:rf.items[x].v,name:rf.items[x].name,type:rf.items[x].type,_suggested:true});
+
+        // Position need scoring
         var needScore = 0;
         if (myNeeds.length || theirNeeds.length) {
-          for (var ni = 0; ni < allGive.length; ni++) {
-            var gp = S.players[allGive[ni].id];
+          for (var ni = 0; ni < giveArr.length; ni++) {
+            var gp = S.players[giveArr[ni].id];
             if (gp && theirNeeds.indexOf(gp.position) >= 0) needScore += 2;
           }
-          for (var ni = 0; ni < rec.length; ni++) {
-            var rp = S.players[rec[ni].id];
+          for (var ni = 0; ni < recvArr.length; ni++) {
+            var rp = S.players[recvArr[ni].id];
             if (rp && myNeeds.indexOf(rp.position) >= 0) needScore += 2;
           }
         }
-        combos.push({
-          give: allGive,
-          receive: rec,
-          gv: totalCv, rv: tv,
-          diff: diff,
-          diffRatio: diffRatio,
-          pct: ((diff / tv) * 100).toFixed(1),
+
+        pairs.push({
+          give: giveArr, receive: recvArr,
+          gv: totalGV,   rv: totalRV,
+          diff: diff,    diffRatio: diffRatio,
+          pct: (diff / Math.max(totalRV, 1) * 100).toFixed(1),
           nearMiss: diffRatio > tol,
           needScore: needScore
         });
       }
     }
 
-    if (curr.length >= fillerSlots) return;
-    // Generous prune: stop expanding only when filler alone would push the
-    // total to 2x target (anything beyond that is a wildly bad trade).
-    // This is much more permissive than the old prune so we don't miss combos.
-    if (cv > tv * 2) return;
-
-    for (var i = idx; i < assets.length; i++) {
-      curr.push(assets[i]);
-      search(curr, i + 1);
+    if (curr.length >= maxSendFill) return;
+    if (sendFV > anchorRV * 2.5) return;  // prune runaway sends
+    for (var i = idx; i < sendPool.length; i++) {
+      curr.push(sendPool[i]);
+      enumSend(curr, i + 1);
       curr.pop();
     }
-  }
-  search([], 0);
+  }([], 0));
 
-  // Sort: balanced (within tol) come first, then near-misses, both by closeness.
-  // Randomize adds jitter within each group so shuffle produces variety.
+  // ── Sort and return top 25 ─────────────────────────────────────
   if (randomize) {
-    var jitter = tv * 0.03;
-    combos.sort(function(a,b) {
-      var aGroup = a.nearMiss ? 1 : 0;
-      var bGroup = b.nearMiss ? 1 : 0;
-      if (aGroup !== bGroup) return aGroup - bGroup;
+    // Larger jitter so repeated shuffles explore meaningfully different trades
+    var jitter = Math.max(anchorRV, 1) * 0.06;
+    pairs.sort(function(a,b) {
+      var ag = a.nearMiss?1:0, bg = b.nearMiss?1:0;
+      if (ag !== bg) return ag - bg;
       if (b.needScore !== a.needScore) return b.needScore - a.needScore;
-      return (Math.abs(a.diff) + Math.random()*jitter) -
-             (Math.abs(b.diff) + Math.random()*jitter);
+      return (Math.abs(a.diff) + Math.random()*jitter) - (Math.abs(b.diff) + Math.random()*jitter);
     });
   } else {
-    combos.sort(function(a,b) {
-      var aGroup = a.nearMiss ? 1 : 0;
-      var bGroup = b.nearMiss ? 1 : 0;
-      if (aGroup !== bGroup) return aGroup - bGroup;
+    pairs.sort(function(a,b) {
+      var ag = a.nearMiss?1:0, bg = b.nearMiss?1:0;
+      if (ag !== bg) return ag - bg;
       if (b.needScore !== a.needScore) return b.needScore - a.needScore;
-      return Math.abs(a.diff) - Math.abs(b.diff);
+      // Prefer smaller trades when closeness is nearly equal (within 0.5% of value)
+      var cmp = Math.abs(a.diff) - Math.abs(b.diff);
+      var tiny = Math.max(anchorRV, 1) * 0.005;
+      if (Math.abs(cmp) < tiny) return (a.give.length + a.receive.length) - (b.give.length + b.receive.length);
+      return cmp;
     });
   }
 
-  return combos.slice(0, 25);
+  return pairs.slice(0, 25);
 }
 
 // RENDERING
@@ -1711,7 +1785,7 @@ function renderTgtPanel() {
 
 function renderTrades(trades) {
   var styleLabel = S.tradeStyle==='flexible'?'Flexible (±20%)':S.tradeStyle==='bigswap'?'Big Swap (≥40% pieces)':'Balanced (±12%)';
-  var ctx = styleLabel + ' · max ' + S.tradeMax + '/side' + (S.sendPids.length?' · '+S.sendPids.length+' locked from your side':'');
+  var ctx = styleLabel + ' · max ' + S.tradeMax + '/side' + (S.sendPids.length?' · '+S.sendPids.length+' locked from your side':'') + ' · 💡 = algo suggestion on either side';
   // Count exact vs near-miss
   var exactN = 0, nearN = 0;
   for (var i = 0; i < trades.length; i++) { if (trades[i].nearMiss) nearN++; else exactN++; }
@@ -1770,9 +1844,13 @@ function renderTrades(trades) {
 }
 function pRow(a){var pos=a.type==='pick'?'PICK':((S.players[a.id]||{}).position||'??');
   var sigB = a.type==='player' ? getSignalBadge(a.id) : '';
-  return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;margin-bottom:2px">'
+  var sugg = !!a._suggested;
+  var bg = sugg ? 'background:rgba(255,215,64,0.06);' : '';
+  var nameStyle = sugg ? 'font-style:italic;' : '';
+  var icon = sugg ? '💡 ' : '';
+  return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;margin-bottom:2px;'+bg+'">'
     +'<span class="pos pos-'+pos+'">'+pos+'</span>'
-    +'<span style="flex:1;font-size:12px;font-weight:500">'+esc(a.name)+sigB+'</span>'
+    +'<span style="flex:1;font-size:12px;font-weight:500;'+nameStyle+'">'+icon+esc(a.name)+sigB+'</span>'
     +'<span class="v '+vcn(a.v)+'">'+a.v.toLocaleString()+'</span></div>';}
 
 // ==========================================
@@ -3277,7 +3355,7 @@ function genTrades(randomize){
     needEl.style.display = chipHtml ? 'flex' : 'none';
   }
 
-  var trades = findTrades(my, S.tgtPids, {
+  var trades = findTrades(my, tgt, S.tgtPids, {
     style: S.tradeStyle,
     maxAssets: S.tradeMax,
     mustInclude: S.sendPids,
