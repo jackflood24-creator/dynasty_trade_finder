@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-17T19:59:16.789043+00:00",
+  "updated": "2026-05-18T11:39:32.718790+00:00",
   "seasons_covered": [
     2018,
     2019,
@@ -109,7 +109,7 @@
       "ppg": 46.7,
       "best_season": 923.7
     },
-    "331": {
+    "00-0022942": {
       "name": "Philip Rivers",
       "pos": "QB",
       "total_ppr": 817.9,
@@ -4564,7 +4564,7 @@
       "ppg": 2.9,
       "best_season": 152.8
     },
-    "4381": {
+    "00-0033357": {
       "name": "Taysom Hill",
       "pos": "TE",
       "total_ppr": 524.2,
@@ -5092,7 +5092,7 @@
       "ppg": 1.9,
       "best_season": 59.3
     },
-    "00-0033699": {
+    "4663": {
       "name": "Austin Ekeler",
       "pos": "RB",
       "total_ppr": 1738.1,
@@ -6940,7 +6940,7 @@
       "ppg": 5.1,
       "best_season": 64.6
     },
-    "4988": {
+    "00-0034791": {
       "name": "Nick Chubb",
       "pos": "RB",
       "total_ppr": 1276.2,
@@ -10845,7 +10845,7 @@
       "ppg": 32.3,
       "best_season": 622.4
     },
-    "7596": {
+    "00-0036980": {
       "name": "Elijah Moore",
       "pos": "WR",
       "total_ppr": 482.5,
@@ -12077,7 +12077,7 @@
       "ppg": 2.0,
       "best_season": 168.3
     },
-    "8127": {
+    "00-0038046": {
       "name": "Charlie Kolar",
       "pos": "TE",
       "total_ppr": 60.3,
@@ -13177,7 +13177,7 @@
       "ppg": 1.7,
       "best_season": 149.4
     },
-    "00-0039021": {
+    "10235": {
       "name": "Roschon Johnson",
       "pos": "RB",
       "total_ppr": 179.5,
@@ -13375,7 +13375,7 @@
       "ppg": 20.7,
       "best_season": 309.5
     },
-    "00-0039152": {
+    "9999": {
       "name": "Will Levis",
       "pos": "QB",
       "total_ppr": 222.0,
@@ -14024,7 +14024,7 @@
       "ppg": 1.6,
       "best_season": 37.8
     },
-    "00-0039792": {
+    "11629": {
       "name": "Devontez Walker",
       "pos": "WR",
       "total_ppr": 9.1,
