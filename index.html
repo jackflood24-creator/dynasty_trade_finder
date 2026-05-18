@@ -3784,7 +3784,15 @@ function renderDraftGrade(picks, draft) {
     if (!teams[useRid]) teams[useRid] = {picks:[], totalPickVal:0, totalPlayerVal:0, rosterId:useRid};
     var slot = pk.draft_slot || 0;
     var slotStr = pk.round + '.' + (slot < 10 ? '0'+slot : ''+slot);
-    var pickVal = S.pickVals[slotStr] || 0;
+    // S.pickVals keys use FC format: "2026 Pick 1.01" — not bare "1.01"
+    var draftYear = draft.season || '2026';
+    var fcKey = draftYear + ' Pick ' + pk.round + '.' + (slot < 10 ? '0'+slot : ''+slot);
+    var pickVal = S.pickVals[fcKey] || 0;
+    // Fallback: if FC no longer carries completed-draft slots, estimate from overall pick number
+    // using a dynasty exponential ADP curve (calibrated to superflex 10-team)
+    if (!pickVal && pk.pick_no) {
+      pickVal = Math.round(7500 * Math.exp(-0.08 * (pk.pick_no - 1)));
+    }
     var playerVal = pk.player_id ? (S.vals[pk.player_id] || 0) : 0;
     var pInfo = pk.player_id ? S.players[pk.player_id] : null;
     var pName = pInfo ? ((pInfo.first_name||'')+' '+(pInfo.last_name||pInfo.full_name||'')) : ('Pick #'+(pk.pick_no||'?'));
@@ -3793,6 +3801,8 @@ function renderDraftGrade(picks, draft) {
     teams[useRid].totalPlayerVal += playerVal;
   }
   var teamArr = Object.keys(teams).map(function(rid){ return teams[rid]; }).filter(function(t){ return t.picks.length > 0; });
+  // Did we fall back to estimated pick costs? (FC no longer carries completed-draft slots)
+  var usedEstimatedCosts = !S.pickVals[draft.season + ' Pick 1.01'];
   // Compute pct surplus per team
   for (var i = 0; i < teamArr.length; i++) {
     var t = teamArr[i];
@@ -3823,7 +3833,10 @@ function renderDraftGrade(picks, draft) {
   var avgCost = totalPkCount > 0 ? totalCost / totalPkCount : 1000;
   var badgeThresh = avgCost * 0.20;
   teamArr.sort(function(a,b){ return b.surplus - a.surplus; });
-  var html = '<div style="margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:11px;color:var(--t3)">Grades are relative — each team ranked vs others in this draft class.</div>';
+  var costNote = usedEstimatedCosts
+    ? 'Pick costs estimated from a dynasty ADP curve (FantasyCalc no longer carries completed draft slots). '
+    : 'Pick costs from FantasyCalc slot values. ';
+  var html = '<div style="margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:11px;color:var(--t3)">'+costNote+'Grades are relative — each team ranked vs others in this draft class.</div>';
   for (var i = 0; i < teamArr.length; i++) {
     var t = teamArr[i];
     var z = (t.pct - mean) / sd;
