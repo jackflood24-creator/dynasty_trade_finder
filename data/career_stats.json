@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-21T11:01:20.734062+00:00",
+  "updated": "2026-05-22T10:44:07.129055+00:00",
   "seasons_covered": [
     2018,
     2019,
@@ -1198,7 +1198,7 @@
       "ppg": 13.9,
       "best_season": 518.2
     },
-    "00-0029263": {
+    "1234": {
       "name": "Russell Wilson",
       "pos": "QB",
       "total_ppr": 1987.1,
@@ -4520,7 +4520,7 @@
       "ppg": 2.0,
       "best_season": 17.6
     },
-    "4454": {
+    "00-0033307": {
       "name": "Kendrick Bourne",
       "pos": "WR",
       "total_ppr": 825.0,
@@ -5477,7 +5477,7 @@
       "ppg": 73.9,
       "best_season": 1246.2
     },
-    "00-0033923": {
+    "4098": {
       "name": "Kareem Hunt",
       "pos": "RB",
       "total_ppr": 1138.8,
@@ -10449,7 +10449,7 @@
       "ppg": 4.6,
       "best_season": 132.3
     },
-    "7562": {
+    "00-0036849": {
       "name": "Tutu Atwell",
       "pos": "WR",
       "total_ppr": 288.1,
@@ -12077,7 +12077,7 @@
       "ppg": 2.0,
       "best_season": 168.3
     },
-    "00-0038046": {
+    "8127": {
       "name": "Charlie Kolar",
       "pos": "TE",
       "total_ppr": 60.3,
@@ -12088,7 +12088,7 @@
       "ppg": 4.3,
       "best_season": 178.9
     },
-    "8168": {
+    "00-0038090": {
       "name": "Skyy Moore",
       "pos": "WR",
       "total_ppr": 116.5,
@@ -12770,7 +12770,7 @@
       "ppg": 0.6,
       "best_season": 46.3
     },
-    "10216": {
+    "00-0038636": {
       "name": "Kenny McIntosh",
       "pos": "RB",
       "total_ppr": 22.4,
@@ -13584,7 +13584,7 @@
       "ppg": 2.0,
       "best_season": 46.6
     },
-    "11616": {
+    "00-0039365": {
       "name": "Jacob Cowing",
       "pos": "WR",
       "total_ppr": 12.7,
@@ -13749,7 +13749,7 @@
       "ppg": 7.6,
       "best_season": 237.4
     },
-    "11608": {
+    "00-0039451": {
       "name": "Isaiah Williams",
       "pos": "WR",
       "total_ppr": 2.6,
@@ -13969,7 +13969,7 @@
       "ppg": 2.4,
       "best_season": 278.6
     },
-    "11577": {
+    "00-0039746": {
       "name": "Will Shipley",
       "pos": "RB",
       "total_ppr": 29.4,
@@ -13991,7 +13991,7 @@
       "ppg": 5.9,
       "best_season": 40.3
     },
-    "00-0039751": {
+    "11623": {
       "name": "Jordan Whittington",
       "pos": "WR",
       "total_ppr": 54.7,
