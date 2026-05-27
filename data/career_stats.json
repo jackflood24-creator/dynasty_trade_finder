@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-25T11:46:38.395079+00:00",
+  "updated": "2026-05-27T11:32:36.346871+00:00",
   "seasons_covered": [
     2018,
     2019,
@@ -791,7 +791,7 @@
       "ppg": 32.3,
       "best_season": 907.8
     },
-    "00-0027973": {
+    "829": {
       "name": "Andy Dalton",
       "pos": "QB",
       "total_ppr": 856.1,
@@ -3486,7 +3486,7 @@
       "ppg": 39.0,
       "best_season": 841.7
     },
-    "3202": {
+    "00-0032392": {
       "name": "Austin Hooper",
       "pos": "TE",
       "total_ppr": 836.3,
@@ -4267,7 +4267,7 @@
       "ppg": 95.5,
       "best_season": 1243.2
     },
-    "00-0033110": {
+    "3271": {
       "name": "Tyler Higbee",
       "pos": "TE",
       "total_ppr": 859.0,
@@ -6599,7 +6599,7 @@
       "ppg": 1.0,
       "best_season": 12.0
     },
-    "00-0034577": {
+    "5127": {
       "name": "Kyle Allen",
       "pos": "QB",
       "total_ppr": 272.3,
@@ -7699,7 +7699,7 @@
       "ppg": 54.4,
       "best_season": 1157.8
     },
-    "6136": {
+    "00-0035264": {
       "name": "Jarrett Stidham",
       "pos": "QB",
       "total_ppr": 81.1,
@@ -8040,7 +8040,7 @@
       "ppg": 16.2,
       "best_season": 16.2
     },
-    "5970": {
+    "00-0035500": {
       "name": "Greg Dortch",
       "pos": "WR",
       "total_ppr": 276.8,
@@ -9041,7 +9041,7 @@
       "ppg": 26.3,
       "best_season": 453.1
     },
-    "6920": {
+    "00-0036165": {
       "name": "Isaiah Hodgins",
       "pos": "WR",
       "total_ppr": 189.2,
@@ -10163,7 +10163,7 @@
       "ppg": 0.2,
       "best_season": 67.8
     },
-    "00-0036626": {
+    "7587": {
       "name": "Dyami Brown",
       "pos": "WR",
       "total_ppr": 204.2,
@@ -10449,7 +10449,7 @@
       "ppg": 4.6,
       "best_season": 132.3
     },
-    "00-0036849": {
+    "7562": {
       "name": "Tutu Atwell",
       "pos": "WR",
       "total_ppr": 288.1,
@@ -10977,7 +10977,7 @@
       "ppg": 0.0,
       "best_season": 48.5
     },
-    "00-0037077": {
+    "8162": {
       "name": "Sam Howell",
       "pos": "QB",
       "total_ppr": 275.0,
@@ -11110,17 +11110,6 @@
       "best_season": 33.6
     },
     "00-0037157": {
-      "name": "Bam Knight",
-      "pos": "RB",
-      "total_ppr": 3.1,
-      "games": 2,
-      "seasons": 1,
-      "first_season": 2023,
-      "last_season": 2023,
-      "ppg": 1.5,
-      "best_season": 35.5
-    },
-    "8122": {
       "name": "Zonovan Knight",
       "pos": "RB",
       "total_ppr": 59.0,
@@ -12165,7 +12154,7 @@
       "ppg": 9.7,
       "best_season": 264.1
     },
-    "8225": {
+    "00-0038115": {
       "name": "Daniel Bellinger",
       "pos": "TE",
       "total_ppr": 163.1,
@@ -12715,7 +12704,7 @@
       "ppg": 7.6,
       "best_season": 128.9
     },
-    "10218": {
+    "00-0038618": {
       "name": "Xavier Hutchinson",
       "pos": "WR",
       "total_ppr": 64.1,
@@ -12781,7 +12770,7 @@
       "ppg": 0.6,
       "best_season": 46.3
     },
-    "00-0038636": {
+    "10216": {
       "name": "Kenny McIntosh",
       "pos": "RB",
       "total_ppr": 22.4,
@@ -13551,7 +13540,7 @@
       "ppg": 4.9,
       "best_season": 214.8
     },
-    "11599": {
+    "00-0039359": {
       "name": "Cade Stover",
       "pos": "TE",
       "total_ppr": 41.1,
@@ -13584,7 +13573,7 @@
       "ppg": 7.4,
       "best_season": 225.3
     },
-    "00-0039364": {
+    "11729": {
       "name": "Sione Vaki",
       "pos": "RB",
       "total_ppr": 8.1,
@@ -13760,7 +13749,7 @@
       "ppg": 7.6,
       "best_season": 237.4
     },
-    "00-0039451": {
+    "11608": {
       "name": "Isaiah Williams",
       "pos": "WR",
       "total_ppr": 2.6,
