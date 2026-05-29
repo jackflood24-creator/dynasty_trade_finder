@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-28T11:32:11.653270+00:00",
+  "updated": "2026-05-29T11:22:06.183102+00:00",
   "seasons_covered": [
     2018,
     2019,
@@ -1198,7 +1198,7 @@
       "ppg": 13.9,
       "best_season": 518.2
     },
-    "1234": {
+    "00-0029263": {
       "name": "Russell Wilson",
       "pos": "QB",
       "total_ppr": 1987.1,
@@ -3629,7 +3629,7 @@
       "ppg": 3.2,
       "best_season": 148.6
     },
-    "00-0032464": {
+    "3634": {
       "name": "Kalif Raymond",
       "pos": "WR",
       "total_ppr": 477.6,
@@ -4520,7 +4520,7 @@
       "ppg": 2.0,
       "best_season": 17.6
     },
-    "00-0033307": {
+    "4454": {
       "name": "Kendrick Bourne",
       "pos": "WR",
       "total_ppr": 825.0,
@@ -7699,7 +7699,7 @@
       "ppg": 54.4,
       "best_season": 1157.8
     },
-    "00-0035264": {
+    "6136": {
       "name": "Jarrett Stidham",
       "pos": "QB",
       "total_ppr": 81.1,
@@ -10449,7 +10449,7 @@
       "ppg": 4.6,
       "best_season": 132.3
     },
-    "7562": {
+    "00-0036849": {
       "name": "Tutu Atwell",
       "pos": "WR",
       "total_ppr": 288.1,
@@ -10680,7 +10680,7 @@
       "ppg": 19.9,
       "best_season": 804.7
     },
-    "7607": {
+    "00-0036924": {
       "name": "Michael Carter",
       "pos": "RB",
       "total_ppr": 375.0,
@@ -10845,7 +10845,7 @@
       "ppg": 32.3,
       "best_season": 622.4
     },
-    "00-0036980": {
+    "7596": {
       "name": "Elijah Moore",
       "pos": "WR",
       "total_ppr": 482.5,
@@ -10944,7 +10944,7 @@
       "ppg": 2.4,
       "best_season": 132.4
     },
-    "7610": {
+    "00-0037012": {
       "name": "Trey Lance",
       "pos": "QB",
       "total_ppr": 90.1,
@@ -11110,6 +11110,17 @@
       "best_season": 33.6
     },
     "00-0037157": {
+      "name": "Bam Knight",
+      "pos": "RB",
+      "total_ppr": 3.1,
+      "games": 2,
+      "seasons": 1,
+      "first_season": 2023,
+      "last_season": 2023,
+      "ppg": 1.5,
+      "best_season": 35.5
+    },
+    "8122": {
       "name": "Zonovan Knight",
       "pos": "RB",
       "total_ppr": 59.0,
@@ -11725,7 +11736,7 @@
       "ppg": 5.1,
       "best_season": 185.8
     },
-    "00-0037563": {
+    "8800": {
       "name": "Malik Davis",
       "pos": "RB",
       "total_ppr": 34.4,
@@ -12154,7 +12165,7 @@
       "ppg": 9.7,
       "best_season": 264.1
     },
-    "00-0038115": {
+    "8225": {
       "name": "Daniel Bellinger",
       "pos": "TE",
       "total_ppr": 163.1,
@@ -12770,7 +12781,7 @@
       "ppg": 0.6,
       "best_season": 46.3
     },
-    "00-0038636": {
+    "10216": {
       "name": "Kenny McIntosh",
       "pos": "RB",
       "total_ppr": 22.4,
@@ -13991,7 +14002,7 @@
       "ppg": 5.9,
       "best_season": 40.3
     },
-    "11623": {
+    "00-0039751": {
       "name": "Jordan Whittington",
       "pos": "WR",
       "total_ppr": 54.7,
@@ -14024,7 +14035,7 @@
       "ppg": 1.6,
       "best_season": 37.8
     },
-    "11629": {
+    "00-0039792": {
       "name": "Devontez Walker",
       "pos": "WR",
       "total_ppr": 9.1,
