@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-30T09:53:31.923594+00:00",
+  "updated": "2026-05-31T10:09:12.229855+00:00",
   "seasons_covered": [
     2018,
     2019,
@@ -3629,7 +3629,7 @@
       "ppg": 3.2,
       "best_season": 148.6
     },
-    "00-0032464": {
+    "3634": {
       "name": "Kalif Raymond",
       "pos": "WR",
       "total_ppr": 477.6,
@@ -4520,7 +4520,7 @@
       "ppg": 2.0,
       "best_season": 17.6
     },
-    "4454": {
+    "00-0033307": {
       "name": "Kendrick Bourne",
       "pos": "WR",
       "total_ppr": 825.0,
@@ -4773,7 +4773,7 @@
       "ppg": 1.8,
       "best_season": 112.2
     },
-    "00-0033526": {
+    "4147": {
       "name": "Samaje Perine",
       "pos": "RB",
       "total_ppr": 543.7,
@@ -4850,7 +4850,7 @@
       "ppg": 80.7,
       "best_season": 1133.7
     },
-    "00-0033555": {
+    "4177": {
       "name": "Mack Hollins",
       "pos": "WR",
       "total_ppr": 437.9,
@@ -5092,7 +5092,7 @@
       "ppg": 1.9,
       "best_season": 59.3
     },
-    "4663": {
+    "00-0033699": {
       "name": "Austin Ekeler",
       "pos": "RB",
       "total_ppr": 1738.1,
@@ -5477,7 +5477,7 @@
       "ppg": 73.9,
       "best_season": 1246.2
     },
-    "4098": {
+    "00-0033923": {
       "name": "Kareem Hunt",
       "pos": "RB",
       "total_ppr": 1138.8,
@@ -7699,7 +7699,7 @@
       "ppg": 54.4,
       "best_season": 1157.8
     },
-    "00-0035264": {
+    "6136": {
       "name": "Jarrett Stidham",
       "pos": "QB",
       "total_ppr": 81.1,
@@ -8095,7 +8095,7 @@
       "ppg": 39.2,
       "best_season": 1000.3
     },
-    "6039": {
+    "00-0035537": {
       "name": "Ty Johnson",
       "pos": "RB",
       "total_ppr": 439.2,
@@ -10977,7 +10977,7 @@
       "ppg": 0.0,
       "best_season": 48.5
     },
-    "00-0037077": {
+    "8162": {
       "name": "Sam Howell",
       "pos": "QB",
       "total_ppr": 275.0,
@@ -12121,7 +12121,7 @@
       "ppg": 6.6,
       "best_season": 305.2
     },
-    "00-0038102": {
+    "8160": {
       "name": "Kenny Pickett",
       "pos": "QB",
       "total_ppr": 284.5,
@@ -12341,7 +12341,7 @@
       "ppg": 1.7,
       "best_season": 14.9
     },
-    "9230": {
+    "00-0038400": {
       "name": "Tanner McKee",
       "pos": "QB",
       "total_ppr": 28.8,
@@ -12704,7 +12704,7 @@
       "ppg": 7.6,
       "best_season": 128.9
     },
-    "00-0038618": {
+    "10218": {
       "name": "Xavier Hutchinson",
       "pos": "WR",
       "total_ppr": 64.1,
@@ -12770,7 +12770,7 @@
       "ppg": 0.6,
       "best_season": 46.3
     },
-    "10216": {
+    "00-0038636": {
       "name": "Kenny McIntosh",
       "pos": "RB",
       "total_ppr": 22.4,
@@ -13177,7 +13177,7 @@
       "ppg": 1.7,
       "best_season": 149.4
     },
-    "10235": {
+    "00-0039021": {
       "name": "Roschon Johnson",
       "pos": "RB",
       "total_ppr": 179.5,
@@ -13540,7 +13540,7 @@
       "ppg": 4.9,
       "best_season": 214.8
     },
-    "11599": {
+    "00-0039359": {
       "name": "Cade Stover",
       "pos": "TE",
       "total_ppr": 41.1,
@@ -14057,7 +14057,7 @@
       "ppg": 5.0,
       "best_season": 283.6
     },
-    "00-0039796": {
+    "11570": {
       "name": "Rasheen Ali",
       "pos": "RB",
       "total_ppr": 3.1,
@@ -14365,7 +14365,7 @@
       "ppg": 8.5,
       "best_season": 203.9
     },
-    "11617": {
+    "00-0039920": {
       "name": "Malachi Corley",
       "pos": "WR",
       "total_ppr": 7.2,
