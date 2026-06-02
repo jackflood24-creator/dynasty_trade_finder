@@ -200,7 +200,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <div>
               <div style="font-size:13px;font-weight:800;color:var(--blu)" id="tgtT"></div>
-              <div style="font-size:10px;color:var(--t3)" id="tgtSub">Pick up to 3 players/picks</div>
+              <div style="font-size:10px;color:var(--t3)" id="tgtSub">Pick up to 4 players/picks</div>
               <div id="tgtPosChips" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px"></div>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
@@ -242,8 +242,9 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
           <div>
             <div class="lbl" style="margin-bottom:6px">Max per side</div>
             <div class="stog" id="maxTog">
-              <button class="sbtn on" onclick="setTradeMax(3,this)">3</button>
-              <button class="sbtn" onclick="setTradeMax(4,this)">4</button>
+              <button class="sbtn" onclick="setTradeMax(3,this)">3</button>
+              <button class="sbtn on" onclick="setTradeMax(4,this)">4</button>
+              <button class="sbtn" onclick="setTradeMax(5,this)">5</button>
             </div>
           </div>
           <div style="margin-left:auto;display:flex;gap:8px">
@@ -546,8 +547,10 @@ var S = {
   // Trade finder controls
   sendPids:[],          // must-include players/picks from MY side
   tradeStyle:'balanced',// 'balanced' | 'flexible' | 'bigswap'
-  tradeMax:3,           // max assets per side (3 or 4)
+  tradeMax:4,           // max assets per side
   tradeShuffle:0,        // increments on shuffle press to re-randomize
+  myDnt:{},             // {id:true} — my players excluded from algo suggestions
+  tgtDnt:{},            // {id:true} — their players excluded from algo suggestions
   watchList:(function(){try{return JSON.parse(localStorage.getItem('dtf_watchlist')||'[]');}catch(e){return[];}}())
 };
 var TOL = 0.12;
@@ -1265,11 +1268,13 @@ function getWeakPositions(rosterId) {
 function findTrades(myRoster, targetRoster, targetIds, opts) {
   opts = opts || {};
   var style     = opts.style      || 'balanced';
-  var maxAssets = opts.maxAssets  || 3;
+  var maxAssets = opts.maxAssets  || 4;
   var mustInclude = opts.mustInclude || [];
   var randomize   = !!opts.randomize;
   var myNeeds     = opts.myNeeds   || [];
   var theirNeeds  = opts.theirNeeds || [];
+  var myDnt       = opts.myDnt     || {};
+  var tgtDnt      = opts.tgtDnt    || {};
 
   var tol, poolSize;
   if (style === 'flexible')     { tol = 0.20; poolSize = 22; }
@@ -1303,14 +1308,14 @@ function findTrades(myRoster, targetRoster, targetIds, opts) {
   if (myRoster && myRoster.players) {
     for (var i = 0; i < myRoster.players.length; i++) {
       var id = myRoster.players[i];
-      if (excludeSend[id] || !S.players[id] || !gv(id)) continue;
+      if (excludeSend[id] || myDnt[id] || !S.players[id] || !gv(id)) continue;
       sendPool.push({id:id, v:gv(id), name:S.players[id].full_name||id, type:'player'});
     }
   }
   var myPks = getPicksForRoster(myRoster ? myRoster.roster_id : -1);
   for (var i = 0; i < myPks.length; i++) {
     var pk = myPks[i];
-    if (excludeSend[pk.key]) continue;
+    if (excludeSend[pk.key] || myDnt[pk.key]) continue;
     sendPool.push({id:pk.key, v:pk.value, name:pk.label, type:'pick'});
   }
 
@@ -1319,14 +1324,14 @@ function findTrades(myRoster, targetRoster, targetIds, opts) {
   if (targetRoster && targetRoster.players) {
     for (var i = 0; i < targetRoster.players.length; i++) {
       var id = targetRoster.players[i];
-      if (excludeRecv[id] || !S.players[id] || !gv(id)) continue;
+      if (excludeRecv[id] || tgtDnt[id] || !S.players[id] || !gv(id)) continue;
       recvPool.push({id:id, v:gv(id), name:S.players[id].full_name||id, type:'player'});
     }
   }
   var theirPks = getPicksForRoster(targetRoster ? targetRoster.roster_id : -1);
   for (var i = 0; i < theirPks.length; i++) {
     var pk = theirPks[i];
-    if (excludeRecv[pk.key]) continue;
+    if (excludeRecv[pk.key] || tgtDnt[pk.key]) continue;
     recvPool.push({id:pk.key, v:pk.value, name:pk.label, type:'pick'});
   }
 
@@ -1472,10 +1477,10 @@ function findTrades(myRoster, targetRoster, targetIds, opts) {
     }
   }([], 0));
 
-  // ── Sort and return top 25 ─────────────────────────────────────
+  // ── Sort ───────────────────────────────────────────────────────
   if (randomize) {
-    // Larger jitter so repeated shuffles explore meaningfully different trades
-    var jitter = Math.max(anchorRV, 1) * 0.06;
+    // Large jitter surfaces genuinely different trade shapes on each shuffle
+    var jitter = Math.max(anchorRV, 1) * 0.22;
     pairs.sort(function(a,b) {
       var ag = a.nearMiss?1:0, bg = b.nearMiss?1:0;
       if (ag !== bg) return ag - bg;
@@ -1487,7 +1492,6 @@ function findTrades(myRoster, targetRoster, targetIds, opts) {
       var ag = a.nearMiss?1:0, bg = b.nearMiss?1:0;
       if (ag !== bg) return ag - bg;
       if (b.needScore !== a.needScore) return b.needScore - a.needScore;
-      // Prefer smaller trades when closeness is nearly equal (within 0.5% of value)
       var cmp = Math.abs(a.diff) - Math.abs(b.diff);
       var tiny = Math.max(anchorRV, 1) * 0.005;
       if (Math.abs(cmp) < tiny) return (a.give.length + a.receive.length) - (b.give.length + b.receive.length);
@@ -1495,7 +1499,29 @@ function findTrades(myRoster, targetRoster, targetIds, opts) {
     });
   }
 
-  return pairs.slice(0, 25);
+  // ── Diversity pass: interleave by give-side count ──────────────
+  // Buckets results by how many pieces you give (1-for-X, 2-for-X, 3-for-X…)
+  // so results show a variety of trade shapes, not just the deepest combo.
+  var buckets = {};
+  for (var i = 0; i < pairs.length; i++) {
+    var gc = pairs[i].give.length;
+    if (!buckets[gc]) buckets[gc] = [];
+    buckets[gc].push(pairs[i]);
+  }
+  var bkeys = Object.keys(buckets).sort(function(a,b){return a-b;});
+  var diverse = [];
+  var perBucket = Math.ceil(30 / Math.max(bkeys.length, 1));
+  for (var ki = 0; ki < bkeys.length; ki++) {
+    var bkt = buckets[bkeys[ki]];
+    for (var bi = 0; bi < Math.min(perBucket, bkt.length); bi++) diverse.push(bkt[bi]);
+  }
+  // Re-sort the diverse list: balanced first, then by closeness
+  diverse.sort(function(a,b){
+    var ag = a.nearMiss?1:0, bg = b.nearMiss?1:0;
+    if (ag !== bg) return ag - bg;
+    return Math.abs(a.diff) - Math.abs(b.diff);
+  });
+  return diverse.slice(0, 30);
 }
 
 // RENDERING
@@ -1708,12 +1734,16 @@ function renderTgtPanel() {
   document.getElementById('tgtT').textContent = 'From ' + userName(r.owner_id);
   var pl = sortedAssets(r), html = '';
   for (var i = 0; i < pl.length; i++) {
-    var a = pl[i], sel = S.tgtPids.indexOf(a.id) >= 0, b = a.v !== null ? vc(a.v) : {t:'—',c:'vN'};
+    var a = pl[i], sel = S.tgtPids.indexOf(a.id) >= 0, dnt = !!S.tgtDnt[a.id];
+    var b = a.v !== null ? vc(a.v) : {t:'—',c:'vN'};
     var sigB = a.type === 'player' ? getSignalBadge(a.id) : '';
-    html += '<div class="pr ' + (sel?'sel':'') + '" onclick="togTgt(\'' + a.id.replace(/'/g,"\\'") + '\')">';
+    var aid = a.id.replace(/'/g,"\\'");
+    html += '<div class="pr ' + (sel?'sel':'') + '" onclick="togTgt(\'' + aid + '\')" style="' + (dnt?'opacity:0.4;':'') + '">';
     html += '<span class="pos pos-' + (a.p.position||'') + '">' + (a.p.position||'??') + '</span>';
     html += '<span class="nm">' + esc(a.p.full_name||a.id) + sigB + '</span>';
-    html += '<span class="v ' + b.c + '">' + b.t + '</span></div>';
+    html += '<span class="v ' + b.c + '">' + b.t + '</span>';
+    html += '<button onclick="togDnt(\'tgt\',\'' + aid + '\',event)" title="' + (dnt?'Unblock player':'Block from suggestions') + '" style="margin-left:6px;background:none;border:none;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0">' + (dnt?'✅':'🚫') + '</button>';
+    html += '</div>';
   }
   document.getElementById('tgtList').innerHTML = html;
   var tv = 0;
@@ -1722,7 +1752,8 @@ function renderTgtPanel() {
     if (S.picks[id]) tv += S.picks[id].value; else tv += (gv(id)||0);
   }
   document.getElementById('tgtVal').textContent = tv ? tv.toLocaleString() : '—';
-  document.getElementById('tgtSub').textContent = 'Pick up to ' + S.tradeMax + '. Selected: ' + S.tgtPids.length;
+  var tgtDntCount = Object.keys(S.tgtDnt).length;
+  document.getElementById('tgtSub').textContent = 'Pick up to ' + S.tradeMax + '. Selected: ' + S.tgtPids.length + (tgtDntCount ? ' · ' + tgtDntCount + ' blocked' : '');
   renderPosChips(S.tgtRid, 'tgtPosChips');
 
   // --- LEFT SIDE: my roster (must-include picker) ---
@@ -1731,12 +1762,16 @@ function renderTgtPanel() {
   if (my) {
     var ml = sortedAssets(my), mhtml = '';
     for (var i = 0; i < ml.length; i++) {
-      var a = ml[i], sel = S.sendPids.indexOf(a.id) >= 0, b = a.v !== null ? vc(a.v) : {t:'—',c:'vN'};
+      var a = ml[i], sel = S.sendPids.indexOf(a.id) >= 0, dnt = !!S.myDnt[a.id];
+      var b = a.v !== null ? vc(a.v) : {t:'—',c:'vN'};
       var sigB = a.type === 'player' ? getSignalBadge(a.id) : '';
-      mhtml += '<div class="pr ' + (sel?'sel':'') + '" onclick="togSnd(\'' + a.id.replace(/'/g,"\\'") + '\')">';
+      var aid = a.id.replace(/'/g,"\\'");
+      mhtml += '<div class="pr ' + (sel?'sel':'') + '" onclick="togSnd(\'' + aid + '\')" style="' + (dnt?'opacity:0.4;':'') + '">';
       mhtml += '<span class="pos pos-' + (a.p.position||'') + '">' + (a.p.position||'??') + '</span>';
       mhtml += '<span class="nm">' + esc(a.p.full_name||a.id) + sigB + '</span>';
-      mhtml += '<span class="v ' + b.c + '">' + b.t + '</span></div>';
+      mhtml += '<span class="v ' + b.c + '">' + b.t + '</span>';
+      mhtml += '<button onclick="togDnt(\'my\',\'' + aid + '\',event)" title="' + (dnt?'Unblock player':'Block from suggestions') + '" style="margin-left:6px;background:none;border:none;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0">' + (dnt?'✅':'🚫') + '</button>';
+      mhtml += '</div>';
     }
     document.getElementById('sndList').innerHTML = mhtml;
     var sv = 0;
@@ -1745,9 +1780,11 @@ function renderTgtPanel() {
       if (S.picks[id]) sv += S.picks[id].value; else sv += (gv(id)||0);
     }
     document.getElementById('sndVal').textContent = sv ? sv.toLocaleString() : '—';
+    var myDntCount = Object.keys(S.myDnt).length;
+    var myDntNote = myDntCount ? ' · ' + myDntCount + ' blocked' : '';
     document.getElementById('sndSub').textContent = S.sendPids.length
-      ? 'Locked: ' + S.sendPids.length + ' — algorithm will fill the rest'
-      : 'Lock in players you want to include (optional)';
+      ? 'Locked: ' + S.sendPids.length + ' — algorithm will fill the rest' + myDntNote
+      : 'Lock in players you want to include (optional)' + myDntNote;
     renderPosChips(S.myRid, 'sndPosChips');
 
     // Update balance bar
@@ -3299,15 +3336,28 @@ function clickR(rid){
   if(S.tgtRid){ var tp=document.getElementById('tgtP'); if(tp) tp.scrollIntoView({behavior:'smooth',block:'start'}); }
 }
 function togTgt(id){
+  if(S.tgtDnt[id]) return;
   var i=S.tgtPids.indexOf(id);
   if(i>=0) S.tgtPids.splice(i,1);
   else if(S.tgtPids.length<S.tradeMax) S.tgtPids.push(id);
   renderTgtPanel();
 }
 function togSnd(id){
+  if(S.myDnt[id]) return;
   var i=S.sendPids.indexOf(id);
   if(i>=0) S.sendPids.splice(i,1);
   else if(S.sendPids.length<S.tradeMax) S.sendPids.push(id);
+  renderTgtPanel();
+}
+function togDnt(side,id,evt){
+  evt.stopPropagation();
+  var dnt=side==='my'?S.myDnt:S.tgtDnt;
+  if(dnt[id]){ delete dnt[id]; }
+  else{
+    dnt[id]=true;
+    if(side==='my'){var i=S.sendPids.indexOf(id);if(i>=0)S.sendPids.splice(i,1);}
+    else{var i=S.tgtPids.indexOf(id);if(i>=0)S.tgtPids.splice(i,1);}
+  }
   renderTgtPanel();
 }
 function setTradeStyle(s,el){
@@ -3361,7 +3411,9 @@ function genTrades(randomize){
     mustInclude: S.sendPids,
     randomize: !!randomize,
     myNeeds: myNeeds,
-    theirNeeds: theirNeeds
+    theirNeeds: theirNeeds,
+    myDnt: S.myDnt,
+    tgtDnt: S.tgtDnt
   });
   renderTrades(trades);
   var tr=document.getElementById('trdResults');
@@ -3633,7 +3685,7 @@ function renderH2H() {
   document.getElementById('h2hContent').classList.remove('hidden');
   document.getElementById('h2hSub').textContent='Loaded '+opponents.length+' opponents across all leagues and seasons.';
 }
-function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
+function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;S.myDnt={};S.tgtDnt={};S.sendPids=[];document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
 
 // ==========================================
 // WAIVER WIRE TARGETS
