@@ -3050,25 +3050,28 @@ function renderHistory() {
       var diff = sideArr[0].side.totalVal - sideArr[1].side.totalVal;
       var diffPct = sideArr[1].side.totalVal > 0 ? (diff / sideArr[1].side.totalVal * 100) : 0;
 
-      // Estimate trade-time value: assume trade was fair, so each side = midpoint
-      var totalAllSides = 0;
-      for (var j = 0; j < sideArr.length; j++) totalAllSides += sideArr[j].side.totalVal;
-      var estTradeVal = totalAllSides / sideArr.length; // what each side was worth at trade time
-
-      // Track stats for each participant
+      // Track stats for each participant.
+      // "Est. at trade" = avg current value of the OTHER sides' assets — the best
+      // proxy for what this side gave up (and thus what they received was worth at
+      // trade time, since trades were roughly fair when made).
       for (var j = 0; j < sideArr.length; j++) {
         var rid = sideArr[j].rid;
         var nowVal = sideArr[j].side.totalVal;
-        var gain = nowVal - estTradeVal; // positive = value appreciated since trade
+
+        var othersTotal = 0, othersCount = 0;
+        for (var oj = 0; oj < sideArr.length; oj++) {
+          if (oj !== j) { othersTotal += sideArr[oj].side.totalVal; othersCount++; }
+        }
+        var estTradeVal = othersCount > 0 ? othersTotal / othersCount : nowVal;
+        var gain = nowVal - estTradeVal; // positive = you got more than you gave at current values
+
         sideArr[j].side.estTradeVal = Math.round(estTradeVal);
         sideArr[j].side.valueGained = Math.round(gain);
 
         managerStats[rid].trades++;
         managerStats[rid].received += nowVal;
         managerStats[rid].valueGained += gain;
-        var othersTotal = 0;
-        for (var oj = 0; oj < sideArr.length; oj++) { if (oj !== j) othersTotal += sideArr[oj].side.totalVal; }
-        managerStats[rid].sent += othersTotal / Math.max(sideArr.length - 1, 1);
+        managerStats[rid].sent += estTradeVal;
       }
 
       var winnerRid = sideArr[0].rid;
