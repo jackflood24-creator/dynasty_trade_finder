@@ -1948,17 +1948,16 @@ async function loadCareerStats() {
 // Get a player's value for trade grading — uses career PPR as fallback for retired/0-value players
 function getTradeGradeValue(playerId) {
   var fcVal = gv(playerId) || 0;
-  if (fcVal > 0) return {v: fcVal, source: 'current'};
+  var cs = S.careerStats ? S.careerStats[playerId] : null;
+  var extra = cs ? {ppg: cs.ppg, totalPpr: cs.total_ppr, seasons: cs.seasons, bestSeason: cs.best_season, seasonsData: cs.seasons_data || null} : {};
+
+  if (fcVal > 0) return Object.assign({v: fcVal, source: 'current'}, extra);
 
   // Fallback: career production
-  if (S.careerStats) {
-    var cs = S.careerStats[playerId];
-    if (cs && cs.total_ppr > 0) {
-      // Scale career PPR to a dynasty value proxy: ~15 career PPR points ≈ 1 dynasty value
-      // This gives a retired WR1 with 1500 career PPR points a "legacy value" of ~100 per point = roughly fair
-      var legacyVal = Math.round(cs.total_ppr * 3);
-      return {v: legacyVal, source: 'career', ppg: cs.ppg, totalPpr: cs.total_ppr, seasons: cs.seasons, bestSeason: cs.best_season};
-    }
+  if (cs && cs.total_ppr > 0) {
+    // Scale career PPR to a dynasty value proxy: ~3 PPR pts ≈ 1 dynasty value unit
+    var legacyVal = Math.round(cs.total_ppr * 3);
+    return Object.assign({v: legacyVal, source: 'career'}, extra);
   }
   return {v: 0, source: 'unknown'};
 }
@@ -2983,6 +2982,7 @@ function renderHistory() {
     for (var ri = 0; ri < rosterIds.length; ri++) sides[rosterIds[ri]] = {players:[], picks:[], totalVal:0};
 
     // Adds from transaction
+    var tradeSeason = parseInt(tx._season) || 0;
     if (tx.adds) {
       var addKeys = Object.keys(tx.adds);
       for (var j = 0; j < addKeys.length; j++) {
@@ -2990,10 +2990,23 @@ function renderHistory() {
         if (!sides[toRid]) continue;
         var p = S.players[pid];
         var grade = getTradeGradeValue(pid);
-        var v = grade.v;
+        var fcVal = gv(pid) || 0;
         var name = p ? p.full_name : pid;
         var pos = p ? p.position : '??';
-        sides[toRid].players.push({id:pid, name:name, pos:pos, v:v, source:grade.source, career:grade});
+
+        // Production since trade: sum PPR points from trade season onward
+        var prodSinceTrade = 0;
+        if (grade.seasonsData && tradeSeason > 0) {
+          for (var yr in grade.seasonsData) {
+            if (parseInt(yr) >= tradeSeason) prodSinceTrade += grade.seasonsData[yr];
+          }
+        }
+        prodSinceTrade = Math.round(prodSinceTrade);
+        var prodVal = Math.round(prodSinceTrade * 3); // ~3 PPR pts = 1 dynasty value unit
+        // Blended value: career output since trade + remaining dynasty value today
+        var v = grade.seasonsData ? (prodVal + fcVal) : grade.v;
+
+        sides[toRid].players.push({id:pid, name:name, pos:pos, v:v, fcVal:fcVal, prodSinceTrade:prodSinceTrade, prodVal:prodVal, source:grade.source, career:grade});
         sides[toRid].totalVal += v;
       }
     }
@@ -3013,12 +3026,25 @@ function renderHistory() {
           // Pick was used — resolve to the actual player drafted
           var draftedP = S.players[drafted.player_id];
           var draftedGrade = getTradeGradeValue(drafted.player_id);
-          var draftedV = draftedGrade.v;
+          var draftedFcVal = gv(drafted.player_id) || 0;
           var draftedName = draftedP ? draftedP.full_name : drafted.player_name;
           var draftedPos = draftedP ? draftedP.position : '??';
           var slotNum = drafted.slot || drafted.pick_no || '?';
           var pkLabel = dp.season + ' ' + dp.round + '.' + (slotNum < 10 ? '0' : '') + slotNum + ' → ' + draftedName;
-          sides[toRid].picks.push({label:pkLabel, v:draftedV, resolved:true, playerId:drafted.player_id, playerName:draftedName, playerPos:draftedPos, source:draftedGrade.source, career:draftedGrade});
+
+          // Production since pick was used
+          var draftedProdSince = 0;
+          var draftedTradeSeason = parseInt(dp.season) || tradeSeason;
+          if (draftedGrade.seasonsData && draftedTradeSeason > 0) {
+            for (var yr in draftedGrade.seasonsData) {
+              if (parseInt(yr) >= draftedTradeSeason) draftedProdSince += draftedGrade.seasonsData[yr];
+            }
+          }
+          draftedProdSince = Math.round(draftedProdSince);
+          var draftedProdVal = Math.round(draftedProdSince * 3);
+          var draftedV = draftedGrade.seasonsData ? (draftedProdVal + draftedFcVal) : draftedGrade.v;
+
+          sides[toRid].picks.push({label:pkLabel, v:draftedV, fcVal:draftedFcVal, prodSinceTrade:draftedProdSince, prodVal:draftedProdVal, resolved:true, playerId:drafted.player_id, playerName:draftedName, playerPos:draftedPos, source:draftedGrade.source, career:draftedGrade});
           sides[toRid].totalVal += draftedV;
         } else {
           // Pick not yet used — use pick value estimate
@@ -3111,7 +3137,7 @@ function renderHistory() {
   boardArr.sort(function(a,b){return b.valueGained - a.valueGained;});
 
   var bHtml = '<div class="card" style="margin-bottom:16px"><div style="font-size:15px;font-weight:800;margin-bottom:4px">🏆 Trade Leaderboard</div>';
-  bHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:10px"><strong>Surplus</strong> = current value of what you received minus what your partner received. <strong>Value Gained</strong> = how much the assets you received appreciated since the trade (assumes trades were fair when made).</div>';
+  bHtml += '<div style="font-size:10px;color:var(--t3);margin-bottom:10px"><strong>Surplus</strong> = total value of what you received minus your partner\'s side. <strong>Value Gained</strong> = PPR production earned since trade (×3 scale) plus current dynasty value, minus the estimated trade-time value of what you gave up.</div>';
   for (var i = 0; i < boardArr.length; i++) {
     var m = boardArr[i];
     var isMine = m.rid === S.myRid;
@@ -3206,7 +3232,14 @@ function tradeCard(t, showWinner) {
         html += '<span class="v '+vcn(sp.v)+'" style="font-size:9px">'+sp.v.toLocaleString()+'</span>';
       }
       html += '</div>';
-      if (isCareer && sp.career) {
+      // Sub-line: production since trade (preferred) or career totals fallback
+      if (sp.prodSinceTrade > 0 || sp.fcVal > 0) {
+        html += '<div style="font-size:8px;color:var(--t3);padding-left:20px">';
+        if (sp.prodSinceTrade > 0) html += sp.prodSinceTrade.toLocaleString()+' PPR since trade';
+        if (sp.prodSinceTrade > 0 && sp.fcVal > 0) html += ' · ';
+        if (sp.fcVal > 0) html += sp.fcVal.toLocaleString()+' curr val';
+        html += '</div>';
+      } else if (isCareer && sp.career && sp.career.totalPpr) {
         html += '<div style="font-size:8px;color:var(--t3);padding-left:20px">'+sp.career.totalPpr.toLocaleString()+' career PPR · '+sp.career.ppg+' ppg · '+sp.career.seasons+' szn</div>';
       }
       html += '</div>';
@@ -3228,7 +3261,13 @@ function tradeCard(t, showWinner) {
           html += '<span class="v '+vcn(pk.v)+'" style="font-size:9px">'+pk.v.toLocaleString()+'</span>';
         }
         html += '</div>';
-        if (isCareer && pk.career) {
+        if (pk.prodSinceTrade > 0 || pk.fcVal > 0) {
+          html += '<div style="font-size:8px;color:var(--t3);padding-left:20px">';
+          if (pk.prodSinceTrade > 0) html += pk.prodSinceTrade.toLocaleString()+' PPR since trade';
+          if (pk.prodSinceTrade > 0 && pk.fcVal > 0) html += ' · ';
+          if (pk.fcVal > 0) html += pk.fcVal.toLocaleString()+' curr val';
+          html += '</div>';
+        } else if (isCareer && pk.career && pk.career.totalPpr) {
           html += '<div style="font-size:8px;color:var(--t3);padding-left:20px">'+(pk.career.totalPpr||0).toLocaleString()+' career PPR · '+(pk.career.ppg||0)+' ppg · '+(pk.career.seasons||0)+' szn</div>';
         }
         html += '</div>';
@@ -3245,7 +3284,7 @@ function tradeCard(t, showWinner) {
     html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t3)">';
     html += '<span>Est. at trade</span><span>'+((s.side.estTradeVal||0).toLocaleString())+'</span></div>';
     html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2)">';
-    html += '<span>Current value</span><span style="font-weight:700">'+s.side.totalVal.toLocaleString()+'</span></div>';
+    html += '<span>Total value (prod + current)</span><span style="font-weight:700">'+s.side.totalVal.toLocaleString()+'</span></div>';
     html += '</div></div>';
   }
   // Net verdict once, below both panels
@@ -3258,9 +3297,9 @@ function tradeCard(t, showWinner) {
   if (winSide && loseSide) {
     var leadAmt = Math.abs(winSide.side.valueGained || 0);
     html += '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(0,230,118,0.06);border:1px solid var(--grn3);font-size:11px;font-weight:700;color:var(--grn);text-align:center">';
-    html += esc(getOwnerName(winSide.rid))+' ahead by '+leadAmt.toLocaleString()+' at current values</div>';
+    html += esc(getOwnerName(winSide.rid))+' ahead by '+leadAmt.toLocaleString()+' (production + current value)</div>';
   } else {
-    html += '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,0.03);border:1px solid var(--bdr);font-size:11px;color:var(--t3);text-align:center">Values even at current market</div>';
+    html += '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,0.03);border:1px solid var(--bdr);font-size:11px;color:var(--t3);text-align:center">Even at total value</div>';
   }
   html += '</div>';
   return html;

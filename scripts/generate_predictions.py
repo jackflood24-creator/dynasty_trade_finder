@@ -346,7 +346,7 @@ print("\n📊 Generating career stats (for trade history grading)...")
 try:
     # Load all available seasons (go back further for career data)
     career_seasons = []
-    for yr in range(2024, 2017, -1):
+    for yr in range(2025, 2017, -1):  # include current season
         try:
             test = nfl.import_weekly_data([yr])
             if len(test) > 0:
@@ -359,6 +359,14 @@ try:
         career_weekly = nfl.import_weekly_data(career_seasons)
         career_weekly = career_weekly[career_weekly['position'].isin(['QB', 'RB', 'WR', 'TE'])].copy()
         career_weekly['fantasy_points_ppr'] = career_weekly['fantasy_points_ppr'].fillna(0)
+
+        # Per-season PPR breakdown — needed for "production since trade" feature
+        per_season_ppr = career_weekly.groupby(['player_id', 'season'])['fantasy_points_ppr'].sum()
+        per_season_map = {}
+        for (pid, yr), pts in per_season_ppr.items():
+            if pid not in per_season_map:
+                per_season_map[pid] = {}
+            per_season_map[pid][int(yr)] = round(float(pts), 1)
 
         # Aggregate: total PPR points per player across all seasons
         career = career_weekly.groupby(['player_id', 'player_display_name', 'position']).agg(
@@ -400,7 +408,8 @@ try:
                 'first_season': int(row['first_season']),
                 'last_season': int(row['last_season']),
                 'ppg': float(row['ppg']),
-                'best_season': round(float(row['best_season_pts']), 1)
+                'best_season': round(float(row['best_season_pts']), 1),
+                'seasons_data': per_season_map.get(row['player_id'], {}),
             }
             if nn in fc_map:
                 matched += 1
