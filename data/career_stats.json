@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-01T13:30:36.384630+00:00",
+  "updated": "2026-06-02T11:59:00.215969+00:00",
   "seasons_covered": [
     2018,
     2019,
@@ -1550,7 +1550,7 @@
       "ppg": 77.0,
       "best_season": 1284.6
     },
-    "1339": {
+    "00-0030061": {
       "name": "Zach Ertz",
       "pos": "TE",
       "total_ppr": 1170.0,
@@ -1935,7 +1935,7 @@
       "ppg": 13.4,
       "best_season": 477.4
     },
-    "1426": {
+    "00-0030564": {
       "name": "DeAndre Hopkins",
       "pos": "WR",
       "total_ppr": 1617.7,
@@ -2265,7 +2265,7 @@
       "ppg": 14.8,
       "best_season": 388.7
     },
-    "00-0031235": {
+    "2078": {
       "name": "Odell Beckham",
       "pos": "WR",
       "total_ppr": 857.0,
@@ -5092,7 +5092,7 @@
       "ppg": 1.9,
       "best_season": 59.3
     },
-    "00-0033699": {
+    "4663": {
       "name": "Austin Ekeler",
       "pos": "RB",
       "total_ppr": 1738.1,
@@ -5477,7 +5477,7 @@
       "ppg": 73.9,
       "best_season": 1246.2
     },
-    "4098": {
+    "00-0033923": {
       "name": "Kareem Hunt",
       "pos": "RB",
       "total_ppr": 1138.8,
@@ -6599,7 +6599,7 @@
       "ppg": 1.0,
       "best_season": 12.0
     },
-    "00-0034577": {
+    "5127": {
       "name": "Kyle Allen",
       "pos": "QB",
       "total_ppr": 272.3,
@@ -9591,7 +9591,7 @@
       "ppg": 81.0,
       "best_season": 940.8
     },
-    "6789": {
+    "00-0036357": {
       "name": "Henry Ruggs",
       "pos": "WR",
       "total_ppr": 168.6,
@@ -9778,7 +9778,7 @@
       "ppg": 21.1,
       "best_season": 778.6
     },
-    "00-0036415": {
+    "6853": {
       "name": "Van Jefferson",
       "pos": "WR",
       "total_ppr": 447.9,
@@ -10449,7 +10449,7 @@
       "ppg": 4.6,
       "best_season": 132.3
     },
-    "7562": {
+    "00-0036849": {
       "name": "Tutu Atwell",
       "pos": "WR",
       "total_ppr": 288.1,
@@ -10922,7 +10922,7 @@
       "ppg": 2.6,
       "best_season": 161.0
     },
-    "00-0037005": {
+    "7694": {
       "name": "Tommy Tremble",
       "pos": "TE",
       "total_ppr": 224.3,
@@ -10955,7 +10955,7 @@
       "ppg": 9.0,
       "best_season": 110.6
     },
-    "00-0037013": {
+    "7538": {
       "name": "Zach Wilson",
       "pos": "QB",
       "total_ppr": 370.7,
@@ -10977,7 +10977,7 @@
       "ppg": 0.0,
       "best_season": 48.5
     },
-    "8162": {
+    "00-0037077": {
       "name": "Sam Howell",
       "pos": "QB",
       "total_ppr": 275.0,
@@ -12088,7 +12088,7 @@
       "ppg": 4.3,
       "best_season": 178.9
     },
-    "00-0038090": {
+    "8168": {
       "name": "Skyy Moore",
       "pos": "WR",
       "total_ppr": 116.5,
@@ -12121,7 +12121,7 @@
       "ppg": 6.6,
       "best_season": 305.2
     },
-    "8160": {
+    "00-0038102": {
       "name": "Kenny Pickett",
       "pos": "QB",
       "total_ppr": 284.5,
@@ -12154,7 +12154,7 @@
       "ppg": 9.7,
       "best_season": 264.1
     },
-    "00-0038115": {
+    "8225": {
       "name": "Daniel Bellinger",
       "pos": "TE",
       "total_ppr": 163.1,
@@ -12495,7 +12495,7 @@
       "ppg": 14.9,
       "best_season": 450.5
     },
-    "00-0038547": {
+    "10871": {
       "name": "Luke Schoonmaker",
       "pos": "TE",
       "total_ppr": 85.3,
@@ -13210,7 +13210,7 @@
       "ppg": 17.6,
       "best_season": 299.9
     },
-    "00-0039041": {
+    "10231": {
       "name": "Elijah Higgins",
       "pos": "TE",
       "total_ppr": 85.5,
@@ -13540,7 +13540,7 @@
       "ppg": 4.9,
       "best_season": 214.8
     },
-    "00-0039359": {
+    "11599": {
       "name": "Cade Stover",
       "pos": "TE",
       "total_ppr": 41.1,
@@ -13991,7 +13991,7 @@
       "ppg": 5.9,
       "best_season": 40.3
     },
-    "11623": {
+    "00-0039751": {
       "name": "Jordan Whittington",
       "pos": "WR",
       "total_ppr": 54.7,
@@ -14101,7 +14101,7 @@
       "ppg": 2.8,
       "best_season": 5.4
     },
-    "11592": {
+    "00-0039814": {
       "name": "Erick All",
       "pos": "TE",
       "total_ppr": 35.8,
@@ -14365,7 +14365,7 @@
       "ppg": 8.5,
       "best_season": 203.9
     },
-    "11617": {
+    "00-0039920": {
       "name": "Malachi Corley",
       "pos": "WR",
       "total_ppr": 7.2,
