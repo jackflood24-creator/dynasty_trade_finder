@@ -69,6 +69,26 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
 .navtab2.on{color:var(--grn);border-color:var(--grn3);background:var(--grn2)}
 @media(max-width:700px){#evalPanel{grid-template-columns:1fr!important}}
 .hidden{display:none!important}
+/* Mobile / iPhone improvements */
+@media(max-width:700px){
+  .inp{font-size:16px}
+  .navtab{font-size:12px;white-space:normal;min-height:36px}
+  .navtab2{font-size:11px;white-space:normal;min-height:32px}
+  #navBar>div{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:wrap}
+  .btn-s{padding:9px 14px}
+  .sbtn{padding:7px 10px;min-height:36px}
+  .pos{font-size:10px;padding:2px 5px}
+  #evalGapHint{font-size:12px}
+  #evalGapGive,#evalGapGet{font-size:12px}
+  .ts{grid-template-columns:1fr!important}
+  .ta{padding-top:4px!important}
+}
+@media(hover:none){
+  .rc:active{border-color:var(--bdr2);background:rgba(255,255,255,.02)}
+  .pr:active{background:rgba(255,255,255,.03)}
+  .navtab:active,.navtab2:active{color:var(--t2);border-color:var(--bdr2)}
+  .btn-o:active{border-color:var(--bdr2)}
+}
 </style>
 </head>
 <body>
@@ -119,12 +139,20 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
         <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;align-items:flex-end">
           <div><div class="lbl" style="margin-bottom:8px">Season</div><div class="stog" id="seasonTog"><button class="sbtn" onclick="setS('2024',this)">2024</button><button class="sbtn" onclick="setS('2025',this)">2025</button><button class="sbtn on" onclick="setS('2026',this)">2026</button></div></div>
           <div><div class="lbl" style="margin-bottom:8px">Format</div><div class="stog" id="qbTog"><button class="sbtn" onclick="setQB(1,this)">1QB</button><button class="sbtn on" onclick="setQB(2,this)">SF</button></div></div>
+          <div>
+            <div class="lbl" style="margin-bottom:8px">Value Source</div>
+            <div class="stog" id="valSrcTog">
+              <button class="sbtn on" onclick="setValueSource('fc',this)">FantasyCalc</button>
+              <button class="sbtn" onclick="setValueSource('dp',this)">DynastyProcess</button>
+            </div>
+            <div id="valSrcInfo" style="font-size:10px;color:var(--t3);margin-top:5px;max-width:280px;line-height:1.5">Trade market prices from actual completed deals — lower than KTC/community perception.</div>
+          </div>
         </div>
         <div id="conErr" style="margin-top:10px;color:var(--red);font-size:12px" class="hidden"></div>
       </div>
       <div style="padding:14px 16px;border-radius:8px;background:var(--blu2);border:1px solid rgba(68,138,255,.15)">
         <div class="lbl" style="color:var(--blu);margin-bottom:6px">How it works</div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.7">1. Enter your Sleeper username — no API key needed<br>2. Pick a league — values load automatically from FantasyCalc<br>3. Values include <strong style="color:var(--pur)">draft picks</strong> with per-slot values (1.01 ≠ 1.10)<br>4. Select a trade partner + target players/picks → get proposals</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.7">1. Enter your Sleeper username — no API key needed<br>2. Pick a league — values load from your chosen source<br>3. <strong style="color:var(--t1)">FantasyCalc</strong> = actual trade market prices · <strong style="color:var(--t1)">DynastyProcess</strong> = community model (closer to KTC)<br>4. Values include <strong style="color:var(--pur)">draft picks</strong> with per-slot values (1.01 ≠ 1.10)</div>
       </div>
     </div>
   </div>
@@ -565,6 +593,7 @@ var S = {
   rosters:[], users:[], players:{}, playersLoaded:false,
   myRid:null, tgtRid:null, tgtPids:[],
   vals:{}, picks:{}, pickVals:{}, valsLoaded:false,
+  valueSource:'fc', dpVals:{}, dpLoaded:false,
   fcMeta:{}, // sleeperId → {trend30Day, age, yoe, rank, posRank, tier, stdDev}
   tradedPicks:[], drafts:[], slotOverrides:{},
   // Trade finder controls
@@ -640,6 +669,73 @@ async function loadFantasyCalcValues() {
   for (var i = 0; i < Math.min(names.length, 10); i++) addLog(log, '  "' + names[i] + '" = ' + S.pickVals[names[i]], 'in');
   S.valsLoaded = true;
   return { playerCount: pc, pickCount: pkc };
+}
+
+async function loadDynastyProcessValues() {
+  if (S.dpLoaded) return;
+  var log = document.getElementById('fLog');
+  if (log) addLog(log, 'Fetching DynastyProcess values...', 'in');
+  try {
+    var parseCSV = function(text) {
+      var lines = text.split('\n');
+      var hdr = lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g,'');});
+      var rows = [];
+      for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split(',');
+        var obj = {};
+        for (var j = 0; j < hdr.length; j++) obj[hdr[j]] = (cols[j]||'').trim().replace(/^"|"$/g,'');
+        rows.push(obj);
+      }
+      return rows;
+    };
+    var idRes = await fetch('https://raw.githubusercontent.com/dynastyprocess/data/master/files/db_playerids.csv');
+    var idRows = parseCSV(await idRes.text());
+    var fpToSleeper = {};
+    for (var i = 0; i < idRows.length; i++) {
+      var r = idRows[i];
+      if (r.fantasypros_id && r.sleeper_id && r.sleeper_id !== 'NA') fpToSleeper[r.fantasypros_id] = r.sleeper_id;
+    }
+    var valRes = await fetch('https://raw.githubusercontent.com/dynastyprocess/data/master/files/values.csv');
+    var valRows = parseCSV(await valRes.text());
+    var count = 0;
+    for (var i = 0; i < valRows.length; i++) {
+      var vr = valRows[i];
+      var slId = fpToSleeper[vr.fp_id];
+      if (!slId) continue;
+      var raw = S.numQbs >= 2 ? parseFloat(vr.value_2qb) : parseFloat(vr.value_1qb);
+      if (raw > 0) { S.dpVals[slId] = Math.round(raw); count++; }
+    }
+    S.dpLoaded = true;
+    if (log) addLog(log, '✓ DynastyProcess: ' + count + ' values loaded', 'ok');
+  } catch(e) {
+    if (log) addLog(log, '✗ DynastyProcess failed: ' + e.message, 'er');
+  }
+}
+
+function setValueSource(src, btn) {
+  S.valueSource = src;
+  document.querySelectorAll('#valSrcTog .sbtn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  var info = document.getElementById('valSrcInfo');
+  if (info) info.textContent = src === 'dp'
+    ? 'Community model from dynastyprocess.com, updated weekly. Closer to KTC than FantasyCalc.'
+    : 'Trade market prices from actual completed deals — lower than KTC/community perception.';
+  S.teamTiers = {};
+  if (src === 'dp') {
+    loadDynastyProcessValues().then(function(){ refreshCurrentView(); });
+  } else {
+    refreshCurrentView();
+  }
+}
+function refreshCurrentView() {
+  var secs = ['s-ros','s-reb','s-eval','s-mom','s-wvr','s-rnk','s-age'];
+  for (var i = 0; i < secs.length; i++) {
+    var el = document.getElementById(secs[i]);
+    if (el && !el.classList.contains('hidden')) {
+      if (secs[i]==='s-ros') { try{renderRosters();}catch(e){} }
+      break;
+    }
+  }
 }
 
 // SLEEPER
@@ -1189,7 +1285,10 @@ function updatePickOwner(pickKey, newOwnerRid) {
 
 
 // VALUE HELPERS
-function gv(id) { return S.vals[id] || null; }
+function gv(id) {
+  if (S.valueSource === 'dp') return S.dpVals[id] || null;
+  return S.vals[id] || null;
+}
 function vc(v) {
   if(v===null)return{t:'—',c:'vN'};
   if(v>=7000)return{t:v.toLocaleString(),c:'vG'};
@@ -3840,7 +3939,7 @@ function renderH2H() {
   document.getElementById('h2hContent').classList.remove('hidden');
   document.getElementById('h2hSub').textContent='Loaded '+opponents.length+' opponents across all leagues and seasons.';
 }
-function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;S.myDnt={};S.tgtDnt={};S.sendPids=[];document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');go('con');}
+function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.dpVals={};S.dpLoaded=false;S.valueSource='fc';S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;S.myDnt={};S.tgtDnt={};S.sendPids=[];document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');document.querySelectorAll('#valSrcTog .sbtn').forEach(function(b,i){b.classList.toggle('on',i===0);});go('con');}
 
 // ==========================================
 // WAIVER WIRE TARGETS
@@ -3996,6 +4095,7 @@ function evalAddPickKey(side, key) {
   renderEvalPanel();
 }
 function evalAddById(side, playerId) {
+  if (S.picks[playerId]) { evalAddPickKey(side, playerId); return; }
   var p = S.players[playerId], v = gv(playerId)||0; if (!p || !v) return;
   var arr = side === 'give' ? evalGive : evalGet;
   for (var i = 0; i < arr.length; i++) if (arr[i].id === playerId) return;
