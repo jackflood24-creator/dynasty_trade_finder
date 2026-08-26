@@ -342,8 +342,11 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <!-- STRATEGY RECOMMENDATION -->
     <div id="rebStrategy" class="card" style="margin-bottom:16px"></div>
 
-    <!-- SELL CANDIDATES -->
+    <!-- SELL CANDIDATES (algo-flagged) -->
     <div id="rebSell" style="margin-bottom:16px"></div>
+
+    <!-- SELL ANY PLAYER PICKER -->
+    <div id="rebSellPicker" style="margin-bottom:16px"></div>
 
     <!-- BUY TARGETS (position-aware) -->
     <div id="rebBuy" style="margin-bottom:16px"></div>
@@ -1513,20 +1516,22 @@ function findTrades(myRoster, targetRoster, targetIds, opts) {
       return (Math.abs(a.diff) + Math.random()*jitter) - (Math.abs(b.diff) + Math.random()*jitter);
     });
   } else {
+    // Size penalty: each extra piece costs a small amount in ranking so
+    // simpler trades aren't buried by slightly-closer large combos.
+    var sizePenalty = Math.max(anchorRV, 1) * 0.015;
     pairs.sort(function(a,b) {
       var ag = a.nearMiss?1:0, bg = b.nearMiss?1:0;
       if (ag !== bg) return ag - bg;
       if (b.needScore !== a.needScore) return b.needScore - a.needScore;
-      var cmp = Math.abs(a.diff) - Math.abs(b.diff);
-      var tiny = Math.max(anchorRV, 1) * 0.005;
-      if (Math.abs(cmp) < tiny) return (a.give.length + a.receive.length) - (b.give.length + b.receive.length);
-      return cmp;
+      var adjA = Math.abs(a.diff) + (a.give.length + a.receive.length) * sizePenalty;
+      var adjB = Math.abs(b.diff) + (b.give.length + b.receive.length) * sizePenalty;
+      return adjA - adjB;
     });
   }
 
-  // ── Diversity pass: interleave by give-side count ──────────────
-  // Buckets results by how many pieces you give (1-for-X, 2-for-X, 3-for-X…)
-  // so results show a variety of trade shapes, not just the deepest combo.
+  // ── Diversity pass: weighted slots by give-side count ─────────
+  // Smaller trades get more display slots so results aren't dominated
+  // by 3-for-3 or 4-for-4 combos that are rarely realistic.
   var buckets = {};
   for (var i = 0; i < pairs.length; i++) {
     var gc = pairs[i].give.length;
@@ -1534,17 +1539,22 @@ function findTrades(myRoster, targetRoster, targetIds, opts) {
     buckets[gc].push(pairs[i]);
   }
   var bkeys = Object.keys(buckets).sort(function(a,b){return a-b;});
+  var slotWeights = {1:14, 2:10, 3:5, 4:2};  // favor simpler trades
   var diverse = [];
-  var perBucket = Math.ceil(30 / Math.max(bkeys.length, 1));
   for (var ki = 0; ki < bkeys.length; ki++) {
+    var gc2 = parseInt(bkeys[ki]);
+    var slots = slotWeights[gc2] !== undefined ? slotWeights[gc2] : 1;
     var bkt = buckets[bkeys[ki]];
-    for (var bi = 0; bi < Math.min(perBucket, bkt.length); bi++) diverse.push(bkt[bi]);
+    for (var bi = 0; bi < Math.min(slots, bkt.length); bi++) diverse.push(bkt[bi]);
   }
-  // Re-sort the diverse list: balanced first, then by closeness
+  // Re-sort: balanced first, then by size-adjusted closeness
   diverse.sort(function(a,b){
     var ag = a.nearMiss?1:0, bg = b.nearMiss?1:0;
     if (ag !== bg) return ag - bg;
-    return Math.abs(a.diff) - Math.abs(b.diff);
+    var sp = Math.max(anchorRV, 1) * 0.015;
+    var adjA = Math.abs(a.diff) + (a.give.length + a.receive.length) * sp;
+    var adjB = Math.abs(b.diff) + (b.give.length + b.receive.length) * sp;
+    return adjA - adjB;
   });
   return diverse.slice(0, 30);
 }
@@ -2398,6 +2408,46 @@ function analyzeRebuild() {
   sellHtml += '</div>';
   document.getElementById('rebSell').innerHTML = sellHtml;
 
+  // SELL ANY PLAYER PICKER — all my players selectable regardless of algo signal
+  var spHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px">🏷️ Sell Any Player</div>';
+  spHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Pick any player on your roster to see what trade offers you could realistically get from interested teams.</div>';
+
+  // Collect all my players with value
+  var allMine = [];
+  if (my.players) {
+    for (var i = 0; i < my.players.length; i++) {
+      var id = my.players[i], p = S.players[id], v = gv(id);
+      if (!p || !v || !REL_POS.has(p.position)) continue;
+      var age = (S.fcMeta[id] && S.fcMeta[id].age) || p.age || 0;
+      allMine.push({id:id, p:p, v:v, age:age, sig: computeSignal(v, (S.fcMeta[id]&&S.fcMeta[id].trend)||0, (S.fcMeta[id]&&S.fcMeta[id].trendPct)||0, age, p.position, id)});
+    }
+  }
+  allMine.sort(function(a,b){return b.v-a.v;});
+
+  var posGroups = {QB:[], RB:[], WR:[], TE:[]};
+  for (var i = 0; i < allMine.length; i++) {
+    var pos2 = allMine[i].p.position;
+    if (posGroups[pos2]) posGroups[pos2].push(allMine[i]);
+  }
+
+  var posOrder = ['WR','RB','QB','TE'];
+  for (var pi = 0; pi < posOrder.length; pi++) {
+    var pg = posGroups[posOrder[pi]];
+    if (!pg || !pg.length) continue;
+    spHtml += '<div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;margin:10px 0 4px;padding-top:8px;border-top:1px solid var(--bdr)">'+posOrder[pi]+'</div>';
+    for (var i = 0; i < pg.length; i++) {
+      var pm = pg[i];
+      spHtml += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0">';
+      spHtml += '<span class="pos pos-'+pm.p.position+'" style="font-size:9px;padding:1px 4px">'+pm.p.position+'</span>';
+      spHtml += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(pm.p.full_name)+getSignalBadge(pm.id)+'</span>';
+      if (pm.age) spHtml += '<span style="font-size:10px;color:var(--t3)">'+pm.age.toFixed(0)+'</span>';
+      spHtml += '<span class="v '+vcn(pm.v)+'" style="font-size:11px;min-width:44px;text-align:right">'+pm.v.toLocaleString()+'</span>';
+      spHtml += '<button class="btn btn-o btn-s" style="font-size:10px;padding:3px 8px;white-space:nowrap" onclick="findSellTrades(\''+pm.id+'\')">Find Offers →</button>';
+      spHtml += '</div>';
+    }
+  }
+  spHtml += '</div>';
+  document.getElementById('rebSellPicker').innerHTML = spHtml;
 
   // 6. BUY TARGETS + TRADE MATCHMAKER — tier-aware logic
   // Classify all other teams by tier
@@ -2767,7 +2817,7 @@ function findSellTrades(playerId) {
       for (var i = 0; i < them.players.length; i++) {
         var id = them.players[i], p = S.players[id], v = gv(id);
         if (!p || !v || !REL_POS.has(p.position)) continue;
-        if ((p.age || 99) <= 25 && v >= 500) theirAssets.push({id:id, v:v, name:p.full_name, type:'player'});
+        if (v >= 500) theirAssets.push({id:id, v:v, name:p.full_name, type:'player'});
       }
     }
     theirAssets = theirAssets.filter(function(a){return a.v >= playerVal * 0.04;});
