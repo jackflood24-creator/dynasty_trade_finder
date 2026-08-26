@@ -745,14 +745,30 @@ function setValueSource(src, btn, origin) {
   }
 }
 function refreshCurrentView() {
-  var secs = ['s-ros','s-reb','s-eval','s-mom','s-wvr','s-rnk','s-age'];
-  for (var i = 0; i < secs.length; i++) {
-    var el = document.getElementById(secs[i]);
-    if (el && !el.classList.contains('hidden')) {
-      if (secs[i]==='s-ros') { try{renderRosters();}catch(e){} }
-      break;
-    }
+  if (!S.valsLoaded) return;
+  S.teamTiers = {};
+  var visible = null;
+  var all = Object.keys(STEPS);
+  for (var i = 0; i < all.length; i++) {
+    var el = document.getElementById(STEPS[all[i]]);
+    if (el && !el.classList.contains('hidden')) { visible = all[i]; break; }
   }
+  if (!visible) return;
+  var handlers = {
+    ros:  function(){ renderRosters(); },
+    mom:  function(){ var f=(document.querySelector('#momFilters .sbtn.on')||{}).textContent||'ALL'; renderMomentum(f); },
+    reb:  function(){ renderSellPicker(); analyzeRebuild(); },
+    eval: function(){ renderEvalPanel(); },
+    wvr:  function(){ renderWaiverWire(wvrPos); },
+    rnk:  function(){ renderRankings(rnkPos); },
+    age:  function(){ renderAgeCurve(); },
+    pck:  function(){ renderPickEditorPage(); renderPickEditor(); },
+    hist: function(){ renderHistory(); },
+    h2h:  function(){ renderH2H(); },
+    wtch: function(){ renderWatchList(); },
+    dash: function(){ renderDash(); }
+  };
+  if (handlers[visible]) { try { handlers[visible](); } catch(e) { console.error('refreshCurrentView error on '+visible+':', e); } }
 }
 
 // SLEEPER
