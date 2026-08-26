@@ -112,7 +112,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <button class="navtab" id="nav-pck" onclick="go('pck')">📝 Picks</button>
       <button class="navtab" id="nav-h2h" onclick="openH2H()">⚔️ H2H</button>
     </div>
-    <div style="display:flex;gap:2px;padding:4px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:20px">
+    <div style="display:flex;gap:2px;padding:4px 0 10px">
       <button class="navtab2" id="nav-wvr" onclick="openWaiverWire()">🏊 Waivers</button>
       <button class="navtab2" id="nav-eval" onclick="openEvaluator()">⚖️ Evaluator</button>
       <button class="navtab2" id="nav-dgrd" onclick="openDraftGrade()">🎓 Draft Grade</button>
@@ -121,6 +121,15 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <button class="navtab2" id="nav-act" onclick="openActivity()">📰 Activity</button>
       <button class="navtab2" id="nav-age" onclick="openAgeCurve()">📉 Age Curves</button>
       <button class="navtab2" id="nav-rnk" onclick="openRankings()">📋 Rankings</button>
+    </div>
+    <!-- Value source bar — visible on every in-app page -->
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:20px;flex-wrap:wrap">
+      <div class="lbl" style="white-space:nowrap">Value Source</div>
+      <div class="stog" id="valSrcTogNav">
+        <button class="sbtn on" onclick="setValueSource('fc',this,'nav')">FantasyCalc</button>
+        <button class="sbtn" onclick="setValueSource('dp',this,'nav')">DynastyProcess</button>
+      </div>
+      <div id="valSrcInfoNav" style="font-size:11px;color:var(--t3);line-height:1.4;flex:1;min-width:180px"><strong style="color:var(--t2)">FantasyCalc</strong> — actual trade market prices (what deals truly close at). Lower than KTC. · <strong style="color:var(--t2)">DynastyProcess</strong> — community model updated weekly, closer to KTC values.</div>
     </div>
   </div>
 
@@ -712,14 +721,22 @@ async function loadDynastyProcessValues() {
   }
 }
 
-function setValueSource(src, btn) {
+function setValueSource(src, btn, origin) {
   S.valueSource = src;
-  document.querySelectorAll('#valSrcTog .sbtn').forEach(function(b){b.classList.remove('on');});
-  btn.classList.add('on');
+  // Sync both toggles (connect screen + nav bar)
+  ['valSrcTog','valSrcTogNav'].forEach(function(id){
+    var tog = document.getElementById(id);
+    if (!tog) return;
+    tog.querySelectorAll('.sbtn').forEach(function(b){ b.classList.remove('on'); });
+    tog.querySelectorAll('.sbtn').forEach(function(b){
+      if ((src==='fc' && b.textContent==='FantasyCalc') || (src==='dp' && b.textContent==='DynastyProcess')) b.classList.add('on');
+    });
+  });
+  var fcDesc = 'Trade market prices from actual completed deals — lower than KTC/community perception.';
+  var dpDesc = 'Community model from dynastyprocess.com, updated weekly. Closer to KTC than FantasyCalc.';
+  var shortDesc = src === 'dp' ? dpDesc : fcDesc;
   var info = document.getElementById('valSrcInfo');
-  if (info) info.textContent = src === 'dp'
-    ? 'Community model from dynastyprocess.com, updated weekly. Closer to KTC than FantasyCalc.'
-    : 'Trade market prices from actual completed deals — lower than KTC/community perception.';
+  if (info) info.textContent = shortDesc;
   S.teamTiers = {};
   if (src === 'dp') {
     loadDynastyProcessValues().then(function(){ refreshCurrentView(); });
@@ -3939,7 +3956,7 @@ function renderH2H() {
   document.getElementById('h2hContent').classList.remove('hidden');
   document.getElementById('h2hSub').textContent='Loaded '+opponents.length+' opponents across all leagues and seasons.';
 }
-function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.dpVals={};S.dpLoaded=false;S.valueSource='fc';S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;S.myDnt={};S.tgtDnt={};S.sendPids=[];document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');document.querySelectorAll('#valSrcTog .sbtn').forEach(function(b,i){b.classList.toggle('on',i===0);});go('con');}
+function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.dpVals={};S.dpLoaded=false;S.valueSource='fc';S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;S.myDnt={};S.tgtDnt={};S.sendPids=[];document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');['valSrcTog','valSrcTogNav'].forEach(function(id){var t=document.getElementById(id);if(t)t.querySelectorAll('.sbtn').forEach(function(b,i){b.classList.toggle('on',i===0);});});go('con');}
 
 // ==========================================
 // WAIVER WIRE TARGETS
