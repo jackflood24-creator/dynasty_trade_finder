@@ -408,38 +408,58 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   <div id="s-eval" class="sec hidden">
     <div style="margin-bottom:20px">
       <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">⚖️ Trade Offer Evaluator</div>
-      <div style="font-size:13px;color:var(--t2)">Check if any trade is fair before you accept or counter</div>
+      <div style="font-size:13px;color:var(--t2)">Build a trade and see the live value balance — add players on either side</div>
     </div>
-    <div style="background:rgba(255,215,64,0.05);border:1px solid rgba(255,215,64,0.15);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--t3);line-height:1.7">
-      Search for any players on each side to instantly see the value balance. Useful for evaluating outside offers or fact-checking a proposed deal. Values are live from FantasyCalc.
+
+    <!-- Live gap bar -->
+    <div id="evalGapBar" style="display:none;margin-bottom:12px;padding:10px 16px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--bdr)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--red);font-weight:700" id="evalGapGive">Give: 0</span>
+        <span style="font-size:13px;font-weight:800" id="evalGapDiff">—</span>
+        <span style="font-size:11px;color:var(--blu);font-weight:700" id="evalGapGet">Get: 0</span>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden">
+        <div id="evalGapFill" style="height:100%;border-radius:2px;transition:width .2s,background .2s;width:50%;background:var(--grn)"></div>
+      </div>
+      <div id="evalGapHint" style="font-size:10px;color:var(--t3);margin-top:5px;text-align:center"></div>
     </div>
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" id="evalPanel">
+      <!-- YOU GIVE -->
       <div class="card" style="border-color:rgba(255,82,82,0.3)">
-        <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:10px">You Give</div>
+        <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:6px">You Give</div>
+        <div id="evalGiveTeamLabel" style="display:none;font-size:10px;color:var(--t3);margin-bottom:8px"></div>
         <input class="inp" id="evalIngive" placeholder="Search player or pick..." oninput="evalSearch('give',this.value)" style="margin-bottom:4px">
         <button class="btn btn-o btn-s" onclick="evalTogglePicks('give')" id="evalPickBtngive" style="margin-bottom:6px;font-size:10px">📋 Browse Picks</button>
         <div id="evalPicksgive" class="hidden" style="margin-bottom:8px"></div>
-        <div id="evalSuggive" style="margin-bottom:8px"></div>
+        <div id="evalSuggive" style="margin-bottom:4px"></div>
+        <!-- Value match suggestions -->
+        <div id="evalValMatch" style="margin-bottom:8px"></div>
         <div id="evalGiveList"></div>
         <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--bdr);padding-top:8px">
-          <div class="lbl">Total Value</div>
+          <div class="lbl">Total</div>
           <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--red)" id="evalGiveTotal">0</div>
         </div>
       </div>
+      <!-- YOU GET -->
       <div class="card" style="border-color:var(--blu3)">
-        <div style="font-size:13px;font-weight:800;color:var(--blu);margin-bottom:10px">You Get</div>
-        <input class="inp" id="evalInget" placeholder="Search player or pick..." oninput="evalSearch('get',this.value)" style="margin-bottom:4px">
+        <div style="font-size:13px;font-weight:800;color:var(--blu);margin-bottom:6px">You Get</div>
+        <!-- Locked team banner -->
+        <div id="evalLockBanner" style="display:none;font-size:10px;padding:4px 8px;border-radius:4px;background:rgba(100,200,255,0.08);border:1px solid var(--blu3);color:var(--blu);margin-bottom:8px;display:none"></div>
+        <input class="inp" id="evalInget" placeholder="Search any player..." oninput="evalSearch('get',this.value)" style="margin-bottom:4px">
         <button class="btn btn-o btn-s" onclick="evalTogglePicks('get')" id="evalPickBtnget" style="margin-bottom:6px;font-size:10px">📋 Browse Picks</button>
         <div id="evalPicksget" class="hidden" style="margin-bottom:8px"></div>
-        <div id="evalSugget" style="margin-bottom:8px"></div>
+        <div id="evalSugget" style="margin-bottom:4px"></div>
+        <!-- Locked team roster -->
+        <div id="evalTeamRoster" style="margin-bottom:8px"></div>
         <div id="evalGetList"></div>
         <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--bdr);padding-top:8px">
-          <div class="lbl">Total Value</div>
+          <div class="lbl">Total</div>
           <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--blu)" id="evalGetTotal">0</div>
         </div>
       </div>
     </div>
-    <div id="evalVerdict" class="card" style="padding:14px 16px;text-align:center;transition:.2s"><div style="color:var(--t3);font-size:12px">Add players to both sides to evaluate a trade.</div></div>
+    <div id="evalVerdict" style="display:none"></div>
     <div style="text-align:center;margin-top:10px"><button class="btn btn-o btn-s" onclick="clearEval()">Clear All</button></div>
   </div>
 
@@ -3874,10 +3894,34 @@ function renderWaiverWire(pos) {
 var evalSuggestions = {give:[], get:[]};
 var evalGive = [];
 var evalGet = [];
+var evalLockedRid = null; // roster_id of the team on the "get" side
+
 function openEvaluator() {
   if (!S.valsLoaded) { alert('Load a league first.'); return; }
   go('eval');
   renderEvalPanel();
+}
+
+// Find which non-my roster owns a given player id
+function evalFindOwner(playerId) {
+  if (!S.rosters) return null;
+  for (var i = 0; i < S.rosters.length; i++) {
+    var r = S.rosters[i];
+    if (r.roster_id === S.myRid) continue;
+    if (r.players && r.players.indexOf(playerId) >= 0) return r.roster_id;
+  }
+  return null;
+}
+
+// Re-detect locked team from current evalGet contents
+function evalDetectTeam() {
+  for (var i = 0; i < evalGet.length; i++) {
+    if (evalGet[i].type === 'player') {
+      var rid = evalFindOwner(evalGet[i].id);
+      if (rid) { evalLockedRid = rid; return; }
+    }
+  }
+  evalLockedRid = null;
 }
 function evalSearch(side, query) {
   var el = document.getElementById('evalSug'+side);
@@ -3948,6 +3992,15 @@ function evalAddPickKey(side, key) {
   var arr = side === 'give' ? evalGive : evalGet;
   for (var i = 0; i < arr.length; i++) if (arr[i].id === pk.key) return;
   arr.push({id:pk.key, name:pk.label, pos:'PICK', val:pk.value, type:'pick'});
+  if (side === 'get') evalDetectTeam();
+  renderEvalPanel();
+}
+function evalAddById(side, playerId) {
+  var p = S.players[playerId], v = gv(playerId)||0; if (!p || !v) return;
+  var arr = side === 'give' ? evalGive : evalGet;
+  for (var i = 0; i < arr.length; i++) if (arr[i].id === playerId) return;
+  arr.push({id:playerId, name:p.full_name, pos:p.position, val:v, type:'player'});
+  if (side === 'get') evalDetectTeam();
   renderEvalPanel();
 }
 function evalAddIdx(side, idx) {
@@ -3957,58 +4010,219 @@ function evalAddIdx(side, idx) {
   arr.push({id:item.id, name:item.name, pos:item.pos, val:item.val, type:item.type});
   document.getElementById('evalIn'+side).value = '';
   document.getElementById('evalSug'+side).innerHTML = '';
+  if (side === 'get') evalDetectTeam();
   renderEvalPanel();
 }
 function evalRemove(side, id) {
   if (side === 'give') evalGive = evalGive.filter(function(x){return x.id!==id;});
-  else evalGet = evalGet.filter(function(x){return x.id!==id;});
+  else { evalGet = evalGet.filter(function(x){return x.id!==id;}); evalDetectTeam(); }
   renderEvalPanel();
 }
 function clearEval() {
-  evalGive = []; evalGet = [];
+  evalGive = []; evalGet = []; evalLockedRid = null;
   ['give','get'].forEach(function(side){
     var el = document.getElementById('evalPicks'+side);
     var btn = document.getElementById('evalPickBtn'+side);
     if (el) el.classList.add('hidden');
     if (btn) btn.textContent = '📋 Browse Picks';
+    var sg = document.getElementById('evalSug'+side);
+    if (sg) sg.innerHTML = '';
+    var inp = document.getElementById('evalIn'+side);
+    if (inp) inp.value = '';
   });
   renderEvalPanel();
 }
 function renderEvalPanel() {
+  // ── Render added items on each side ──────────────────────────
   function renderSide(arr, side) {
     var total = 0, html = '';
+    var col = side === 'give' ? 'var(--red)' : 'var(--blu)';
     for (var i = 0; i < arr.length; i++) {
       var item = arr[i], vd = vc(item.val); total += item.val;
       var badge = item.pos !== 'PICK' ? getSignalBadge(item.id) : '';
       html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;margin-bottom:3px;background:rgba(255,255,255,0.02);border:1px solid var(--bdr)">';
       html += '<span class="pos pos-'+item.pos+'">'+item.pos+'</span>';
       html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(item.name)+badge+'</span>';
-      html += '<span class="v '+vd.c+'">'+vd.t+'</span>';
+      html += '<span class="v '+vd.c+'" style="font-size:11px">'+item.val.toLocaleString()+'</span>';
       html += '<button onclick="evalRemove(\''+side+'\',\''+item.id.replace(/'/g,"\\'")+'\')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:12px;padding:0 4px">✕</button>';
       html += '</div>';
     }
     var cap = side.charAt(0).toUpperCase()+side.slice(1);
-    document.getElementById('eval'+cap+'List').innerHTML = html || '<div style="font-size:11px;color:var(--t3);padding:8px 0">No assets added.</div>';
+    document.getElementById('eval'+cap+'List').innerHTML = html || '<div style="font-size:11px;color:var(--t3);padding:4px 0">Nothing added yet.</div>';
     document.getElementById('eval'+cap+'Total').textContent = total.toLocaleString();
     return total;
   }
+
   var giveTotal = renderSide(evalGive, 'give');
-  var getTotal  = renderSide(evalGet, 'get');
-  var verdict = document.getElementById('evalVerdict');
-  if (!evalGive.length && !evalGet.length) { verdict.innerHTML = '<div style="color:var(--t3);font-size:12px">Add players to both sides to evaluate a trade.</div>'; verdict.style.background=''; return; }
-  var diff = getTotal - giveTotal;
-  var base = Math.max(giveTotal, getTotal, 1);
-  var pct = Math.round(Math.abs(diff) / base * 100);
-  var txt, col, bg;
-  if (pct <= 6) {
-    txt = '⚖️  Fair Trade — within '+pct+'% balanced'; col = 'var(--t2)'; bg = 'rgba(255,255,255,0.03)';
-  } else if (diff > 0) {
-    txt = '✅  You WIN by '+pct+'% — receiving +'+diff.toLocaleString()+' more value'; col = 'var(--grn)'; bg = 'var(--grn2)';
+  var getTotal  = renderSide(evalGet,  'get');
+  var diff = getTotal - giveTotal;  // positive = you're getting more than giving
+
+  // ── Gap bar ───────────────────────────────────────────────────
+  var gapBar = document.getElementById('evalGapBar');
+  if (evalGive.length || evalGet.length) {
+    gapBar.style.display = 'block';
+    document.getElementById('evalGapGive').textContent = 'Give: ' + giveTotal.toLocaleString();
+    document.getElementById('evalGapGet').textContent  = 'Get: '  + getTotal.toLocaleString();
+    var base = Math.max(giveTotal, getTotal, 1);
+    var givePct = Math.round(giveTotal / base * 100);
+    var pctOff = Math.round(Math.abs(diff) / base * 100);
+    var fill = document.getElementById('evalGapFill');
+    fill.style.width = givePct + '%';
+    fill.style.background = pctOff <= 6 ? 'var(--grn)' : pctOff <= 15 ? 'var(--amb)' : 'var(--red)';
+    var hint = document.getElementById('evalGapHint');
+    if (pctOff <= 6) {
+      hint.textContent = '⚖️ Balanced (within ' + pctOff + '%)';
+      hint.style.color = 'var(--grn)';
+    } else if (diff > 0) {
+      hint.textContent = '↑ You need ~' + diff.toLocaleString() + ' more on your side to balance';
+      hint.style.color = 'var(--amb)';
+    } else {
+      hint.textContent = '↓ They need ~' + Math.abs(diff).toLocaleString() + ' more on their side to balance';
+      hint.style.color = 'var(--amb)';
+    }
   } else {
-    txt = '❌  You LOSE by '+pct+'% — giving away '+Math.abs(diff).toLocaleString()+' extra value'; col = 'var(--red)'; bg = 'var(--red2)';
+    gapBar.style.display = 'none';
   }
-  verdict.innerHTML = '<div style="font-size:14px;font-weight:800;color:'+col+'">'+txt+'</div><div style="margin-top:6px;font-size:11px;color:var(--t3)">You give: '+giveTotal.toLocaleString()+' · You get: '+getTotal.toLocaleString()+'</div>';
-  verdict.style.background = bg;
+
+  // ── Locked team banner + their roster ────────────────────────
+  var banner = document.getElementById('evalLockBanner');
+  var rosterEl = document.getElementById('evalTeamRoster');
+  if (evalLockedRid && S.rosters) {
+    var lockedName = getOwnerName(evalLockedRid);
+    banner.style.display = 'block';
+    banner.textContent = '🔒 Trading with: ' + lockedName;
+
+    // Build their roster, excluding already-added players
+    var addedIds = {};
+    for (var i = 0; i < evalGet.length; i++) addedIds[evalGet[i].id] = true;
+    var theirPlayers = [];
+    var lockedRoster = null;
+    for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].roster_id === evalLockedRid) { lockedRoster = S.rosters[i]; break; }
+    if (lockedRoster && lockedRoster.players) {
+      for (var i = 0; i < lockedRoster.players.length; i++) {
+        var tid = lockedRoster.players[i], tp = S.players[tid], tv = gv(tid);
+        if (!tp || !tv || !REL_POS.has(tp.position) || addedIds[tid]) continue;
+        theirPlayers.push({id:tid, p:tp, v:tv});
+      }
+    }
+    // Also add their picks
+    var theirPks = getPicksForRoster(evalLockedRid);
+    for (var i = 0; i < theirPks.length; i++) {
+      if (!addedIds[theirPks[i].key]) theirPlayers.push({id:theirPks[i].key, p:null, v:theirPks[i].value, label:theirPks[i].shortLabel||theirPks[i].label, isPick:true});
+    }
+
+    // Sort by closeness to gap need if diff > 0 (they need to add), else by value desc
+    var gapTarget = diff < 0 ? Math.abs(diff) : 0;
+    theirPlayers.sort(function(a,b){
+      if (gapTarget > 0) return Math.abs(a.v - gapTarget) - Math.abs(b.v - gapTarget);
+      return b.v - a.v;
+    });
+
+    var rHtml = '<div style="font-size:10px;font-weight:700;color:var(--blu);letter-spacing:.04em;margin-bottom:4px">';
+    rHtml += gapTarget > 0 ? 'THEY COULD ADD (closest to ' + gapTarget.toLocaleString() + ' gap):' : lockedName.toUpperCase() + '\'S ROSTER:';
+    rHtml += '</div>';
+    rHtml += '<div style="max-height:180px;overflow-y:auto">';
+    var shown = theirPlayers.slice(0, 20);
+    for (var i = 0; i < shown.length; i++) {
+      var tp2 = shown[i];
+      var posLabel = tp2.isPick ? 'PICK' : tp2.p.position;
+      var dispName = tp2.isPick ? tp2.label : tp2.p.full_name;
+      rHtml += '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;cursor:pointer;border:1px solid transparent" onmouseenter="this.style.background=\'rgba(100,200,255,0.06)\'" onmouseleave="this.style.background=\'\'" onclick="evalAddById(\'get\',\''+tp2.id+'\')">';
+      rHtml += '<span class="pos pos-'+posLabel+'" style="font-size:8px;padding:1px 3px">'+posLabel+'</span>';
+      rHtml += '<span style="flex:1;font-size:11px">'+esc(dispName)+'</span>';
+      rHtml += '<span class="v '+vcn(tp2.v)+'" style="font-size:10px">'+tp2.v.toLocaleString()+'</span>';
+      rHtml += '<span style="font-size:10px;color:var(--blu);padding-left:2px">+</span>';
+      rHtml += '</div>';
+    }
+    rHtml += '</div>';
+    rosterEl.innerHTML = rHtml;
+    rosterEl.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+    rosterEl.innerHTML = '';
+    rosterEl.style.display = 'none';
+  }
+
+  // ── Value-match suggestions on "give" side ────────────────────
+  var vmEl = document.getElementById('evalValMatch');
+  var myRoster = null;
+  if (S.rosters && S.myRid) for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].roster_id === S.myRid) { myRoster = S.rosters[i]; break; }
+
+  if (myRoster) {
+    // Already-added give-side ids (skip them)
+    var giveIds = {};
+    for (var i = 0; i < evalGive.length; i++) giveIds[evalGive[i].id] = true;
+
+    // Target value: if getTotal > 0 use remaining gap; else show full roster
+    var targetV = getTotal > 0 ? Math.max(getTotal - giveTotal, 0) : 0;
+    var showAll  = targetV === 0 && getTotal === 0;
+
+    var myPlayers = [];
+    if (myRoster.players) {
+      for (var i = 0; i < myRoster.players.length; i++) {
+        var mid = myRoster.players[i], mp = S.players[mid], mv = gv(mid);
+        if (!mp || !mv || !REL_POS.has(mp.position) || giveIds[mid]) continue;
+        myPlayers.push({id:mid, p:mp, v:mv});
+      }
+    }
+    // Add my picks
+    var myPks2 = getPicksForRoster(S.myRid);
+    for (var i = 0; i < myPks2.length; i++) {
+      if (!giveIds[myPks2[i].key]) myPlayers.push({id:myPks2[i].key, p:null, v:myPks2[i].value, label:myPks2[i].shortLabel||myPks2[i].label, isPick:true});
+    }
+
+    if (showAll) {
+      // No "get" selected yet — show my roster sorted by value as a browse list
+      myPlayers.sort(function(a,b){return b.v - a.v;});
+    } else {
+      // Sort by closeness to target gap
+      myPlayers.sort(function(a,b){ return Math.abs(a.v - targetV) - Math.abs(b.v - targetV); });
+    }
+
+    var vmHtml = '<div style="font-size:10px;font-weight:700;color:var(--red);letter-spacing:.04em;margin-bottom:4px">';
+    vmHtml += showAll ? 'YOUR ROSTER:' : (targetV > 0 ? 'YOUR PLAYERS CLOSEST TO ' + targetV.toLocaleString() + ':' : '✅ GIVE SIDE BALANCED — ADD MORE TO OVER-OFFER?');
+    vmHtml += '</div>';
+    vmHtml += '<div style="max-height:180px;overflow-y:auto">';
+    var myShown = myPlayers.slice(0, showAll ? 30 : 8);
+    for (var i = 0; i < myShown.length; i++) {
+      var mp2 = myShown[i];
+      var posLabel2 = mp2.isPick ? 'PICK' : mp2.p.position;
+      var dispName2 = mp2.isPick ? mp2.label : mp2.p.full_name;
+      vmHtml += '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;cursor:pointer" onmouseenter="this.style.background=\'rgba(255,82,82,0.06)\'" onmouseleave="this.style.background=\'\'" onclick="evalAddById(\'give\',\''+mp2.id+'\')">';
+      vmHtml += '<span class="pos pos-'+posLabel2+'" style="font-size:8px;padding:1px 3px">'+posLabel2+'</span>';
+      vmHtml += '<span style="flex:1;font-size:11px">'+esc(dispName2)+(!mp2.isPick ? getSignalBadge(mp2.id) : '')+'</span>';
+      vmHtml += '<span class="v '+vcn(mp2.v)+'" style="font-size:10px">'+mp2.v.toLocaleString()+'</span>';
+      if (!showAll && targetV > 0) {
+        var delta = mp2.v - targetV;
+        var dcolor = Math.abs(delta) < targetV * 0.12 ? 'var(--grn)' : 'var(--t3)';
+        vmHtml += '<span style="font-size:9px;color:'+dcolor+';min-width:32px;text-align:right">'+(delta >= 0 ? '+' : '')+delta.toLocaleString()+'</span>';
+      }
+      vmHtml += '<span style="font-size:10px;color:var(--red);padding-left:2px">+</span>';
+      vmHtml += '</div>';
+    }
+    vmHtml += '</div>';
+    vmEl.innerHTML = vmHtml;
+    vmEl.style.display = 'block';
+  } else {
+    vmEl.innerHTML = '';
+    vmEl.style.display = 'none';
+  }
+
+  // ── Final verdict ─────────────────────────────────────────────
+  var verdict = document.getElementById('evalVerdict');
+  if (!evalGive.length || !evalGet.length) { verdict.style.display = 'none'; return; }
+  var base2 = Math.max(giveTotal, getTotal, 1);
+  var pctOff2 = Math.round(Math.abs(diff) / base2 * 100);
+  var txt, col, bg;
+  if (pctOff2 <= 6) {
+    txt = '⚖️  Fair Trade — within ' + pctOff2 + '%'; col = 'var(--t2)'; bg = 'rgba(255,255,255,0.03)';
+  } else if (diff > 0) {
+    txt = '✅  You WIN — getting +' + diff.toLocaleString() + ' (' + pctOff2 + '%) more value'; col = 'var(--grn)'; bg = 'var(--grn2)';
+  } else {
+    txt = '❌  You LOSE — giving +' + Math.abs(diff).toLocaleString() + ' (' + pctOff2 + '%) extra value'; col = 'var(--red)'; bg = 'var(--red2)';
+  }
+  verdict.style.display = 'block';
+  verdict.innerHTML = '<div style="padding:14px 16px;text-align:center;border-radius:10px;border:1px solid var(--bdr);background:'+bg+'"><div style="font-size:14px;font-weight:800;color:'+col+'">'+txt+'</div><div style="margin-top:6px;font-size:11px;color:var(--t3)">You give: '+giveTotal.toLocaleString()+' · You get: '+getTotal.toLocaleString()+'</div></div>';
 }
 
 // ==========================================
