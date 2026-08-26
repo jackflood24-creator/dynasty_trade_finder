@@ -342,11 +342,11 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <!-- STRATEGY RECOMMENDATION -->
     <div id="rebStrategy" class="card" style="margin-bottom:16px"></div>
 
-    <!-- SELL CANDIDATES (algo-flagged) -->
-    <div id="rebSell" style="margin-bottom:16px"></div>
-
     <!-- SELL ANY PLAYER PICKER -->
     <div id="rebSellPicker" style="margin-bottom:16px"></div>
+
+    <!-- SELL CANDIDATES (algo-flagged) -->
+    <div id="rebSell" style="margin-bottom:16px"></div>
 
     <!-- BUY TARGETS (position-aware) -->
     <div id="rebBuy" style="margin-bottom:16px"></div>
@@ -2200,9 +2200,59 @@ function signalRow(pd) {
 // ==========================================
 // REBUILD ANALYZER
 // ==========================================
+function renderSellPicker() {
+  var el = document.getElementById('rebSellPicker');
+  if (!el) return;
+  var my = null;
+  for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].roster_id === S.myRid) { my = S.rosters[i]; break; }
+  if (!my || !my.players) { el.innerHTML = ''; return; }
+
+  var allMine = [];
+  for (var i = 0; i < my.players.length; i++) {
+    var id = my.players[i], p = S.players[id], v = gv(id);
+    if (!p || !v || !REL_POS.has(p.position)) continue;
+    var age = (S.fcMeta[id] && S.fcMeta[id].age) || p.age || 0;
+    allMine.push({id:id, p:p, v:v, age:age});
+  }
+  allMine.sort(function(a,b){return b.v-a.v;});
+
+  var html = '<div class="card">';
+  html += '<div style="font-size:15px;font-weight:800;margin-bottom:4px">🏷️ Find Trade Offers — Select a Player to Sell</div>';
+  html += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Click any player on your roster to see what realistic offers you could get from interested teams.</div>';
+
+  var posGroups = {WR:[], RB:[], QB:[], TE:[]};
+  for (var i = 0; i < allMine.length; i++) {
+    var pm = allMine[i], pos3 = pm.p.position;
+    if (posGroups[pos3]) posGroups[pos3].push(pm);
+  }
+
+  var hasAny = false;
+  var posOrder = ['WR','RB','QB','TE'];
+  for (var pi = 0; pi < posOrder.length; pi++) {
+    var grp = posGroups[posOrder[pi]];
+    if (!grp || !grp.length) continue;
+    hasAny = true;
+    html += '<div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;margin:10px 0 4px;padding-top:8px;border-top:1px solid var(--bdr)">'+posOrder[pi]+'</div>';
+    for (var gi = 0; gi < grp.length; gi++) {
+      var pm2 = grp[gi];
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0">';
+      html += '<span class="pos pos-'+pm2.p.position+'" style="font-size:9px;padding:1px 4px">'+pm2.p.position+'</span>';
+      html += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(pm2.p.full_name)+getSignalBadge(pm2.id)+'</span>';
+      if (pm2.age) html += '<span style="font-size:10px;color:var(--t3)">Age '+pm2.age.toFixed(0)+'</span>';
+      html += '<span class="v '+vcn(pm2.v)+'" style="font-size:11px;min-width:48px;text-align:right">'+pm2.v.toLocaleString()+'</span>';
+      html += '<button class="btn btn-o btn-s" style="font-size:10px;padding:3px 10px;white-space:nowrap;border-color:var(--red);color:var(--red)" onclick="findSellTrades(\''+pm2.id+'\')">Find Offers →</button>';
+      html += '</div>';
+    }
+  }
+  if (!hasAny) html += '<div style="color:var(--t3);font-size:12px;padding:10px 0">No valued players found on your roster.</div>';
+  html += '</div>';
+  el.innerHTML = html;
+}
+
 function openRebuildAnalyzer() {
   if (!S.valsLoaded || !S.myRid) { alert('Load a league and identify your team first.'); return; }
   go('reb');
+  try { renderSellPicker(); } catch(e) { console.error('Sell picker error:', e); }
   try { analyzeRebuild(); } catch(e) {
     console.error('Rebuild error:', e);
     document.getElementById('rebOutlook').innerHTML = '<div class="card" style="color:var(--red)">Error loading rebuild analyzer: ' + e.message + '</div>';
@@ -2407,47 +2457,6 @@ function analyzeRebuild() {
   }
   sellHtml += '</div>';
   document.getElementById('rebSell').innerHTML = sellHtml;
-
-  // SELL ANY PLAYER PICKER — all my players selectable regardless of algo signal
-  var spHtml = '<div class="card"><div style="font-size:15px;font-weight:800;margin-bottom:4px">🏷️ Sell Any Player</div>';
-  spHtml += '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">Pick any player on your roster to see what trade offers you could realistically get from interested teams.</div>';
-
-  // Collect all my players with value
-  var allMine = [];
-  if (my.players) {
-    for (var i = 0; i < my.players.length; i++) {
-      var id = my.players[i], p = S.players[id], v = gv(id);
-      if (!p || !v || !REL_POS.has(p.position)) continue;
-      var age = (S.fcMeta[id] && S.fcMeta[id].age) || p.age || 0;
-      allMine.push({id:id, p:p, v:v, age:age, sig: computeSignal(v, (S.fcMeta[id]&&S.fcMeta[id].trend)||0, (S.fcMeta[id]&&S.fcMeta[id].trendPct)||0, age, p.position, id)});
-    }
-  }
-  allMine.sort(function(a,b){return b.v-a.v;});
-
-  var posGroups = {QB:[], RB:[], WR:[], TE:[]};
-  for (var i = 0; i < allMine.length; i++) {
-    var pos2 = allMine[i].p.position;
-    if (posGroups[pos2]) posGroups[pos2].push(allMine[i]);
-  }
-
-  var posOrder = ['WR','RB','QB','TE'];
-  for (var pi = 0; pi < posOrder.length; pi++) {
-    var pg = posGroups[posOrder[pi]];
-    if (!pg || !pg.length) continue;
-    spHtml += '<div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;margin:10px 0 4px;padding-top:8px;border-top:1px solid var(--bdr)">'+posOrder[pi]+'</div>';
-    for (var i = 0; i < pg.length; i++) {
-      var pm = pg[i];
-      spHtml += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0">';
-      spHtml += '<span class="pos pos-'+pm.p.position+'" style="font-size:9px;padding:1px 4px">'+pm.p.position+'</span>';
-      spHtml += '<span style="flex:1;font-size:12px;font-weight:500">'+esc(pm.p.full_name)+getSignalBadge(pm.id)+'</span>';
-      if (pm.age) spHtml += '<span style="font-size:10px;color:var(--t3)">'+pm.age.toFixed(0)+'</span>';
-      spHtml += '<span class="v '+vcn(pm.v)+'" style="font-size:11px;min-width:44px;text-align:right">'+pm.v.toLocaleString()+'</span>';
-      spHtml += '<button class="btn btn-o btn-s" style="font-size:10px;padding:3px 8px;white-space:nowrap" onclick="findSellTrades(\''+pm.id+'\')">Find Offers →</button>';
-      spHtml += '</div>';
-    }
-  }
-  spHtml += '</div>';
-  document.getElementById('rebSellPicker').innerHTML = spHtml;
 
   // 6. BUY TARGETS + TRADE MATCHMAKER — tier-aware logic
   // Classify all other teams by tier
