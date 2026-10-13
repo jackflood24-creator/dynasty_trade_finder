@@ -105,8 +105,8 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
     <div class="logo"><i class="ti ti-arrows-exchange"></i></div>
     <div><div style="font-size:17px;font-weight:800;letter-spacing:-.03em">Dynasty Trade Finder</div><div id="hdrSub" style="font-size:11px;color:var(--t3);font-weight:500;margin-top:2px">FantasyCalc values · Sleeper sync</div></div>
     <div class="hdr-r">
-      <button class="btn btn-o btn-s hidden" id="bswl" onclick="switchLeague()"><i class="ti ti-switch-2" style="font-size:12px;margin-right:3px"></i>Switch League</button>
-      <button class="btn btn-o btn-s hidden" id="brst" onclick="resetApp()">Reset</button>
+      <button class="btn btn-o btn-s hidden" id="bswl" onclick="switchLeague()"><i class="ti ti-switch-2" style="font-size:12px;margin-right:4px"></i>Switch League</button>
+      <button class="btn btn-o btn-s hidden" id="brst" onclick="resetApp()"><i class="ti ti-logout" style="font-size:12px;margin-right:4px"></i>Sign out</button>
     </div>
   </div>
 
@@ -130,6 +130,11 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
       <button class="navtab2" id="nav-age" onclick="openAgeCurve()"><i class="ti ti-chart-line"></i>Age Curves</button>
       <button class="navtab2" id="nav-rnk" onclick="openRankings()"><i class="ti ti-trophy"></i>Rankings</button>
     </div>
+    <div id="demoBanner" class="hidden" style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,215,64,0.07);border:1px solid rgba(255,215,64,0.2);border-radius:8px;margin-bottom:8px;font-size:12px;color:var(--amb)">
+      <i class="ti ti-eye-off" style="font-size:15px;flex-shrink:0"></i>
+      <span style="flex:1">Demo mode — viewing a sample league with anonymized team names.</span>
+      <a href="#" onclick="resetApp();return false;" style="color:var(--grn);text-decoration:none;font-weight:600;white-space:nowrap">Sign in <i class="ti ti-arrow-right" style="font-size:11px"></i></a>
+    </div>
     <div class="valsrcbar">
       <span class="lbl" style="white-space:nowrap">Values</span>
       <div class="stog" id="valSrcTogNav">
@@ -152,6 +157,7 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
           <input class="inp" id="iUser" placeholder="Enter username..." onkeydown="if(event.key==='Enter')doConnect()">
           <button class="btn btn-g" id="bCon" onclick="doConnect()">Connect</button>
         </div>
+        <div id="savedUserNote" class="hidden" style="margin-top:7px;font-size:11px;color:var(--t3);display:flex;align-items:center;gap:5px"><i class="ti ti-device-floppy" style="color:var(--grn);font-size:13px"></i>Remembered from last session</div>
         <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;align-items:flex-end">
           <div><div class="lbl" style="margin-bottom:8px">Season</div><div class="stog" id="seasonTog"><button class="sbtn" onclick="setS('2024',this)">2024</button><button class="sbtn" onclick="setS('2025',this)">2025</button><button class="sbtn on" onclick="setS('2026',this)">2026</button></div></div>
           <div><div class="lbl" style="margin-bottom:8px">Format</div><div class="stog" id="qbTog"><button class="sbtn" onclick="setQB(1,this)">1QB</button><button class="sbtn on" onclick="setQB(2,this)">SF</button></div></div>
@@ -166,9 +172,15 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
         </div>
         <div id="conErr" style="margin-top:10px;color:var(--red);font-size:12px" class="hidden"></div>
       </div>
-      <div style="padding:14px 16px;border-radius:8px;background:var(--blu2);border:1px solid rgba(68,138,255,.15)">
+      <div style="padding:14px 16px;border-radius:8px;background:var(--blu2);border:1px solid rgba(68,138,255,.15);margin-bottom:12px">
         <div class="lbl" style="color:var(--blu);margin-bottom:6px">How it works</div>
         <div style="font-size:12px;color:var(--t2);line-height:1.7">1. Enter your Sleeper username — no API key needed<br>2. Pick a league — values load from your chosen source<br>3. <strong style="color:var(--t1)">FantasyCalc</strong> = actual trade market prices · <strong style="color:var(--t1)">DynastyProcess</strong> = community model (closer to KTC)<br>4. Values include <strong style="color:var(--pur)">draft picks</strong> with per-slot values (1.01 ≠ 1.10)</div>
+      </div>
+      <div style="text-align:center;padding:4px 0 8px">
+        <div style="font-size:12px;color:var(--t3);margin-bottom:10px">Don't have a Sleeper account?</div>
+        <button class="btn btn-o" id="bDemo" onclick="doDemo()" style="width:100%;justify-content:center;display:flex;align-items:center;gap:7px">
+          <i class="ti ti-player-play" style="font-size:14px"></i>Try Demo League
+        </button>
       </div>
     </div>
   </div>
@@ -610,6 +622,7 @@ var S = {
   myRid:null, tgtRid:null, tgtPids:[],
   vals:{}, picks:{}, pickVals:{}, valsLoaded:false,
   valueSource:'fc', dpVals:{}, dpLoaded:false,
+  demoMode:false, demoNames:{},
   fcMeta:{}, // sleeperId → {trend30Day, age, yoe, rank, posRank, tier, stdDev}
   tradedPicks:[], drafts:[], slotOverrides:{},
   // Trade finder controls
@@ -799,12 +812,36 @@ async function doConnect() {
     if (!user || !user.user_id) throw new Error('not found');
     S.userId = user.user_id;
     S.leagues = await fetchJSON('https://api.sleeper.app/v1/user/' + user.user_id + '/leagues/nfl/' + S.season) || [];
+    try { localStorage.setItem('dtf_user', u); } catch(e) {}
     renderLeagues(); go('lea');
   } catch(e) {
     var el = document.getElementById('conErr');
     el.textContent = 'Could not find that username.'; el.classList.remove('hidden');
   }
   btn.textContent = 'Connect'; btn.disabled = false;
+}
+
+async function doDemo() {
+  S.demoMode = true;
+  var btn = document.getElementById('bDemo');
+  if (btn) { btn.innerHTML = '<i class="ti ti-loader-2" style="font-size:13px;animation:spin .7s linear infinite"></i> Loading demo...'; btn.disabled = true; }
+  document.getElementById('conErr').classList.add('hidden');
+  try {
+    var user = await fetchJSON('https://api.sleeper.app/v1/user/jackflood');
+    if (!user || !user.user_id) throw new Error('not found');
+    S.userId = user.user_id; S.username = 'jackflood';
+    S.leagues = await fetchJSON('https://api.sleeper.app/v1/user/' + user.user_id + '/leagues/nfl/' + S.season) || [];
+    if (!S.leagues.length) throw new Error('no leagues found');
+    var best = null;
+    for (var i = 0; i < S.leagues.length; i++) { if (S.leagues[i].total_rosters >= 10) { best = S.leagues[i]; break; } }
+    if (!best) best = S.leagues[0];
+    await doSelectLeague(best.league_id);
+  } catch(e) {
+    S.demoMode = false;
+    var el = document.getElementById('conErr');
+    el.textContent = 'Demo failed to load — check your connection and try again.'; el.classList.remove('hidden');
+    if (btn) { btn.innerHTML = '<i class="ti ti-player-play" style="font-size:14px"></i> Try Demo League'; btn.disabled = false; }
+  }
 }
 
 async function doSelectLeague(leagueId) {
@@ -826,7 +863,7 @@ async function doSelectLeague(leagueId) {
   document.getElementById('rosT').textContent = league.name;
   document.getElementById('rosSub').textContent = 'Loading...';
   var bswl=document.getElementById('bswl');
-  if(bswl) bswl.textContent='⇄ '+league.name;
+  if(bswl) bswl.innerHTML='<i class="ti ti-switch-2" style="font-size:12px;margin-right:4px"></i>Switch League';
 
   try {
     addLog(log, 'Loading rosters...', 'in');
@@ -839,6 +876,13 @@ async function doSelectLeague(leagueId) {
     S.rosters = results[0]; S.users = results[1]; S.tradedPicks = results[2] || [];
     S.myRid = null; S.tgtRid = null; S.tgtPids = [];
     for (var i = 0; i < S.rosters.length; i++) if (S.rosters[i].owner_id === S.userId) { S.myRid = S.rosters[i].roster_id; break; }
+    if (S.demoMode) {
+      S.demoNames = {};
+      var _sorted = S.rosters.slice().sort(function(a,b){return a.roster_id-b.roster_id;});
+      for (var i = 0; i < _sorted.length; i++) if (_sorted[i].owner_id) S.demoNames[_sorted[i].owner_id] = 'Team '+(i+1);
+      var db = document.getElementById('demoBanner');
+      if (db) { db.classList.remove('hidden'); db.style.display = 'flex'; }
+    }
     addLog(log, '✓ ' + S.rosters.length + ' rosters, ' + S.tradedPicks.length + ' traded picks, your roster_id=' + S.myRid, 'ok');
     document.getElementById('fBar').style.width = '25%';
 
@@ -1345,6 +1389,7 @@ function getOwnerName(rid) {
   return 'roster'+rid;
 }
 function userName(oid) {
+  if (S.demoMode && S.demoNames[oid]) return S.demoNames[oid];
   for(var i=0;i<S.users.length;i++) if(S.users[i].user_id===oid) return S.users[i].display_name||S.users[i].username||'Unknown';
   return 'Unknown';
 }
@@ -3981,7 +4026,7 @@ function renderH2H() {
   document.getElementById('h2hContent').classList.remove('hidden');
   document.getElementById('h2hSub').textContent='Loaded '+opponents.length+' opponents across all leagues and seasons.';
 }
-function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.dpVals={};S.dpLoaded=false;S.valueSource='fc';S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;S.myDnt={};S.tgtDnt={};S.sendPids=[];document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');['valSrcTog','valSrcTogNav'].forEach(function(id){var t=document.getElementById(id);if(t)t.querySelectorAll('.sbtn').forEach(function(b,i){b.classList.toggle('on',i===0);});});go('con');}
+function resetApp(){S.username='';S.userId=null;S.leagues=[];S.league=null;S.rosters=[];S.users=[];S.myRid=null;S.tgtRid=null;S.tgtPids=[];S.vals={};S.picks={};S.pickVals={};S.fcMeta={};S.predictions=null;S.valsLoaded=false;S.dpVals={};S.dpLoaded=false;S.valueSource='fc';S.tradedPicks=[];S.drafts=[];S.slotOverrides={};S.teamTiers={};S.tradeHistory=null;S.draftResults={};S.careerStats=null;S.myDnt={};S.tgtDnt={};S.sendPids=[];S.demoMode=false;S.demoNames={};var db=document.getElementById('demoBanner');if(db){db.classList.add('hidden');db.style.display='';}document.getElementById('iUser').value='';document.getElementById('fetchP').classList.add('hidden');['valSrcTog','valSrcTogNav'].forEach(function(id){var t=document.getElementById(id);if(t)t.querySelectorAll('.sbtn').forEach(function(b,i){b.classList.toggle('on',i===0);});});var _sv=localStorage.getItem('dtf_user');if(_sv){document.getElementById('iUser').value=_sv;var _sn=document.getElementById('savedUserNote');if(_sn)_sn.classList.remove('hidden');}go('con');}
 
 // ==========================================
 // WAIVER WIRE TARGETS
@@ -4844,6 +4889,19 @@ function renderRankings(pos) {
   }
   el.innerHTML = html;
 }
+
+// ── Init: restore saved username ──────────────────────────────
+(function() {
+  try {
+    var saved = localStorage.getItem('dtf_user');
+    if (saved) {
+      var inp = document.getElementById('iUser');
+      if (inp) inp.value = saved;
+      var note = document.getElementById('savedUserNote');
+      if (note) note.classList.remove('hidden');
+    }
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>
