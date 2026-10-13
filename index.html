@@ -21,60 +21,66 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300e676'/><text x='50' y='72' font-size='60' text-anchor='middle' font-family='sans-serif' font-weight='bold' fill='%23000'>D</text></svg>">
 <meta name="theme-color" content="#06090f">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
-:root{--bg:#06090f;--bg2:#0c1119;--bg3:#111827;--bg4:#141c2b;--bdr:rgba(255,255,255,0.06);--bdr2:rgba(255,255,255,0.12);--t1:#e8ecf4;--t2:#7a8ba7;--t3:#4a5568;--grn:#00e676;--grn2:rgba(0,230,118,0.12);--grn3:rgba(0,230,118,0.3);--red:#ff5252;--red2:rgba(255,82,82,0.12);--blu:#448aff;--blu2:rgba(68,138,255,0.12);--blu3:rgba(68,138,255,0.3);--amb:#ffd740;--amb2:rgba(255,215,64,0.12);--pur:#b388ff;--pur2:rgba(179,136,255,0.12)}
+:root{--bg:#07090f;--bg2:#0d1220;--bg3:#111827;--bg4:#141c2b;--bdr:rgba(255,255,255,0.07);--bdr2:rgba(255,255,255,0.14);--t1:#e8ecf4;--t2:#7a8ba7;--t3:#4a5568;--grn:#00e676;--grn2:rgba(0,230,118,0.1);--grn3:rgba(0,230,118,0.28);--red:#ff5252;--red2:rgba(255,82,82,0.12);--blu:#448aff;--blu2:rgba(68,138,255,0.12);--blu3:rgba(68,138,255,0.3);--amb:#ffd740;--amb2:rgba(255,215,64,0.12);--pur:#b388ff;--pur2:rgba(179,136,255,0.12)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-height:100vh}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:0 0}::-webkit-scrollbar-thumb{background:var(--t3);border-radius:3px}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:0 0}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 .C{max-width:960px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
-.hdr{padding:16px 0;border-bottom:1px solid var(--bdr);margin-bottom:24px;display:flex;align-items:center;gap:14px}
-.logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--grn),#00c853);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;font-size:20px;color:#000;box-shadow:0 0 20px rgba(0,230,118,.2)}
-.hdr-r{margin-left:auto;display:flex;gap:8px;align-items:center}
-.btn{padding:9px 18px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
-.btn-g{background:linear-gradient(135deg,var(--grn),#00c853);color:#000}.btn-g:disabled{opacity:.4;cursor:default}
-.btn-o{background:rgba(255,255,255,.04);color:var(--t2);border:1px solid var(--bdr)}.btn-o:hover{border-color:var(--bdr2)}
+.hdr{padding:14px 0;border-bottom:1px solid var(--bdr);margin-bottom:0;display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--grn),#00c853);display:flex;align-items:center;justify-content:center;color:#000;font-size:17px;box-shadow:0 0 16px rgba(0,230,118,.2),0 2px 8px rgba(0,0,0,.4);flex-shrink:0}
+.hdr-r{margin-left:auto;display:flex;gap:6px;align-items:center}
+.btn{padding:8px 16px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;letter-spacing:.01em}
+.btn-g{background:linear-gradient(135deg,var(--grn),#00c853);color:#000;box-shadow:0 2px 8px rgba(0,230,118,.2)}.btn-g:hover{box-shadow:0 3px 14px rgba(0,230,118,.35)}.btn-g:disabled{opacity:.4;cursor:default;box-shadow:none}
+.btn-o{background:rgba(255,255,255,.04);color:var(--t2);border:1px solid var(--bdr)}.btn-o:hover{border-color:var(--bdr2);color:var(--t1);background:rgba(255,255,255,.07)}
 .btn-s{padding:6px 12px;font-size:11px}
-.inp{padding:10px 14px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid var(--bdr);color:var(--t1);font-family:inherit;font-size:14px;width:100%}.inp:focus{outline:none;border-color:var(--grn3)}.inp::placeholder{color:var(--t3)}
-.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:20px;transition:.15s}
+.inp{padding:10px 14px;border-radius:8px;background:rgba(0,0,0,.4);border:1px solid var(--bdr);color:var(--t1);font-family:inherit;font-size:14px;width:100%;transition:border-color .15s}.inp:focus{outline:none;border-color:var(--grn3)}.inp::placeholder{color:var(--t3)}
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:20px;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.2)}
 .lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}
 .v{font-family:'DM Mono',monospace;font-weight:500;font-size:11px;padding:2px 8px;border-radius:4px;white-space:nowrap}
 .vG{background:var(--amb2);color:var(--amb)}.vGr{background:var(--grn2);color:var(--grn)}.vB{background:var(--blu2);color:var(--blu)}.vP{background:var(--pur2);color:var(--pur)}.vX{background:rgba(255,255,255,.05);color:var(--t3)}.vN{background:rgba(255,255,255,.03);color:var(--t3);font-style:italic;font-size:10px}
-.pos{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;padding:2px 6px;border-radius:3px;min-width:28px;text-align:center;color:#000}
-.pos-QB{background:#ff5252}.pos-RB{background:#448aff}.pos-WR{background:#00e676}.pos-TE{background:#ffd740}.pos-PICK{background:var(--pur);color:#000}.pos-K,.pos-DEF{background:#78909c}
+.pos{font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;min-width:28px;text-align:center;letter-spacing:.02em}
+.pos-QB{background:#ff5252;color:#fff}.pos-RB{background:#448aff;color:#fff}.pos-WR{background:#00e676;color:#000}.pos-TE{background:#ffd740;color:#000}.pos-PICK{background:var(--pur);color:#fff}.pos-K,.pos-DEF{background:#78909c;color:#fff}
 .pr{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;transition:.12s;cursor:pointer;border:1px solid transparent}.pr:hover{background:rgba(255,255,255,.03)}.pr.sel{background:var(--grn2);border-color:var(--grn3)}.pr .nm{flex:1;font-size:13px;font-weight:500}
-.rc{padding:14px;border-radius:10px;cursor:pointer;background:var(--bg2);border:1px solid var(--bdr);transition:.15s}.rc:hover{border-color:var(--bdr2)}.rc.mine{border-color:var(--grn3);background:rgba(0,230,118,.04)}.rc.tgt{border-color:var(--blu3);background:rgba(68,138,255,.04)}
+.rc{padding:14px;border-radius:10px;cursor:pointer;background:var(--bg2);border:1px solid var(--bdr);transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}.rc:hover{border-color:var(--bdr2);transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.3)}.rc.mine{border-color:var(--grn3);background:rgba(0,230,118,.04)}.rc.tgt{border-color:var(--blu3);background:rgba(68,138,255,.04)}
 .rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-bottom:24px}
-.tc{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:20px;margin-bottom:12px}
+.tc{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .ts{display:grid;grid-template-columns:1fr 40px 1fr;gap:12px;align-items:start}
-@media (max-width: 700px) {
-  #tradeDualPanel { grid-template-columns: 1fr !important; }
-}
+@media(max-width:700px){#tradeDualPanel{grid-template-columns:1fr!important}}
 .ta{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--t3);padding-top:28px}
-.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--grn);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.08);border-top-color:var(--grn);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 .pb{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:8px}.pf{height:100%;background:var(--grn);border-radius:2px;transition:width .3s}
-.sec{animation:fadeUp .35s ease-out}
-.warn{background:var(--amb2);border:1px solid rgba(255,215,64,.3);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--amb)}
+.sec{animation:fadeUp .3s ease-out}
+.warn{background:var(--amb2);border:1px solid rgba(255,215,64,.25);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--amb)}
 .fp{background:var(--bg4);border:1px solid var(--blu3);border-radius:10px;padding:16px;margin-bottom:16px}
 .fl{max-height:300px;overflow-y:auto;font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-top:10px;padding:10px;background:rgba(0,0,0,.3);border-radius:6px}
 .fl div{padding:2px 0}.fl .ok{color:var(--grn)}.fl .er{color:var(--red)}.fl .in{color:var(--blu)}
-.stog{display:flex;gap:4px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:8px;padding:3px}
-.sbtn{padding:4px 12px;border-radius:6px;border:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;color:var(--t3);background:0 0}.sbtn.on{background:var(--grn2);color:var(--grn)}
-.navtab{flex:1;padding:8px 4px;border-radius:8px;border:2px solid transparent;background:var(--bg2);color:var(--t3);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:border-color .15s,color .15s;white-space:nowrap}
-.navtab:hover{color:var(--t2);border-color:var(--bdr2)}
-.navtab.on{color:var(--grn);border-color:var(--grn3);background:var(--grn2)}
-.navtab2{flex:1;padding:6px 3px;border-radius:6px;border:2px solid transparent;background:var(--bg2);color:var(--t3);font-family:inherit;font-size:10px;font-weight:700;cursor:pointer;text-align:center;transition:border-color .15s,color .15s;white-space:nowrap}
-.navtab2:hover{color:var(--t2);border-color:var(--bdr2)}
-.navtab2.on{color:var(--grn);border-color:var(--grn3);background:var(--grn2)}
+.stog{display:inline-flex;gap:3px;background:rgba(0,0,0,.3);border:1px solid var(--bdr);border-radius:8px;padding:3px}
+.sbtn{padding:4px 12px;border-radius:5px;border:none;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;color:var(--t3);background:0 0;transition:color .15s,background .15s}.sbtn:hover{color:var(--t2)}.sbtn.on{background:rgba(0,230,118,.14);color:var(--grn)}
+/* Primary nav — underline tab style */
+.navrow1{display:flex;border-bottom:1px solid var(--bdr);padding-top:12px}
+.navtab{flex:1;padding:10px 4px;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;color:var(--t3);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;text-align:center;transition:color .15s,border-color .15s;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.navtab:hover{color:var(--t1)}
+.navtab.on{color:var(--grn);border-bottom-color:var(--grn)}
+/* Secondary nav — pill chips */
+.navrow2{display:flex;flex-wrap:wrap;gap:5px;padding:10px 0 8px}
+.navtab2{padding:5px 12px;border-radius:20px;border:1px solid transparent;background:transparent;color:var(--t3);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:color .15s,background .15s,border-color .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.navtab2:hover{color:var(--t2);background:rgba(255,255,255,.05)}
+.navtab2.on{color:var(--grn);background:var(--grn2);border-color:rgba(0,230,118,.2)}
+/* Value source bar */
+.valsrcbar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,255,255,.02);border:1px solid var(--bdr);border-radius:8px;margin-bottom:20px;flex-wrap:wrap}
 @media(max-width:700px){#evalPanel{grid-template-columns:1fr!important}}
 .hidden{display:none!important}
-/* Mobile / iPhone improvements */
+/* Mobile */
 @media(max-width:700px){
   .inp{font-size:16px}
-  .navtab{font-size:12px;white-space:normal;min-height:36px}
-  .navtab2{font-size:11px;white-space:normal;min-height:32px}
-  #navBar>div{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:wrap}
+  .navtab{font-size:11px;padding:8px 3px;white-space:normal}
+  .navtab2{font-size:11px;white-space:normal}
+  .navrow1{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  .navrow2{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
   .btn-s{padding:9px 14px}
   .sbtn{padding:7px 10px;min-height:36px}
   .pos{font-size:10px;padding:2px 5px}
@@ -82,54 +88,55 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;min-h
   #evalGapGive,#evalGapGet{font-size:12px}
   .ts{grid-template-columns:1fr!important}
   .ta{padding-top:4px!important}
+  .rc:hover{transform:none}
 }
 @media(hover:none){
-  .rc:active{border-color:var(--bdr2);background:rgba(255,255,255,.02)}
+  .rc:active{border-color:var(--bdr2)}
   .pr:active{background:rgba(255,255,255,.03)}
-  .navtab:active,.navtab2:active{color:var(--t2);border-color:var(--bdr2)}
-  .btn-o:active{border-color:var(--bdr2)}
+  .navtab:active{color:var(--t1)}
+  .navtab2:active{color:var(--t2);background:rgba(255,255,255,.05)}
+  .btn-o:active{border-color:var(--bdr2);color:var(--t1)}
 }
 </style>
 </head>
 <body>
 <div class="C">
   <div class="hdr">
-    <div class="logo">D</div>
-    <div><div style="font-size:17px;font-weight:800;letter-spacing:-.03em">Dynasty Trade Finder</div><div style="font-size:11px;color:var(--t3);font-weight:500;margin-top:1px">Sleeper + FantasyCalc Values</div></div>
+    <div class="logo"><i class="ti ti-arrows-exchange"></i></div>
+    <div><div style="font-size:17px;font-weight:800;letter-spacing:-.03em">Dynasty Trade Finder</div><div id="hdrSub" style="font-size:11px;color:var(--t3);font-weight:500;margin-top:2px">FantasyCalc values · Sleeper sync</div></div>
     <div class="hdr-r">
-      <button class="btn btn-o btn-s hidden" id="bswl" onclick="switchLeague()">⇄ Switch League</button>
+      <button class="btn btn-o btn-s hidden" id="bswl" onclick="switchLeague()"><i class="ti ti-switch-2" style="font-size:12px;margin-right:3px"></i>Switch League</button>
       <button class="btn btn-o btn-s hidden" id="brst" onclick="resetApp()">Reset</button>
     </div>
   </div>
 
-  <!-- PERSISTENT NAV — fixed size, never changes -->
+  <!-- PERSISTENT NAV -->
   <div id="navBar" style="display:none">
-    <div style="display:flex;gap:2px;padding:8px 0 6px">
-      <button class="navtab" id="nav-ros" onclick="go('ros')">🤝 Rosters + Trade Finder</button>
-      <button class="navtab" id="nav-mom" onclick="openMomentum()">📈 Roster Momentum</button>
-      <button class="navtab" id="nav-reb" onclick="openRebuildAnalyzer()">🔄 Rebuild</button>
-      <button class="navtab" id="nav-hist" onclick="openHistory()">📊 Trade History</button>
-      <button class="navtab" id="nav-pck" onclick="go('pck')">📝 Picks</button>
-      <button class="navtab" id="nav-h2h" onclick="openH2H()">⚔️ H2H</button>
+    <div class="navrow1">
+      <button class="navtab" id="nav-ros" onclick="go('ros')"><i class="ti ti-arrows-exchange"></i>Trades</button>
+      <button class="navtab" id="nav-mom" onclick="openMomentum()"><i class="ti ti-trending-up"></i>Momentum</button>
+      <button class="navtab" id="nav-reb" onclick="openRebuildAnalyzer()"><i class="ti ti-refresh"></i>Rebuild</button>
+      <button class="navtab" id="nav-hist" onclick="openHistory()"><i class="ti ti-history"></i>History</button>
+      <button class="navtab" id="nav-pck" onclick="go('pck')"><i class="ti ti-list"></i>Picks</button>
+      <button class="navtab" id="nav-h2h" onclick="openH2H()"><i class="ti ti-swords"></i>H2H</button>
     </div>
-    <div style="display:flex;gap:2px;padding:4px 0 10px">
-      <button class="navtab2" id="nav-wvr" onclick="openWaiverWire()">🏊 Waivers</button>
-      <button class="navtab2" id="nav-eval" onclick="openEvaluator()">⚖️ Evaluator</button>
-      <button class="navtab2" id="nav-dgrd" onclick="openDraftGrade()">🎓 Draft Grade</button>
-      <button class="navtab2" id="nav-wtch" onclick="openWatchList()">⭐ Watch List</button>
-      <button class="navtab2" id="nav-dash" onclick="openDash()">🌐 Leagues</button>
-      <button class="navtab2" id="nav-act" onclick="openActivity()">📰 Activity</button>
-      <button class="navtab2" id="nav-age" onclick="openAgeCurve()">📉 Age Curves</button>
-      <button class="navtab2" id="nav-rnk" onclick="openRankings()">📋 Rankings</button>
+    <div class="navrow2">
+      <button class="navtab2" id="nav-wvr" onclick="openWaiverWire()"><i class="ti ti-user-plus"></i>Waivers</button>
+      <button class="navtab2" id="nav-eval" onclick="openEvaluator()"><i class="ti ti-scale"></i>Evaluator</button>
+      <button class="navtab2" id="nav-dgrd" onclick="openDraftGrade()"><i class="ti ti-school"></i>Draft Grade</button>
+      <button class="navtab2" id="nav-wtch" onclick="openWatchList()"><i class="ti ti-star"></i>Watchlist</button>
+      <button class="navtab2" id="nav-dash" onclick="openDash()"><i class="ti ti-world"></i>Leagues</button>
+      <button class="navtab2" id="nav-act" onclick="openActivity()"><i class="ti ti-activity"></i>Activity</button>
+      <button class="navtab2" id="nav-age" onclick="openAgeCurve()"><i class="ti ti-chart-line"></i>Age Curves</button>
+      <button class="navtab2" id="nav-rnk" onclick="openRankings()"><i class="ti ti-trophy"></i>Rankings</button>
     </div>
-    <!-- Value source bar — visible on every in-app page -->
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:20px;flex-wrap:wrap">
-      <div class="lbl" style="white-space:nowrap">Value Source</div>
+    <div class="valsrcbar">
+      <span class="lbl" style="white-space:nowrap">Values</span>
       <div class="stog" id="valSrcTogNav">
         <button class="sbtn on" onclick="setValueSource('fc',this,'nav')">FantasyCalc</button>
         <button class="sbtn" onclick="setValueSource('dp',this,'nav')">DynastyProcess</button>
       </div>
-      <div id="valSrcInfoNav" style="font-size:11px;color:var(--t3);line-height:1.4;flex:1;min-width:180px"><strong style="color:var(--t2)">FantasyCalc</strong> — actual trade market prices (what deals truly close at). Lower than KTC. · <strong style="color:var(--t2)">DynastyProcess</strong> — community model updated weekly, closer to KTC values.</div>
+      <div id="valSrcInfoNav" style="font-size:11px;color:var(--t3);line-height:1.5;flex:1;min-width:200px"><strong style="color:var(--t2)">FantasyCalc</strong> — trade market prices from actual completed deals. Lower than KTC. &nbsp;·&nbsp; <strong style="color:var(--t2)">DynastyProcess</strong> — community model updated weekly, closer to KTC.</div>
     </div>
   </div>
 
@@ -737,6 +744,8 @@ function setValueSource(src, btn, origin) {
   var shortDesc = src === 'dp' ? dpDesc : fcDesc;
   var info = document.getElementById('valSrcInfo');
   if (info) info.textContent = shortDesc;
+  var sub = document.getElementById('hdrSub');
+  if (sub) sub.textContent = (src === 'dp' ? 'DynastyProcess' : 'FantasyCalc') + ' values · Sleeper sync';
   S.teamTiers = {};
   if (src === 'dp') {
     loadDynastyProcessValues().then(function(){ refreshCurrentView(); });
